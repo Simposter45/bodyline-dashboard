@@ -175,8 +175,44 @@ function PaymentDrawer({
 
         {/* Member identity */}
         <div className="drawer-identity">
-          <div className="drawer-avatar">
-            {getInitials(record.member.full_name)}
+          <div
+            className="drawer-avatar"
+            style={{ padding: 0, overflow: "hidden" }}
+          >
+            {record.member.profile_photo_url ? (
+              <a
+                href={record.member.profile_photo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "block", width: "100%", height: "100%" }}
+              >
+                <img
+                  src={record.member.profile_photo_url}
+                  alt={record.member.full_name}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                    cursor: "pointer",
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.parentElement!.style.display = "none";
+                  }}
+                />
+              </a>
+            ) : null}
+            <span
+              style={{
+                display: record.member.profile_photo_url ? "none" : "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              {getInitials(record.member.full_name)}
+            </span>
           </div>
           <div>
             <h2 className="drawer-name">{record.member.full_name}</h2>
@@ -1243,8 +1279,38 @@ export default function PaymentsPage() {
                         {/* Member */}
                         <td>
                           <div className="member-cell">
-                            <div className="member-avatar">
-                              {getInitials(r.member.full_name)}
+                            <div
+                              className="member-avatar"
+                              style={{ padding: 0, overflow: "hidden" }}
+                            >
+                              {r.member.profile_photo_url ? (
+                                <img
+                                  src={r.member.profile_photo_url}
+                                  alt={r.member.full_name}
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    borderRadius: "50%",
+                                  }}
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                  }}
+                                />
+                              ) : null}
+                              <span
+                                style={{
+                                  display: r.member.profile_photo_url
+                                    ? "none"
+                                    : "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  width: "100%",
+                                  height: "100%",
+                                }}
+                              >
+                                {getInitials(r.member.full_name)}
+                              </span>
                             </div>
                             <div>
                               <div className="member-name">

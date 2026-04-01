@@ -44,6 +44,7 @@ export interface Member {
   date_of_birth: string | null; // ISO date string
   joined_date: string; // ISO date string, default current_date
   profile_photo_url: string | null;
+  id_proof_url: string | null;
   branch: string | null;
   is_active: boolean;
   created_at: string;
@@ -75,6 +76,7 @@ export interface Trainer {
   phone: string | null;
   email: string | null;
   specialization: string | null;
+  branch: string | null;
   is_active: boolean;
   created_at: string;
 }

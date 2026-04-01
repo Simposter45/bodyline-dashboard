@@ -26,6 +26,7 @@ interface AssignedMember {
     full_name: string;
     phone: string;
     email: string;
+    profile_photo_url: string;
     is_active: boolean;
     joined_date: string;
   };
@@ -441,8 +442,38 @@ export default function TrainerPage() {
                 {assignedMembers.map((a) => (
                   <div key={a.id} className="member-card">
                     <div className="member-card-top">
-                      <div className="member-avatar-lg">
-                        {getInitials(a.member.full_name)}
+                      <div
+                        className="member-avatar-lg"
+                        style={{ padding: 0, overflow: "hidden" }}
+                      >
+                        {a.member.profile_photo_url ? (
+                          <img
+                            src={a.member.profile_photo_url}
+                            alt={a.member.full_name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              borderRadius: "50%",
+                            }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        ) : null}
+                        <span
+                          style={{
+                            display: a.member.profile_photo_url
+                              ? "none"
+                              : "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        >
+                          {getInitials(a.member.full_name)}
+                        </span>
                       </div>
                       <div className="member-card-info">
                         <div className="member-card-name">

@@ -199,7 +199,50 @@ function MemberDrawer({
 
         {/* Member identity */}
         <div className="drawer-identity">
-          <div className="drawer-avatar">{getInitials(member.full_name)}</div>
+          <div
+            className="drawer-avatar"
+            style={{ padding: 0, overflow: "hidden" }}
+          >
+            {member.profile_photo_url ? (
+              <a
+                href={member.profile_photo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "block", width: "100%", height: "100%" }}
+              >
+                <img
+                  src={member.profile_photo_url}
+                  alt={member.full_name}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                    cursor: "pointer",
+                  }}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.parentElement!.style.display = "none";
+                    target
+                      .closest(".drawer-avatar")
+                      ?.querySelector("span")
+                      ?.removeAttribute("style");
+                  }}
+                />
+              </a>
+            ) : null}
+            <span
+              style={{
+                display: member.profile_photo_url ? "none" : "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              {getInitials(member.full_name)}
+            </span>
+          </div>
           <div>
             <h2 className="drawer-name">{member.full_name}</h2>
             <p className="drawer-phone">{member.phone}</p>
@@ -330,6 +373,61 @@ function MemberDrawer({
             )}
           </div>
         </div>
+        {/* Documents */}
+        {member.id_proof_url && (
+          <>
+            <div className="drawer-divider" />
+            <div className="drawer-section">
+              <p className="drawer-section-label">Identity Document</p>
+
+              <a
+                href={member.id_proof_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  background: "var(--bg3)",
+                  border: "1px solid var(--border-hi)",
+                  borderRadius: "var(--radius-sm)",
+                  padding: "12px 14px",
+                  textDecoration: "none",
+                  color: "var(--text-primary)",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  transition: "border-color 0.15s",
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--accent-blue)"
+                  strokeWidth="2"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                Aadhaar / ID Proof
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--text-muted)"
+                  strokeWidth="2"
+                  style={{ marginLeft: "auto" }}
+                >
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+              </a>
+            </div>
+          </>
+        )}
 
         {/* Actions */}
         <div className="drawer-actions">
@@ -1096,8 +1194,41 @@ export default function MembersPage() {
                         {/* Member */}
                         <td>
                           <div className="member-cell">
-                            <div className="member-avatar">
-                              {getInitials(m.full_name)}
+                            <div
+                              className="member-avatar"
+                              style={{ padding: 0, overflow: "hidden" }}
+                            >
+                              {m.profile_photo_url ? (
+                                <img
+                                  src={m.profile_photo_url}
+                                  alt={m.full_name}
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    borderRadius: "50%",
+                                  }}
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                    e.currentTarget.nextElementSibling?.removeAttribute(
+                                      "style",
+                                    );
+                                  }}
+                                />
+                              ) : null}
+                              <span
+                                style={{
+                                  display: m.profile_photo_url
+                                    ? "none"
+                                    : "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  width: "100%",
+                                  height: "100%",
+                                }}
+                              >
+                                {getInitials(m.full_name)}
+                              </span>
                             </div>
                             <div>
                               <div className="member-name">{m.full_name}</div>

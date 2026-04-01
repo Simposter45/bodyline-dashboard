@@ -23,6 +23,8 @@ interface FormData {
   date_of_birth: string;
   plan_id: string;
   payment_method: PaymentMethod | "";
+  photo_url: string;
+  id_proof_url: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -105,6 +107,10 @@ export default function OnboardingPage() {
   const [memberId, setMemberId] = useState<string | null>(null);
   const [showQR, setShowQR] = useState(false);
   const [qrPaid, setQrPaid] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const [form, setForm] = useState<FormData>({
     full_name: "",
@@ -114,6 +120,8 @@ export default function OnboardingPage() {
     date_of_birth: "",
     plan_id: "",
     payment_method: "",
+    photo_url: "",
+    id_proof_url: "",
   });
 
   // Load plans
@@ -149,7 +157,9 @@ export default function OnboardingPage() {
       form.full_name.trim().length >= 2 &&
       /^[6-9]\d{9}$/.test(form.phone) &&
       form.date_of_birth !== "" &&
-      form.branch !== ""
+      form.branch !== "" &&
+      photoFile !== null &&
+      idFile !== null
     );
   }
 
@@ -159,6 +169,34 @@ export default function OnboardingPage() {
 
   function step3Valid() {
     return form.payment_method !== "";
+  }
+
+  // ── Upload files to Supabase Storage ──
+  async function uploadFiles(memberId: string) {
+    const ext = (f: File) => f.name.split(".").pop();
+    const [photoRes, idRes] = await Promise.all([
+      photoFile
+        ? supabase.storage
+            .from("member-docs")
+            .upload(`photos/${memberId}.${ext(photoFile)}`, photoFile, {
+              upsert: true,
+            })
+        : Promise.resolve({ data: null, error: null }),
+      idFile
+        ? supabase.storage
+            .from("member-docs")
+            .upload(`id-proofs/${memberId}.${ext(idFile)}`, idFile, {
+              upsert: true,
+            })
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+    const base =
+      process.env.NEXT_PUBLIC_SUPABASE_URL +
+      "/storage/v1/object/public/member-docs/";
+    return {
+      photo_url: photoRes.data ? base + photoRes.data.path : null,
+      id_proof_url: idRes.data ? base + idRes.data.path : null,
+    };
   }
 
   // ── Submit to Supabase ──
@@ -186,6 +224,17 @@ export default function OnboardingPage() {
         .single();
 
       if (memberErr) throw memberErr;
+
+      // Upload documents
+      setUploading(true);
+      const { photo_url, id_proof_url } = await uploadFiles(memberData.id);
+      if (photo_url || id_proof_url) {
+        await supabase
+          .from("members")
+          .update({ profile_photo_url: photo_url, id_proof_url })
+          .eq("id", memberData.id);
+      }
+      setUploading(false);
 
       // Insert membership
       const { error: mmErr } = await supabase
@@ -621,7 +670,37 @@ export default function OnboardingPage() {
           border-radius: 50%;
           animation: spin 0.6s linear infinite;
         }
+
         @keyframes spin { to { transform: rotate(360deg); } }
+        /* ─── UPLOAD FIELDS ─── */
+        .upload-field { margin-bottom: 20px; animation: stepIn 0.35s ease both; }
+        .upload-zone {
+          width: 100%; background: var(--bg2); border: 1px dashed var(--bdr);
+          border-radius: var(--rsm); padding: 20px;
+          display: flex; align-items: center; gap: 16px;
+          cursor: pointer; transition: all 0.2s; position: relative;
+          overflow: hidden;
+        }
+        .upload-zone:hover { border-color: rgba(74,222,128,0.4); background: var(--bg3); }
+        .upload-zone.has-file { border-color: rgba(74,222,128,0.4); background: var(--gd); }
+        .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .upload-icon {
+          width: 40px; height: 40px; border-radius: var(--rsm);
+          background: var(--bg3); display: flex; align-items: center;
+          justify-content: center; flex-shrink: 0; font-size: 18px;
+        }
+        .upload-info { flex: 1; }
+        .upload-name { font-size: 14px; font-weight: 500; color: var(--tx); }
+        .upload-hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .upload-preview {
+          width: 40px; height: 40px; border-radius: var(--rsm);
+          object-fit: cover; border: 1px solid var(--bdr2); flex-shrink: 0;
+        }
+        .upload-check {
+          width: 20px; height: 20px; border-radius: 50%;
+          background: var(--green); display: flex; align-items: center;
+          justify-content: center; flex-shrink: 0;
+        }
 
         /* ─── ERROR ─── */
         .err-box {
@@ -956,6 +1035,93 @@ export default function OnboardingPage() {
                       onChange={(e) => set("email", e.target.value)}
                     />
                   </div>
+                  <div
+                    className="field-row"
+                    style={{ animationDelay: "0.22s" }}
+                  >
+                    <div className="upload-field">
+                      <label className="label">Passport Photo *</label>
+                      <div
+                        className={`upload-zone ${photoFile ? "has-file" : ""}`}
+                      >
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0] ?? null;
+                            setPhotoFile(f);
+                            if (f) setPhotoPreview(URL.createObjectURL(f));
+                          }}
+                        />
+                        <div className="upload-icon">
+                          {photoPreview ? (
+                            <img
+                              src={photoPreview}
+                              className="upload-preview"
+                              alt="preview"
+                            />
+                          ) : (
+                            "📷"
+                          )}
+                        </div>
+                        <div className="upload-info">
+                          <div className="upload-name">
+                            {photoFile ? photoFile.name : "Upload photo"}
+                          </div>
+                          <div className="upload-hint">JPG, PNG, WEBP</div>
+                        </div>
+                        {photoFile && (
+                          <div className="upload-check">
+                            <svg
+                              width="10"
+                              height="10"
+                              fill="none"
+                              stroke="#000"
+                              strokeWidth="3"
+                              viewBox="0 0 24 24"
+                            >
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="upload-field">
+                      <label className="label">Aadhaar Card *</label>
+                      <div
+                        className={`upload-zone ${idFile ? "has-file" : ""}`}
+                      >
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) =>
+                            setIdFile(e.target.files?.[0] ?? null)
+                          }
+                        />
+                        <div className="upload-icon">📄</div>
+                        <div className="upload-info">
+                          <div className="upload-name">
+                            {idFile ? idFile.name : "Upload Aadhaar"}
+                          </div>
+                          <div className="upload-hint">PDF only</div>
+                        </div>
+                        {idFile && (
+                          <div className="upload-check">
+                            <svg
+                              width="10"
+                              height="10"
+                              fill="none"
+                              stroke="#000"
+                              strokeWidth="3"
+                              viewBox="0 0 24 24"
+                            >
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                   <div className="field" style={{ animationDelay: "0.22s" }}>
                     <label className="label">Your Branch *</label>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -1233,7 +1399,8 @@ export default function OnboardingPage() {
                   >
                     {loading ? (
                       <>
-                        <div className="spinner" /> Saving…
+                        <div className="spinner" />{" "}
+                        {uploading ? "Uploading docs…" : "Saving…"}
                       </>
                     ) : (
                       <>Confirm & Join Bodyline</>
