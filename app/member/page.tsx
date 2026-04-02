@@ -119,18 +119,28 @@ export default function MemberPage() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
+    const guestMemberId = localStorage.getItem("bodyline_guest_member_id");
+
+    if (!user && !guestMemberId) {
       router.push("/login");
       return;
     }
 
     // 2. Find member record by email
-    const { data: memberData, error: memberErr } = await supabase
-      .from("members")
-      .select("id, full_name, email, phone, joined_date")
-      .eq("email", user.email)
-      .single();
+    // 2. Find member record — by email (auth) or by ID (guest)
+    const memberQuery = guestMemberId
+      ? supabase
+          .from("members")
+          .select("id, full_name, email, phone, joined_date")
+          .eq("id", guestMemberId)
+          .single()
+      : supabase
+          .from("members")
+          .select("id, full_name, email, phone, joined_date")
+          .eq("email", user.email)
+          .single();
 
+    const { data: memberData, error: memberErr } = await memberQuery;
     if (memberErr || !memberData) {
       setError("Member profile not found. Please contact the gym.");
       setLoading(false);

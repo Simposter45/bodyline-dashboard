@@ -252,6 +252,8 @@ export default function OnboardingPage() {
       if (mmErr) throw mmErr;
 
       setMemberId(memberData.id);
+      // Store for session-less member portal access
+      localStorage.setItem("bodyline_guest_member_id", memberData.id);
       setStep(5);
     } catch (e: unknown) {
       setError(
@@ -1087,7 +1089,7 @@ export default function OnboardingPage() {
                       </div>
                     </div>
                     <div className="upload-field">
-                      <label className="label">Aadhaar Card *</label>
+                      <label className="label">Aadhaar Card / Id Proof *</label>
                       <div
                         className={`upload-zone ${idFile ? "has-file" : ""}`}
                       >
