@@ -537,6 +537,10 @@ export default function MembersPage() {
           line-height: 1.6;
           min-height: 100vh;
         }
+        
+        ::-webkit-scrollbar {
+          display: none;
+        }
 
         /* ── Nav ── */
         .nav {

@@ -117,6 +117,10 @@ export default function LoginPage() {
           min-height: 100vh;
         }
 
+        ::-webkit-scrollbar {
+          display: none;
+        }
+
         /* ── Layout ── */
         .login-root {
           min-height: 100vh;
@@ -150,8 +154,7 @@ export default function LoginPage() {
         .left-logo span { color: var(--accent-green); }
 
         .left-visual {
-          position: absolute;
-          inset: 0;
+          margin: 1.5rem 0rem;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -238,7 +241,7 @@ export default function LoginPage() {
           color: var(--text-muted);
           text-transform: uppercase;
           letter-spacing: 0.08em;
-          margin-top: 4px;
+          margin-top: 0.4rem;
         }
 
         /* ── Right panel (form) ── */

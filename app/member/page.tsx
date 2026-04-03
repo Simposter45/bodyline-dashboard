@@ -327,6 +327,10 @@ export default function MemberPage() {
           min-height: 100vh;
         }
 
+        ::-webkit-scrollbar {
+          display: none;
+        }
+
         /* ── Nav ── */
         .nav {
           display: flex;
@@ -379,7 +383,8 @@ export default function MemberPage() {
 
         /* ── Page ── */
         .page {
-          max-width: 960px;
+          max-width: 62vw;
+          width: 100%;
           margin: 0 auto;
           padding: 40px 32px 80px;
         }
@@ -525,8 +530,8 @@ export default function MemberPage() {
         .main-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 2px;
-          margin-top: 2px;
+          gap: 1rem;
+          
         }
         @media (max-width: 700px) {
           .main-grid { grid-template-columns: 1fr; }
@@ -545,6 +550,7 @@ export default function MemberPage() {
           justify-content: space-between;
           padding: 18px 24px;
           border-bottom: 1px solid var(--border);
+          min-height: 4.9rem;
         }
         .panel-title {
           font-family: var(--font-display);
@@ -561,6 +567,8 @@ export default function MemberPage() {
           color: var(--text-secondary);
         }
         .panel-empty {
+          display: flex;
+          gap: 0.5rem;
           padding: 28px 24px;
           color: var(--text-muted);
           font-size: 13px;
@@ -673,7 +681,8 @@ export default function MemberPage() {
           border-radius: var(--radius);
           width: 100%;
           max-width: 440px;
-          overflow: hidden;
+          max-height: calc(100vh - 80px);
+          overflow-y: auto;
           animation: slideUp 0.25s ease;
         }
         @keyframes slideUp {

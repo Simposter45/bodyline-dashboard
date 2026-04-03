@@ -14,7 +14,7 @@ interface Plan {
 // ─── SWAP THESE WITH REAL ASSETS WHEN PRADEEP PROVIDES THEM ─────────────────
 // Hero: muted autoplay MP4 — gym/workout footage from Pexels (free)
 const HERO_VIDEO =
-  "https://videos.pexels.com/video-files/4761800/4761800-uhd_2560_1440_24fps.mp4";
+  "https://assets.mixkit.co/videos/preview/mixkit-people-working-out-in-a-gym-40829-large.mp4";
 // Hero fallback image shown while video loads
 const HERO_FALLBACK =
   "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1600&q=85";
@@ -162,6 +162,10 @@ export default function LandingPage() {
           line-height: 1.6; overflow-x: hidden;
         }
 
+        ::-webkit-scrollbar {
+          display: none;
+        }
+
         /* NAV */
         .nav {
           position: fixed; top: 0; left: 0; right: 0; z-index: 200;
@@ -199,6 +203,11 @@ export default function LandingPage() {
           background: url('${HERO_FALLBACK}') center/cover no-repeat;
           transition: opacity 1s ease;
         }
+         .hero-fallback::after {
+          content: '';
+          position: absolute; inset: 0;
+          background: rgba(8,8,8,0.55);
+        }
         .hero-fallback.gone { opacity: 0; pointer-events: none; }
         .hero-video {
           width: 100%; height: 100%; object-fit: cover; object-position: center;
@@ -225,6 +234,7 @@ export default function LandingPage() {
         }
         .eline { width: 36px; height: 1px; background: var(--green); }
         .hero-h1 {
+          margin-top: 3rem;
           font-family: var(--fd);
           font-size: clamp(80px, 13vw, 190px);
           line-height: 0.85; letter-spacing: 0.02em; text-transform: uppercase;
@@ -241,8 +251,11 @@ export default function LandingPage() {
           opacity: 0; animation: fu 0.7s ease 0.6s forwards;
         }
         .hero-acts {
-          display: flex; align-items: center; gap: 16px;
-          opacity: 0; animation: fu 0.7s ease 0.75s forwards;
+          display: flex; 
+          align-items: center; 
+          gap: 2rem;
+          opacity: 0; 
+          animation: fu 0.7s ease 0.75s forwards;
         }
         .btn-hero {
           display: inline-flex; align-items: center; gap: 10px;

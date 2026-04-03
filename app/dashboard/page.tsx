@@ -265,6 +265,10 @@ export default function DashboardPage() {
           --radius-sm:    8px;
         }
 
+        ::-webkit-scrollbar {
+          display: none;
+        }
+
         body {
           background: var(--bg);
           color: var(--text-primary);
@@ -275,7 +279,8 @@ export default function DashboardPage() {
         }
 
         .page {
-          max-width: 1200px;
+          width: 100%;
+          max-width: 62vw;
           margin: 0 auto;
           padding: 40px 32px 80px;
         }
@@ -397,8 +402,8 @@ export default function DashboardPage() {
         .bottom-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 2px;
-          margin-top: 2px;
+          gap: 1rem;
+          margin-top: 0.5rem;
         }
         @media (max-width: 900px) {
           .bottom-grid { grid-template-columns: 1fr; }
@@ -844,7 +849,7 @@ export default function DashboardPage() {
 
             {/* Overdue + Trainers stacked */}
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "2px" }}
+              style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
             >
               {/* Overdue members */}
               <div className="panel">

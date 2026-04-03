@@ -343,6 +343,10 @@ export default function TrainersPage() {
           min-height: 100vh;
         }
 
+        ::-webkit-scrollbar {
+          display: none;
+        }
+
         /* ── Nav ── */
         .nav {
           display: flex;

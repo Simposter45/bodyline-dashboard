@@ -46,6 +46,7 @@ interface Booking {
     full_name: string;
     phone: string;
     email: string;
+    profile_photo_url: string;
   };
 }
 
@@ -574,8 +575,41 @@ function BookingCard({
       </div>
       <div className="booking-card-body">
         <div className="booking-member-row">
-          <div className="booking-avatar">
-            {getInitials(booking.member.full_name)}
+          <div
+            className="booking-avatar"
+            style={{ overflow: "hidden", padding: 0 }}
+          >
+            {booking.member.profile_photo_url ? (
+              <img
+                src={booking.member.profile_photo_url}
+                alt={booking.member.full_name}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: "50%",
+                }}
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.style.display = "none";
+                  target.parentElement
+                    ?.querySelector("span")
+                    ?.removeAttribute("style");
+                }}
+              />
+            ) : null}
+
+            <span
+              style={{
+                display: booking.member.profile_photo_url ? "none" : "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              {getInitials(booking.member.full_name)}
+            </span>
           </div>
           <div>
             <div className="booking-member-name">
@@ -718,7 +752,8 @@ const baseStyles = `
 
   /* ── Page ── */
   .page {
-    max-width: 960px;
+    max-width: 65vw;
+    width: 100%;
     margin: 0 auto;
     padding: 40px 32px 80px;
   }
@@ -1020,7 +1055,7 @@ const baseStyles = `
   .member-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 2px;
+    gap: 0.5rem;
   }
   @media (max-width: 700px) {
     .member-grid { grid-template-columns: 1fr; }

@@ -298,6 +298,10 @@ export default function OnboardingPage() {
           min-height: 100vh;
         }
 
+        ::-webkit-scrollbar {
+          display: none;
+        }
+
         /* ─── LAYOUT ─── */
         .page {
           min-height: 100vh;

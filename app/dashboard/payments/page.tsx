@@ -319,9 +319,9 @@ function PaymentDrawer({
           <button className="drawer-btn drawer-btn-secondary">
             Send reminder
           </button>
-          <button className="drawer-btn drawer-btn-ghost">
+          {/* <button className="drawer-btn drawer-btn-ghost">
             View member profile
-          </button>
+          </button> */}
         </div>
       </div>
     </>
@@ -449,6 +449,10 @@ export default function PaymentsPage() {
           font-size: 15px;
           line-height: 1.6;
           min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar {
+          display: none;
         }
 
         /* ── Nav ── */
