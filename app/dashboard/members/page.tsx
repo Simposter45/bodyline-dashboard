@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 import type { Member, MemberMembership, MembershipPlan } from "@/types";
 
 // ------------------------------------------------------------------
@@ -1063,7 +1064,28 @@ export default function MembersPage() {
             Trainers
           </a>
         </div>
-        <div className="nav-owner">Pradeep · Owner</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span className="nav-owner">Pradeep · Owner</span>
+          <button
+            onClick={async () => {
+              const { createClient } = await import("@/lib/supabase/client");
+              await createClient().auth.signOut();
+              window.location.href = "/login";
+            }}
+            style={{
+              fontSize: 12,
+              color: "var(--text-muted)",
+              background: "none",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-sm)",
+              padding: "5px 12px",
+              cursor: "pointer",
+              fontFamily: "var(--font-body)",
+            }}
+          >
+            Sign out
+          </button>
+        </div>
       </nav>
 
       {loading && (

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+
+const supabase = createClient();
 
 type Role = "member" | "trainer" | "owner";
 
@@ -57,20 +59,22 @@ export default function LoginPage() {
 
     const userEmail = data.user.email ?? "";
 
-    // Route by email identity
-    if (userEmail === "pradeep@bodyline.in") {
-      router.push("/dashboard");
-    } else if (
-      [
-        "karthik@bodyline.in",
-        "divya@bodyline.in",
-        "suresh@bodyline.in",
-      ].includes(userEmail)
-    ) {
-      router.push("/trainer");
-    } else {
-      router.push("/member");
-    }
+    // Route by role metadata, fallback to email heuristic
+    const role =
+      (data.user.user_metadata?.role as string) ??
+      (userEmail === "pradeep@bodyline.in"
+        ? "owner"
+        : [
+              "karthik@bodyline.in",
+              "divya@bodyline.in",
+              "suresh@bodyline.in",
+            ].includes(userEmail)
+          ? "trainer"
+          : "member");
+
+    if (role === "owner") router.push("/dashboard");
+    else if (role === "trainer") router.push("/trainer");
+    else router.push("/member");
   }
 
   // Pre-fill demo credentials on role switch

@@ -138,7 +138,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (step !== 5) return;
     if (countdown <= 0) {
-      window.location.href = "/member";
+      window.location.href = `/member?guest=${memberId}`;
       return;
     }
     const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
@@ -253,7 +253,7 @@ export default function OnboardingPage() {
 
       setMemberId(memberData.id);
       // Store for session-less member portal access
-      localStorage.setItem("bodyline_guest_member_id", memberData.id);
+      // localStorage.setItem("bodyline_guest_member_id", memberData.id);
       setStep(5);
     } catch (e: unknown) {
       setError(
@@ -908,7 +908,7 @@ export default function OnboardingPage() {
             <p className="success-redirect">
               Redirecting to your portal in <span>{countdown}s</span>…
             </p>
-            <a href="/member" className="btn-portal">
+            <a href={`/member?guest=${memberId}`} className="btn-portal">
               Go to Member Portal →
             </a>
           </div>

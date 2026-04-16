@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 
 // ------------------------------------------------------------------
 // Types
@@ -122,9 +123,9 @@ export default function TrainerPage() {
   useEffect(() => {
     async function load() {
       try {
-        // Get current session
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userEmail = sessionData.session?.user?.email;
+        // Get current user — getUser() validates the JWT server-side (safe)
+        const { data: { user } } = await supabase.auth.getUser();
+        const userEmail = user?.email;
         if (!userEmail) {
           setError("Not signed in. Please log in.");
           return;

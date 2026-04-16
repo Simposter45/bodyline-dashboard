@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 
 interface Plan {
   id: string;
@@ -884,8 +885,8 @@ export default function LandingPage() {
             </div>
             <div>
               <div className="f-ct">Contact</div>
-              <a href="tel:+919810011001" className="f-a">
-                +91 98100 11001
+              <a href="tel:+919873133287" className="f-a">
+                +91 98731 33287
               </a>
               <a href="mailto:hello@bodyline.in" className="f-a">
                 hello@bodyline.in
@@ -917,7 +918,7 @@ export default function LandingPage() {
 
       <a
         className="wa-btn"
-        href="https://wa.me/919810011001?text=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20Bodyline%20membership."
+        href="https://wa.me/919873133287?text=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20Bodyline%20membership."
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"

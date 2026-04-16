@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient();
 import { useRouter } from "next/navigation";
 
 // ------------------------------------------------------------------
@@ -119,15 +120,15 @@ export default function MemberPage() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const guestMemberId = localStorage.getItem("bodyline_guest_member_id");
+    const params = new URLSearchParams(window.location.search);
+    const guestMemberId = !user ? (params.get("guest") ?? null) : null;
 
     if (!user && !guestMemberId) {
       router.push("/login");
       return;
     }
 
-    // 2. Find member record by email
-    // 2. Find member record — by email (auth) or by ID (guest)
+    /// 2. Find member record — auth user takes priority, guest fallback for onboarding
     const memberQuery = guestMemberId
       ? supabase
           .from("members")
@@ -137,7 +138,7 @@ export default function MemberPage() {
       : supabase
           .from("members")
           .select("id, full_name, email, phone, joined_date")
-          .eq("email", user.email)
+          .eq("email", user!.email)
           .single();
 
     const { data: memberData, error: memberErr } = await memberQuery;
