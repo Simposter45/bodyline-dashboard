@@ -4,6 +4,34 @@
 // ============================================================
 
 // ------------------------------------------------------------------
+// SaaS / Multi-Tenancy Types
+// ------------------------------------------------------------------
+
+export interface Gym {
+  id: string;
+  name: string;
+  slug: string;
+  owner_email: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface GymSettings {
+  id: string;
+  gym_id: string;
+  gym_display_name: string | null;
+  tagline: string | null;
+  logo_url: string | null;
+  primary_color: string;
+  city: string | null;
+  branches: string[];
+  upi_id: string | null;
+  whatsapp_number: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ------------------------------------------------------------------
 // Enums
 // ------------------------------------------------------------------
 
@@ -29,6 +57,7 @@ export type NotificationType =
 
 export interface MembershipPlan {
   id: string;
+  gym_id: string;
   name: string;
   duration_days: number;
   price: number;
@@ -38,6 +67,7 @@ export interface MembershipPlan {
 
 export interface Member {
   id: string;
+  gym_id: string;
   full_name: string;
   phone: string;
   email: string | null;
@@ -52,6 +82,7 @@ export interface Member {
 
 export interface MemberMembership {
   id: string;
+  gym_id: string;
   member_id: string;
   plan_id: string;
   start_date: string; // ISO date string
@@ -64,6 +95,7 @@ export interface MemberMembership {
 
 export interface Attendance {
   id: string;
+  gym_id: string;
   member_id: string;
   check_in: string; // ISO timestamp
   check_out: string | null; // ISO timestamp
@@ -72,6 +104,7 @@ export interface Attendance {
 
 export interface Trainer {
   id: string;
+  gym_id: string;
   full_name: string;
   phone: string | null;
   email: string | null;
@@ -83,6 +116,7 @@ export interface Trainer {
 
 export interface TrainerAssignment {
   id: string;
+  gym_id: string;
   member_id: string;
   trainer_id: string;
   assigned_date: string; // ISO date string

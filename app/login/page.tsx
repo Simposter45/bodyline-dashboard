@@ -1,44 +1,66 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useGymSettings } from "@/hooks/useGymSettings";
 
 const supabase = createClient();
 
 type Role = "member" | "trainer" | "owner";
 
-const ROLE_CONFIG: Record<
-  Role,
-  { label: string; placeholder: string; hint: string; accent: string }
-> = {
-  owner: {
-    label: "Owner",
-    placeholder: "pradeep@bodyline.in",
-    hint: "Full dashboard access",
-    accent: "#4ade80",
-  },
-  trainer: {
-    label: "Trainer",
-    placeholder: "trainer@bodyline.in",
-    hint: "View your schedule & members",
-    accent: "#60a5fa",
-  },
-  member: {
-    label: "Member",
-    placeholder: "you@example.com",
-    hint: "Check plans & book sessions",
-    accent: "#fbbf24",
-  },
-};
-
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [role, setRole] = useState<Role>("owner");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [gymSlug, setGymSlug] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    // 1. Check if the landing page passed a specific gym in the URL (?gym=xyz)
+    const paramSlug = searchParams.get("gym");
+    
+    if (paramSlug) {
+      setGymSlug(paramSlug);
+    } else if (typeof window !== "undefined") {
+      // 2. Otherwise default to hostname sniff (SaaS pattern)
+      if (window.location.hostname.includes("localhost")) {
+        setGymSlug("bodyline-fitness");
+      } else {
+        setGymSlug(window.location.hostname.split(".")[0]);
+      }
+    }
+  }, [searchParams]);
+
+  const { data: settings } = useGymSettings(gymSlug ? { gymSlug } : undefined);
+console.log(settings);
+  const ROLE_CONFIG: Record<
+    Role,
+    { label: string; placeholder: string; hint: string; accent: string }
+  > = {
+    owner: {
+      label: "Owner",
+      placeholder: `owner@${settings?.gym_display_name?.toLowerCase().replace(/\s+/g, "") || "example"}.in`,
+      hint: "Full dashboard access",
+      accent: settings?.primary_color || "#4ade80",
+    },
+    trainer: {
+      label: "Trainer",
+      placeholder: `trainer@${settings?.gym_display_name?.toLowerCase().replace(/\s+/g, "") || "example"}.in`,
+      hint: "View your schedule & members",
+      accent: "#60a5fa",
+    },
+    member: {
+      label: "Member",
+      placeholder: "you@example.com",
+      hint: "Check plans & book sessions",
+      accent: "#fbbf24",
+    },
+  };
 
   const cfg = ROLE_CONFIG[role];
 
@@ -60,7 +82,7 @@ export default function LoginPage() {
     const userEmail = data.user.email ?? "";
 
     // Route by role metadata, fallback to email heuristic
-    const role =
+    const resolvedRole =
       (data.user.user_metadata?.role as string) ??
       (userEmail === "pradeep@bodyline.in"
         ? "owner"
@@ -72,8 +94,8 @@ export default function LoginPage() {
           ? "trainer"
           : "member");
 
-    if (role === "owner") router.push("/dashboard");
-    else if (role === "trainer") router.push("/trainer");
+    if (resolvedRole === "owner") router.push("/dashboard");
+    else if (resolvedRole === "trainer") router.push("/trainer");
     else router.push("/member");
   }
 
@@ -90,41 +112,6 @@ export default function LoginPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-          --bg:             #0d0d0f;
-          --bg2:            #141417;
-          --bg3:            #1c1c21;
-          --border:         rgba(255,255,255,0.07);
-          --border-hi:      rgba(255,255,255,0.13);
-          --text-primary:   #f0efe8;
-          --text-secondary: #8a8987;
-          --text-muted:     #555450;
-          --accent-green:   #4ade80;
-          --accent-amber:   #fbbf24;
-          --accent-red:     #f87171;
-          --accent-blue:    #60a5fa;
-          --font-display:   'Syne', sans-serif;
-          --font-body:      'DM Sans', sans-serif;
-          --radius:         14px;
-          --radius-sm:      8px;
-          --accent-current: ${accentColor};
-        }
-
-        body {
-          background: var(--bg);
-          color: var(--text-primary);
-          font-family: var(--font-body);
-          min-height: 100vh;
-        }
-
-        ::-webkit-scrollbar {
-          display: none;
-        }
-
         /* ── Layout ── */
         .login-root {
           min-height: 100vh;
@@ -412,14 +399,6 @@ export default function LoginPage() {
           justify-content: center;
           gap: 8px;
         }
-        .btn-spinner {
-          width: 16px; height: 16px;
-          border: 2px solid rgba(255,255,255,0.2);
-          border-top-color: var(--text-primary);
-          border-radius: 50%;
-          animation: spin 0.7s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ── Error ── */
         .error-box {
@@ -466,11 +445,14 @@ export default function LoginPage() {
         }
       `}</style>
 
-      <div className="login-root">
+      <div 
+        className="login-root" 
+        style={{"--accent-current": accentColor} as React.CSSProperties}
+      >
         {/* ── Left decorative panel ── */}
         <div className="login-left">
           <a href="/" className="left-logo">
-            Bodyline<span>.</span>
+            {settings?.gym_display_name ? settings.gym_display_name.split(" ")[0] : "Gym"}<span>.</span>
           </a>
 
           <div className="left-visual">
@@ -494,12 +476,12 @@ export default function LoginPage() {
             </p>
             <p className="left-sub">
               Manage members, trainers, payments and bookings from one place —
-              built for Bodyline.
+              built for {settings?.gym_display_name || "your gym"}.
             </p>
             <div className="left-stats">
               <div>
-                <div className="left-stat-val">3</div>
-                <div className="left-stat-label">Locations</div>
+                <div className="left-stat-val">{settings?.branches?.length || 1}</div>
+                <div className="left-stat-label">{settings?.branches?.length === 1 ? 'Location' : 'Locations'}</div>
               </div>
               <div>
                 <div className="left-stat-val">20+</div>
@@ -517,7 +499,7 @@ export default function LoginPage() {
         <div className="login-right">
           <div className="login-form-wrap">
             <a href="/" className="mobile-logo">
-              Bodyline<span>.</span>
+              {settings?.gym_display_name ? settings.gym_display_name.split(" ")[0] : "Gym"}<span>.</span>
             </a>
 
             <p className="form-eyebrow">Welcome back</p>
@@ -566,9 +548,6 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                style={
-                  { "--accent-current": accentColor } as React.CSSProperties
-                }
               />
             </div>
 
@@ -588,9 +567,6 @@ export default function LoginPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !loading) handleLogin();
                 }}
-                style={
-                  { "--accent-current": accentColor } as React.CSSProperties
-                }
               />
             </div>
 
@@ -604,14 +580,14 @@ export default function LoginPage() {
               disabled={loading || !email || !password}
             >
               <div className="btn-login-inner">
-                {loading && <div className="btn-spinner" />}
+                {loading && <div className="loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
                 {loading ? "Signing in…" : `Sign in as ${cfg.label}`}
               </div>
             </button>
 
             {/* Footer */}
             <div className="form-footer">
-              <a href="/">← Back to bodyline.in</a>
+              <a href="/">← Back to {settings?.gym_display_name ? settings.gym_display_name.toLowerCase().replace(/\s+/g, '') + '.in' : 'gym website'}</a>
               &nbsp;·&nbsp;
               <a href="/onboarding">New member? Join now</a>
             </div>
@@ -621,3 +597,12 @@ export default function LoginPage() {
     </>
   );
 }
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"/></div>}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
