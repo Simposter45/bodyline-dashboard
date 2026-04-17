@@ -164,7 +164,7 @@ export default function MemberPage() {
       .single();
 
     if (memData) {
-      const plan = memData.plan as { name: string; price: number };
+      const plan = (Array.isArray(memData.plan) ? memData.plan[0] : memData.plan) as { name: string; price: number };
       setMembership({
         id: memData.id,
         plan_name: plan.name,
@@ -208,7 +208,12 @@ export default function MemberPage() {
       .order("session_date", { ascending: true })
       .limit(5);
 
-    setBookings((bookingsData ?? []) as Booking[]);
+    setBookings(
+      (bookingsData ?? []).map((b: any) => ({
+        ...b,
+        trainer: Array.isArray(b.trainer) ? b.trainer[0] : b.trainer,
+      })) as Booking[],
+    );
 
     setLoading(false);
   }
@@ -248,7 +253,12 @@ export default function MemberPage() {
       .gte("session_date", today)
       .order("session_date", { ascending: true })
       .limit(5);
-    setBookings((data ?? []) as Booking[]);
+    setBookings(
+      (data ?? []).map((b: any) => ({
+        ...b,
+        trainer: Array.isArray(b.trainer) ? b.trainer[0] : b.trainer,
+      })) as Booking[],
+    );
 
     setTimeout(() => setBookSuccess(false), 4000);
   }
@@ -292,7 +302,6 @@ export default function MemberPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -313,8 +322,8 @@ export default function MemberPage() {
           --accent-amber-dim:  rgba(251,191,36,0.12);
           --accent-red-dim:    rgba(248,113,113,0.12);
           --accent-blue-dim:   rgba(96,165,250,0.12);
-          --font-display:   'Syne', sans-serif;
-          --font-body:      'DM Sans', sans-serif;
+          --font-display:   var(--font-syne), sans-serif;
+          --font-body:      var(--font-dm-sans), sans-serif;
           --radius:         14px;
           --radius-sm:      8px;
         }
@@ -325,7 +334,6 @@ export default function MemberPage() {
           font-family: var(--font-body);
           font-size: 15px;
           line-height: 1.6;
-          min-height: 100vh;
         }
 
         ::-webkit-scrollbar {

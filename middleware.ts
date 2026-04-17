@@ -109,9 +109,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Logged in — enforce role
-  const role =
-    (user.user_metadata?.role as string) ??
-    deriveRoleFromEmail(user.email ?? "");
+  const rawRole = (user.app_metadata?.role as string) || (user.user_metadata?.role as string);
+  const role = ["owner", "trainer", "member"].includes(rawRole) ? rawRole : "member";
 
   const matchedBase = Object.keys(PROTECTED).find((base) =>
     pathname.startsWith(base),
@@ -128,13 +127,6 @@ export async function middleware(request: NextRequest) {
   }
 
   return supabaseResponse;
-}
-
-// Fallback: derive role from email for existing demo users
-function deriveRoleFromEmail(email: string): string {
-  if (email.startsWith("owner@") || email.startsWith("pradeep@")) return "owner";
-  if (email.startsWith("trainer@") || ["karthik@", "divya@", "suresh@"].some(p => email.startsWith(p))) return "trainer";
-  return "member";
 }
 
 function roleHome(role: string): string {

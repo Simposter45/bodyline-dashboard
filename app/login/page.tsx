@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useGymSettings } from "@/hooks/useGymSettings";
 
 const supabase = createClient();
@@ -38,7 +39,6 @@ function LoginContent() {
   }, [searchParams]);
 
   const { data: settings } = useGymSettings(gymSlug ? { gymSlug } : undefined);
-console.log("Setting -> ",settings);
   const ROLE_CONFIG: Record<
     Role,
     { label: string; placeholder: string; hint: string; accent: string }
@@ -80,16 +80,9 @@ console.log("Setting -> ",settings);
       return;
     }
 
-    const userEmail = data.user.email ?? "";
-
-    // Route by role metadata, fallback to email heuristic
-    const resolvedRole =
-      (data.user.user_metadata?.role as string) ??
-      (userEmail.startsWith("pradeep@") || userEmail.startsWith("owner@")
-        ? "owner"
-        : ["karthik@", "divya@", "suresh@", "trainer@"].some(p => userEmail.startsWith(p))
-          ? "trainer"
-          : "member");
+    const user = data.user;
+    const rawRole = (user.app_metadata?.role as string) || (user.user_metadata?.role as string);
+    const resolvedRole = ["owner", "trainer", "member"].includes(rawRole) ? rawRole : "member";
 
     if (resolvedRole === "owner") router.push("/dashboard");
     else if (resolvedRole === "trainer") router.push("/trainer");
@@ -448,9 +441,9 @@ console.log("Setting -> ",settings);
       >
         {/* ── Left decorative panel ── */}
         <div className="login-left">
-          <a href="/" className="left-logo">
+          <Link href="/" className="left-logo">
             {settings?.gym_display_name ? settings.gym_display_name.split(" ")[0] : "Gym"}<span>.</span>
-          </a>
+          </Link>
 
           <div className="left-visual">
             <div className="left-rings">
@@ -495,9 +488,9 @@ console.log("Setting -> ",settings);
         {/* ── Right form panel ── */}
         <div className="login-right">
           <div className="login-form-wrap">
-            <a href="/" className="mobile-logo">
+            <Link href="/" className="mobile-logo">
               {settings?.gym_display_name ? settings.gym_display_name.split(" ")[0] : "Gym"}<span>.</span>
-            </a>
+            </Link>
 
             <p className="form-eyebrow">Welcome back</p>
             <h1 className="form-heading">
@@ -584,9 +577,9 @@ console.log("Setting -> ",settings);
 
             {/* Footer */}
             <div className="form-footer">
-              <a href="/">← Back to {settings?.gym_display_name ? settings.gym_display_name.toLowerCase().replace(/\s+/g, '') + '.in' : 'gym website'}</a>
+              <Link href="/">← Back to {settings?.gym_display_name ? settings.gym_display_name.toLowerCase().replace(/\s+/g, '') + '.in' : 'gym website'}</Link>
               &nbsp;·&nbsp;
-              <a href="/onboarding">New member? Join now</a>
+              <Link href="/onboarding">New member? Join now</Link>
             </div>
           </div>
         </div>

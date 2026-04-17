@@ -309,8 +309,6 @@ function OnboardingContent() {
   return (
     <div style={{"--green": accentColor, "--gd": accentColorDim} as React.CSSProperties}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
-
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
@@ -326,8 +324,8 @@ function OnboardingContent() {
           --gd:     rgba(74,222,128,0.1);
           --amber:  #fbbf24;
           --red:    #f87171;
-          --fd:     'Syne', sans-serif;
-          --fb:     'DM Sans', sans-serif;
+          --fd:     var(--font-syne), sans-serif;
+          --fb:     var(--font-dm-sans), sans-serif;
           --r:      14px;
           --rsm:    8px;
         }
@@ -335,7 +333,6 @@ function OnboardingContent() {
         body {
           background: var(--bg); color: var(--tx);
           font-family: var(--fb); font-size: 15px; line-height: 1.6;
-          min-height: 100vh;
         }
 
         ::-webkit-scrollbar {

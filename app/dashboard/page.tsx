@@ -74,9 +74,9 @@ export default function DashboardPage() {
     if (hour >= 12 && hour < 17) setGreeting("Good afternoon");
     else if (hour >= 17) setGreeting("Good evening");
     
-    supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Pradeep");
+        setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "User");
       }
     });
 
@@ -133,7 +133,6 @@ export default function DashboardPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
 
         .page {
           width: 100%;
