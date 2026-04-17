@@ -1,0 +1,19 @@
+# CodeRabbit Configuration
+# Documentation: https://docs.coderabbit.ai/
+
+language: "en-US"
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: true
+  high_level_summary: true
+  poetic_summary: false
+  auto_review:
+    enabled: true
+    draft: false
+
+tools:
+  oxlint:
+    enabled: true
+  ast-grep:
+    enabled: true
