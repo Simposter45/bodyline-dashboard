@@ -12,7 +12,13 @@ const PROTECTED: Record<string, string[]> = {
 const PUBLIC = ["/", "/login", "/onboarding", "/checkin"];
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  const requestHeaders = new Headers(request.headers);
+
+  let supabaseResponse = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,7 +32,11 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
-          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse = NextResponse.next({
+            request: {
+              headers: requestHeaders,
+            },
+          });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           );
@@ -34,6 +44,43 @@ export async function middleware(request: NextRequest) {
       },
     },
   );
+
+  // --- Subdomain Tenant Resolution ---
+  const host = request.headers.get("host") || "";
+  let slug: string | undefined = undefined;
+
+  if (host.includes("localhost") || host.includes("127.0.0.1")) {
+    const parts = host.split(".");
+    if (parts.length > 1 && parts[0] !== "www") {
+      slug = parts[0];
+    }
+  } else {
+    // prod domains like gym1.bodyline.in
+    const parts = host.split(".");
+    if (parts.length > 2 && parts[0] !== "www") {
+      slug = parts[0];
+    }
+  }
+
+  // Resolve gym_id
+  if (slug) {
+    const { data } = await supabase
+      .from("gyms")
+      .select("id")
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .single();
+
+    if (data?.id) {
+      requestHeaders.set("x-gym-id", data.id);
+      // Re-initialize to apply updated request headers to the Next.js pipeline
+      supabaseResponse = NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      });
+    }
+  }
 
   // Refresh session — MUST be called before any getUser()
   const {
@@ -47,7 +94,6 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // Not logged in — redirect to login
   // Not logged in — redirect to login
   if (!user) {
     // Allow guest member access via onboarding URL param
@@ -85,15 +131,9 @@ export async function middleware(request: NextRequest) {
 }
 
 // Fallback: derive role from email for existing demo users
-// (until user_metadata.role is set via Supabase Dashboard)
 function deriveRoleFromEmail(email: string): string {
-  if (email === "pradeep@bodyline.in") return "owner";
-  if (
-    ["karthik@bodyline.in", "divya@bodyline.in", "suresh@bodyline.in"].includes(
-      email,
-    )
-  )
-    return "trainer";
+  if (email.startsWith("owner@") || email.startsWith("pradeep@")) return "owner";
+  if (email.startsWith("trainer@") || ["karthik@", "divya@", "suresh@"].some(p => email.startsWith(p))) return "trainer";
   return "member";
 }
 

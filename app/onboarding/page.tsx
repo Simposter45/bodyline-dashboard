@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useGymSettings } from "@/hooks/useGymSettings";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -98,7 +102,26 @@ function StepBar({ step }: { step: number }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function OnboardingPage() {
+function OnboardingContent() {
+  const searchParams = useSearchParams();
+  const [gymSlug, setGymSlug] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const paramSlug = searchParams.get("gym");
+    if (paramSlug) {
+      setGymSlug(paramSlug);
+    } else if (typeof window !== "undefined") {
+      const parts = window.location.hostname.split(".");
+      if (parts.length > 1 && parts[0] !== "www" && parts[0] !== "localhost") {
+        setGymSlug(parts[0]);
+      } else {
+        setGymSlug(undefined);
+      }
+    }
+  }, [searchParams]);
+
+  const { data: settings } = useGymSettings(gymSlug ? { gymSlug } : undefined);
+
   const [step, setStep] = useState(1);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
@@ -253,7 +276,7 @@ export default function OnboardingPage() {
 
       setMemberId(memberData.id);
       // Store for session-less member portal access
-      // localStorage.setItem("bodyline_guest_member_id", memberData.id);
+      // localStorage.setItem("gym_guest_member_id", memberData.id);
       setStep(5);
     } catch (e: unknown) {
       setError(
@@ -266,8 +289,25 @@ export default function OnboardingPage() {
     }
   }
 
+  const accentColor = settings?.primary_color || "#4ade80";
+  // Convert hex to rgba for --gd (10% opacity)
+  const hexToRgb = (h: string) => {
+    let r = 0, g = 0, b = 0;
+    if (h.length === 4) {
+      r = parseInt(h[1] + h[1], 16);
+      g = parseInt(h[2] + h[2], 16);
+      b = parseInt(h[3] + h[3], 16);
+    } else if (h.length === 7) {
+      r = parseInt(h[1] + h[2], 16);
+      g = parseInt(h[3] + h[4], 16);
+      b = parseInt(h[5] + h[6], 16);
+    }
+    return `${r},${g},${b}`;
+  };
+  const accentColorDim = `rgba(${hexToRgb(accentColor)}, 0.1)`;
+
   return (
-    <>
+    <div style={{"--green": accentColor, "--gd": accentColorDim} as React.CSSProperties}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -824,7 +864,7 @@ export default function OnboardingPage() {
                     })()}
                   </div>
                 </div>
-                <div className="qr-upi-id">bodyline@upi</div>
+                <div className="qr-upi-id">{settings?.upi_id || "gym@upi"}</div>
                 <button className="qr-paid-btn" onClick={() => setQrPaid(true)}>
                   I've Paid ✓
                 </button>
@@ -859,14 +899,14 @@ export default function OnboardingPage() {
         <div className="success-page">
           <div className="success-card">
             <div className="success-icon">🎉</div>
-            <div className="success-label">Welcome to Bodyline</div>
+            <div className="success-label">Welcome to {settings?.gym_display_name || "our Gym"}</div>
             <h1 className="success-h1">
               You're In,
               <br />
               {form.full_name.split(" ")[0]}.
             </h1>
             <p className="success-sub">
-              Your membership is confirmed. Head to any Bodyline branch and tell
+              Your membership is confirmed. Head to any {settings?.gym_display_name || "Gym"} branch and tell
               them your name — you're good to go.
             </p>
             <div className="success-details">
@@ -919,7 +959,7 @@ export default function OnboardingPage() {
           {/* LEFT SIDE PANEL */}
           <div className="side">
             <a href="/" className="side-logo">
-              Bodyline<span>.</span>
+              {settings?.gym_display_name ? settings.gym_display_name.split(' ')[0] : 'Gym'}<span>.</span>
             </a>
             <div className="side-center">
               <div className="side-tag">
@@ -932,12 +972,12 @@ export default function OnboardingPage() {
                 <em>Journey.</em>
               </h2>
               <p className="side-body">
-                Join Gurugram's performance gym. Takes 2 minutes. Walk in
+                Join {settings?.city ? `${settings.city}'s` : "our"} performance gym. Takes 2 minutes. Walk in
                 tomorrow.
               </p>
               <div className="side-features">
                 {[
-                  "Access all 3 Gurugram branches",
+                  `Access all ${settings?.branches?.length || 1} ${settings?.city || ''} branches`,
                   "Expert trainers from day one",
                   "Digital check-in & session tracking",
                   "Flexible plans — monthly to annual",
@@ -950,7 +990,7 @@ export default function OnboardingPage() {
               </div>
             </div>
             <div className="side-bottom">
-              © {new Date().getFullYear()} Bodyline Fitness · Gurugram
+              © {new Date().getFullYear()} {settings?.gym_display_name || "Gym"} {settings?.city ? `· ${settings.city}` : ""}
             </div>
             <div className="side-bg-num">{step}</div>
           </div>
@@ -1409,7 +1449,7 @@ export default function OnboardingPage() {
                         {uploading ? "Uploading docs…" : "Saving…"}
                       </>
                     ) : (
-                      <>Confirm & Join Bodyline</>
+                      <>Confirm & Join {settings?.gym_display_name ? settings.gym_display_name.split(' ')[0] : 'Gym'}</>
                     )}
                   </button>
                 )}
@@ -1418,6 +1458,14 @@ export default function OnboardingPage() {
           </div>
         </div>
       )}
-    </>
+    </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"/></div>}>
+      <OnboardingContent />
+    </Suspense>
   );
 }

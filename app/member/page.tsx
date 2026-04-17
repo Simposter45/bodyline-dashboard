@@ -960,7 +960,7 @@ export default function MemberPage() {
       {/* ── Nav ── */}
       <nav className="nav">
         <a href="/" className="nav-logo">
-          Bodyline<span>.</span>
+          Gym<span>.</span>
         </a>
         <div className="nav-right">
           {member && (

@@ -270,7 +270,7 @@ export default function TrainerPage() {
       {/* Nav */}
       <nav className="nav">
         <div className="nav-logo">
-          Bodyline<span>.</span>
+          Gym<span>.</span>
         </div>
         <div className="nav-center">
           <span className="nav-role-pill">Trainer Portal</span>

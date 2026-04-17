@@ -755,7 +755,7 @@ export default function TrainersPage() {
       {/* Nav */}
       <nav className="nav">
         <a href="/dashboard" className="nav-logo">
-          Bodyline<span>.</span>
+          Gym<span>.</span>
         </a>
         <div className="nav-links">
           <a href="/dashboard" className="nav-link">

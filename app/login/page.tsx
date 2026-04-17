@@ -27,7 +27,7 @@ function LoginContent() {
     if (paramSlug) {
       setGymSlug(paramSlug);
     } else if (typeof window !== "undefined") {
-      // 2. Otherwise detect subdomain (e.g., bodyline.localhost:3000)
+      // 2. Otherwise detect subdomain (e.g., gym1.localhost:3000)
       const parts = window.location.hostname.split(".");
       if (parts.length > 1 && parts[0] !== "www" && parts[0] !== "localhost") {
         setGymSlug(parts[0]);
@@ -85,13 +85,9 @@ console.log("Setting -> ",settings);
     // Route by role metadata, fallback to email heuristic
     const resolvedRole =
       (data.user.user_metadata?.role as string) ??
-      (userEmail === "pradeep@bodyline.in"
+      (userEmail.startsWith("pradeep@") || userEmail.startsWith("owner@")
         ? "owner"
-        : [
-              "karthik@bodyline.in",
-              "divya@bodyline.in",
-              "suresh@bodyline.in",
-            ].includes(userEmail)
+        : ["karthik@", "divya@", "suresh@", "trainer@"].some(p => userEmail.startsWith(p))
           ? "trainer"
           : "member");
 

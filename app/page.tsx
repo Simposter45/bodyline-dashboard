@@ -482,7 +482,7 @@ export default function LandingPage() {
       {/* NAV */}
       <nav className={`nav${scrolled ? " on" : ""}`}>
         <a href="/" className="logo">
-          BODYLINE<span>.</span>
+          GYM<span>.</span>
         </a>
         <ul className="nav-links">
           <li>
@@ -534,7 +534,7 @@ export default function LandingPage() {
           </h1>
           <div className="hero-row">
             <p className="hero-sub">
-              Bodyline is Gurugram's performance gym — built for people who take
+              Our gym is the ultimate performance center — built for people who take
               their training seriously. Strength, cardio, functional fitness.
               All under one roof.
             </p>
@@ -601,10 +601,10 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* WHY BODYLINE */}
+      {/* WHY US */}
       <div className="sec">
         <div className="wrap">
-          <div className="ey">Why Bodyline</div>
+          <div className="ey">Why Choose Us</div>
           <h2 className="sh2">
             Serious Gym.
             <br />
@@ -612,10 +612,10 @@ export default function LandingPage() {
           </h2>
           <div className="split">
             <div className="split-img">
-              {/* SWAP: a powerful action shot from inside Bodyline */}
+              {/* SWAP: a powerful action shot from inside the gym */}
               <img
                 src="https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=900&q=80"
-                alt="Training at Bodyline"
+                alt="Training at our gym"
                 loading="lazy"
               />
               <div className="split-ov" />
@@ -632,7 +632,7 @@ export default function LandingPage() {
                   {
                     n: "02",
                     t: "All 3 Branches",
-                    b: "One membership. Train at any Bodyline location across Gurugram — no extra fees.",
+                    b: "One membership. Train at any location across Gurugram — no extra fees.",
                   },
                   {
                     n: "03",
@@ -670,7 +670,7 @@ export default function LandingPage() {
           </h2>
           <p className="sbody">
             Premium equipment, expert trainers, zero excuses. Find your nearest
-            Bodyline.
+            The Gym.
           </p>
         </div>
         <div className="wrap" style={{ marginTop: 48 }}>
@@ -820,7 +820,7 @@ export default function LandingPage() {
           </h2>
           <div className="cband-r">
             <p className="cband-sub">
-              Join Bodyline today. Fill in your details, pick a plan, and walk
+              Join us today. Fill in your details, pick a plan, and walk
               in tomorrow. No paperwork. No waiting.
             </p>
             <a href="/onboarding" className="btn-cta">
@@ -850,7 +850,7 @@ export default function LandingPage() {
           <div className="f-top">
             <div>
               <div className="f-logo">
-                BODYLINE<span>.</span>
+                GYM<span>.</span>
               </div>
               <p className="f-tag">
                 Gurugram's performance gym. Three locations, one community.
@@ -868,7 +868,7 @@ export default function LandingPage() {
                 Trainers
               </a>
               <a href="/onboarding" className="f-a">
-                Join Bodyline
+                Join The Gym
               </a>
             </div>
             <div>
@@ -888,8 +888,8 @@ export default function LandingPage() {
               <a href="tel:+919873133287" className="f-a">
                 +91 98731 33287
               </a>
-              <a href="mailto:hello@bodyline.in" className="f-a">
-                hello@bodyline.in
+              <a href="mailto:hello@example.com" className="f-a">
+                hello@example.com
               </a>
               <span className="f-a" style={{ cursor: "default" }}>
                 Gurugram, Haryana
@@ -898,7 +898,7 @@ export default function LandingPage() {
           </div>
           <div className="f-bot">
             <div className="f-copy">
-              © {new Date().getFullYear()} Bodyline Fitness Pvt. Ltd. · Gurugram
+              © {new Date().getFullYear()} Gym Fitness Pvt. Ltd. · Gurugram
             </div>
             <div className="f-portals">
               <a href="/login?role=member" className="f-port">
@@ -918,7 +918,7 @@ export default function LandingPage() {
 
       <a
         className="wa-btn"
-        href="https://wa.me/919873133287?text=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20Bodyline%20membership."
+        href="https://wa.me/919873133287?text=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20your%20membership."
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"

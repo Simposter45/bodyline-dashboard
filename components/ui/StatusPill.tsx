@@ -21,9 +21,9 @@ export function StatusPill({ label, type = "neutral" }: StatusPillProps) {
   const { bg, color } = styles[type];
 
   return (
-    <span className="bodyline-status-pill" style={{ background: bg, color }}>
+    <span className="status-pill" style={{ background: bg, color }}>
       <style>{`
-        .bodyline-status-pill {
+        .status-pill {
           display: inline-flex;
           align-items: center;
           font-size: 11px;

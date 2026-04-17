@@ -26,9 +26,9 @@ export function Avatar({ name, src, size = 40, accent = "neutral" }: AvatarProps
   const color = accentColors[accent];
 
   return (
-    <div className="bodyline-avatar" style={{ width: size, height: size }}>
+    <div className="avatar-icon" style={{ width: size, height: size }}>
       <style>{`
-        .bodyline-avatar {
+        .avatar-icon {
           border-radius: 50%;
           background: var(--bg3);
           border: 1px solid var(--border-hi);
