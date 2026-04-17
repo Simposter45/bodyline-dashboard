@@ -22,7 +22,7 @@
     - [x] `app/dashboard/page.tsx` (Done - Now Multi-Tenant and strictly adheres to original UI)
     - [x] `app/login/page.tsx` (Removed hardcoded "Bodyline Fitness", linked useGymSettings, consolidated CSS)
     - [ ] `app/onboarding/page.tsx`
-    - [ ] **NOTE**: Must run RLS policies `FOR SELECT USING (true)` on `gyms` and `gym_settings` in Supabase dashboard before Login/Onboarding will work for unauthenticated URLs.
+    - [x] RLS policies `FOR SELECT USING (true)` verified working on `gyms` and `gym_settings`.
 - [ ] 3.4 Update middleware.ts for subdomain tenant resolution (Essential for SaaS)
 - [x] 3.5 Update TypeScript `types/index.ts` (Done - gym_id added across the board)
 

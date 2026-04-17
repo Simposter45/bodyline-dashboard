@@ -27,17 +27,18 @@ function LoginContent() {
     if (paramSlug) {
       setGymSlug(paramSlug);
     } else if (typeof window !== "undefined") {
-      // 2. Otherwise default to hostname sniff (SaaS pattern)
-      if (window.location.hostname.includes("localhost")) {
-        setGymSlug("bodyline-fitness");
+      // 2. Otherwise detect subdomain (e.g., bodyline.localhost:3000)
+      const parts = window.location.hostname.split(".");
+      if (parts.length > 1 && parts[0] !== "www" && parts[0] !== "localhost") {
+        setGymSlug(parts[0]);
       } else {
-        setGymSlug(window.location.hostname.split(".")[0]);
+        setGymSlug(undefined); // Unscoped global portal
       }
     }
   }, [searchParams]);
 
   const { data: settings } = useGymSettings(gymSlug ? { gymSlug } : undefined);
-console.log(settings);
+console.log("Setting -> ",settings);
   const ROLE_CONFIG: Record<
     Role,
     { label: string; placeholder: string; hint: string; accent: string }
