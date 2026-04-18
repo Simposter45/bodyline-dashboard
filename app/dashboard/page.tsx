@@ -135,16 +135,15 @@ export default function DashboardPage() {
       <style>{`
 
         .page {
-          width: 100%;
-          max-width: 62vw;
+          max-width: 1200px;
           margin: 0 auto;
           padding: 40px 32px 80px;
         }
-        .header {
+        .page-header {
           display: flex;
           align-items: flex-end;
           justify-content: space-between;
-          margin-bottom: 48px;
+          margin-bottom: 36px;
           gap: 16px;
           flex-wrap: wrap;
         }
@@ -262,7 +261,7 @@ export default function DashboardPage() {
 
       {!loading && !error && data && (
         <div className="page">
-          <div className="header">
+          <div className="page-header">
             <div>
               <h1 className="greeting">
                 {greeting},<br />

@@ -242,6 +242,7 @@ function OnboardingContent() {
           date_of_birth: form.date_of_birth || null,
           joined_date: today,
           is_active: true,
+          gym_id: settings?.gym_id,
         })
         .select("id")
         .single();
@@ -270,6 +271,7 @@ function OnboardingContent() {
           amount_paid: form.payment_method === "upi" ? selectedPlan.price : 0,
           payment_status: form.payment_method === "upi" ? "paid" : "pending",
           payment_method: form.payment_method,
+          gym_id: settings?.gym_id,
         });
 
       if (mmErr) throw mmErr;

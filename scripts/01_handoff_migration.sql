@@ -291,7 +291,7 @@ DROP POLICY IF EXISTS "members_owner_write"    ON members;
 CREATE POLICY "members_owner_write"
   ON members FOR ALL
   USING (gym_id = current_gym_id() AND get_my_role() = 'owner')
-  WITH CHECK (gym_id = current_gym_id());
+  WITH CHECK (gym_id = current_gym_id() AND get_my_role() = 'owner');
 
 -- Anon: insert only (onboarding self-registration)
 -- NOTE: In production, gym_id should be verified via RPC or server-side hook
