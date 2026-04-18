@@ -93,7 +93,7 @@ export function Nav({ role, userName }: NavProps) {
       `}</style>
 
       <div className="nav-logo">
-        {settings?.gym_display_name || "Bodyline"}<span>.</span>
+        {settings?.gym_display_name || "Gym"}<span>.</span>
       </div>
       
       <div className="nav-links">

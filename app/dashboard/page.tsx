@@ -74,9 +74,9 @@ export default function DashboardPage() {
     if (hour >= 12 && hour < 17) setGreeting("Good afternoon");
     else if (hour >= 17) setGreeting("Good evening");
     
-    supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Pradeep");
+        setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "User");
       }
     });
 
@@ -133,19 +133,17 @@ export default function DashboardPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
 
         .page {
-          width: 100%;
-          max-width: 62vw;
+          max-width: 1200px;
           margin: 0 auto;
           padding: 40px 32px 80px;
         }
-        .header {
+        .page-header {
           display: flex;
           align-items: flex-end;
           justify-content: space-between;
-          margin-bottom: 48px;
+          margin-bottom: 36px;
           gap: 16px;
           flex-wrap: wrap;
         }
@@ -263,7 +261,7 @@ export default function DashboardPage() {
 
       {!loading && !error && data && (
         <div className="page">
-          <div className="header">
+          <div className="page-header">
             <div>
               <h1 className="greeting">
                 {greeting},<br />

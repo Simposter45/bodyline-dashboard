@@ -31,19 +31,35 @@ const USERS_TO_STAMP = [
 async function stampUsers() {
   console.log("🚀 Stamping users with Gym ID...");
   
-  const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
-  if (listError) throw listError;
+  let allUsers: any[] = [];
+  let page = 1;
+  const perPage = 1000;
+  
+  while (true) {
+    const { data: { users }, error: listError } = await supabase.auth.admin.listUsers({
+      page,
+      perPage
+    });
+    
+    if (listError) throw listError;
+    if (users.length === 0) break;
+    
+    allUsers = allUsers.concat(users);
+    if (users.length < perPage) break;
+    page++;
+  }
 
   for (const email of USERS_TO_STAMP) {
-    const user = users.find(u => u.email === email);
+    const user = allUsers.find(u => u.email === email);
     if (user) {
       console.log(`⏳ Processing ${email}...`);
       
-      // We move role to app_metadata because it's more secure (only admin can change it)
-      const role = user.user_metadata?.role || user.app_metadata?.role || 'member';
+      const existingAppMetadata = user.app_metadata || {};
+      const role = existingAppMetadata.role || user.user_metadata?.role || 'member';
       
       const { error } = await supabase.auth.admin.updateUserById(user.id, {
         app_metadata: { 
+          ...existingAppMetadata,
           gym_id: FOUNDING_GYM_ID,
           role: role
         }

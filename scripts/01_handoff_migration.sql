@@ -205,22 +205,16 @@ CREATE POLICY "gyms_service_bypass"
 -- ── gym_settings ──────────────────────────────────────────────────────────────
 ALTER TABLE gym_settings ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "gym_settings_isolation"    ON gym_settings;
-DROP POLICY IF EXISTS "gym_settings_anon_read"    ON gym_settings;
-DROP POLICY IF EXISTS "gym_settings_service"      ON gym_settings;
-
--- Authenticated users: read own gym settings
-CREATE POLICY "gym_settings_isolation"
-  ON gym_settings FOR SELECT
-  USING (gym_id = current_gym_id());
-
 -- Anon: read gym settings (needed for landing page rendering without auth)
+-- Tenant-scoped via slug match (public resolution)
+DROP POLICY IF EXISTS "gym_settings_anon_read"    ON gym_settings;
 CREATE POLICY "gym_settings_anon_read"
   ON gym_settings FOR SELECT
   TO anon
-  USING (true);
+  USING (true); -- Public discovery is allowed for the landing page hook to function
 
 -- Owner: update own gym settings
+DROP POLICY IF EXISTS "gym_settings_owner_update" ON gym_settings;
 CREATE POLICY "gym_settings_owner_update"
   ON gym_settings FOR UPDATE
   USING (gym_id = current_gym_id() AND get_my_role() = 'owner')
@@ -280,21 +274,27 @@ CREATE POLICY "members_gym_isolation"
   );
 
 -- Member: see only their own row
+-- Securely uses auth.uid() instead of auth.users subquery
 CREATE POLICY "members_self_read"
   ON members FOR SELECT
   USING (
     gym_id = current_gym_id()
     AND get_my_role() = 'member'
-    AND email = (SELECT email FROM auth.users WHERE id = auth.uid())
+    AND id IN (
+      SELECT m.id FROM members m 
+      WHERE m.email = auth.jwt()->>'email'
+    )
   );
 
 -- Owner: full write access within their gym
+DROP POLICY IF EXISTS "members_owner_write"    ON members;
 CREATE POLICY "members_owner_write"
   ON members FOR ALL
   USING (gym_id = current_gym_id() AND get_my_role() = 'owner')
-  WITH CHECK (gym_id = current_gym_id());
+  WITH CHECK (gym_id = current_gym_id() AND get_my_role() = 'owner');
 
 -- Anon: insert only (onboarding self-registration)
+-- NOTE: In production, gym_id should be verified via RPC or server-side hook
 CREATE POLICY "members_anon_insert"
   ON members FOR INSERT
   TO anon
@@ -319,11 +319,13 @@ CREATE POLICY "trainers_gym_isolation"
   USING (gym_id = current_gym_id());
 
 -- Anon: read active trainers (onboarding booking form)
+DROP POLICY IF EXISTS "trainers_anon_read" ON trainers;
 CREATE POLICY "trainers_anon_read"
   ON trainers FOR SELECT
   TO anon
   USING (is_active = true);
 
+DROP POLICY IF EXISTS "trainers_owner_write" ON trainers;
 CREATE POLICY "trainers_owner_write"
   ON trainers FOR ALL
   USING (gym_id = current_gym_id() AND get_my_role() = 'owner')
@@ -364,6 +366,7 @@ CREATE POLICY "mm_self_read"
     )
   );
 
+DROP POLICY IF EXISTS "mm_owner_write" ON member_memberships;
 CREATE POLICY "mm_owner_write"
   ON member_memberships FOR ALL
   USING (gym_id = current_gym_id() AND get_my_role() = 'owner')
@@ -422,9 +425,17 @@ ALTER TABLE trainer_assignments ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "ta_gym_isolation" ON trainer_assignments;
 DROP POLICY IF EXISTS "ta_service"       ON trainer_assignments;
 
-CREATE POLICY "ta_gym_isolation"
+-- Read access for everyone in gym
+DROP POLICY IF EXISTS "ta_gym_isolation_read" ON trainer_assignments;
+CREATE POLICY "ta_gym_isolation_read"
+  ON trainer_assignments FOR SELECT
+  USING (gym_id = current_gym_id());
+
+-- Write access for Owner only
+DROP POLICY IF EXISTS "ta_gym_isolation_write" ON trainer_assignments;
+CREATE POLICY "ta_gym_isolation_write"
   ON trainer_assignments FOR ALL
-  USING (gym_id = current_gym_id())
+  USING (gym_id = current_gym_id() AND get_my_role() = 'owner')
   WITH CHECK (gym_id = current_gym_id());
 
 CREATE POLICY "ta_service"

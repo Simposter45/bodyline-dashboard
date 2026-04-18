@@ -1,6 +1,15 @@
-# AGENTS.md — Bodyline SaaS Neural Map
-# For: Antigravity Agent · Version: 2.0 (Multi-Tenant Pivot)
 # Last Updated: Post-Pradeep MVP · Status: SaaS Migration Active
+
+---
+
+## 0. MANDATORY DEVELOPMENT PROTOCOL
+
+Before writing any code or modifying files, you MUST adhere to the following workflow:
+
+1.  **Detailed Planning**: For every fix, feature, or structural development, you must first present a detailed, step-by-step plan to the USER.
+2.  **No Code Until Approval**: Do not write a single line of code until the USER has reviewed and explicitly approved the plan.
+3.  **Atomic/Incremental Steps**: Break down complex developments into the smallest possible logical steps. Execute only **one step at a time**, verify it, and then proceed to the next (after re-confirming the plan if necessary).
+4.  **No Over-Scope**: Only perform the exact task currently being addressed. Avoid "fixing" or "improving" unrelated code unless specified in the approved plan.
 
 ---
 

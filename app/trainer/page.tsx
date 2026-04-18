@@ -270,7 +270,7 @@ export default function TrainerPage() {
       {/* Nav */}
       <nav className="nav">
         <div className="nav-logo">
-          Bodyline<span>.</span>
+          Gym<span>.</span>
         </div>
         <div className="nav-center">
           <span className="nav-role-pill">Trainer Portal</span>
@@ -656,8 +656,6 @@ function BookingCard({
 // ------------------------------------------------------------------
 
 const baseStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -677,8 +675,8 @@ const baseStyles = `
     --accent-amber-dim: rgba(251,191,36,0.12);
     --accent-red-dim:   rgba(248,113,113,0.12);
     --accent-blue-dim:  rgba(96,165,250,0.12);
-    --font-display: 'Syne', sans-serif;
-    --font-body:    'DM Sans', sans-serif;
+    --font-display: var(--font-syne), sans-serif;
+    --font-body:    var(--font-dm-sans), sans-serif;
     --radius:       14px;
     --radius-sm:    8px;
   }
@@ -689,7 +687,6 @@ const baseStyles = `
     font-family: var(--font-body);
     font-size: 15px;
     line-height: 1.6;
-    min-height: 100vh;
   }
 
   /* ── Nav ── */
