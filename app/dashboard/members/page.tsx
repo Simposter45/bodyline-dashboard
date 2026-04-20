@@ -1,23 +1,18 @@
 "use client";
 
 import "./members.css";
-import { useEffect, useState, useMemo } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { Member, MemberMembership, MembershipPlan } from "@/types";
+import { useState, useMemo } from "react";
+import type { Member } from "@/types";
 import { formatINR, formatDate, getInitials } from "@/lib/utils/format";
 import { todayISO, sevenDaysFromNow, daysUntil } from "@/lib/utils/date";
 import { STATUS_CONFIG, type StatusKey } from "@/lib/constants/status";
-
-const supabase = createClient();
+import { useMembers, type MemberWithMembership } from "@/hooks/useMembers";
 
 // ------------------------------------------------------------------
 // Types
 // ------------------------------------------------------------------
 
-type MemberWithMembership = Member & {
-  membership: (MemberMembership & { plan: MembershipPlan }) | null;
-};
-
+// MemberWithMembership is exported from @/hooks/useMembers (single source)
 // StatusKey is the canonical status type — imported from lib/constants/status
 type FilterStatus = StatusKey;
 
@@ -37,44 +32,6 @@ function getMemberStatus(m: MemberWithMembership): FilterStatus {
   if (payment_status === "pending") return "pending";
   if (end_date >= today && end_date <= weekFromNow) return "expiring";
   return "active";
-}
-
-
-// ------------------------------------------------------------------
-// Fetch
-// ------------------------------------------------------------------
-
-async function fetchMembers(): Promise<MemberWithMembership[]> {
-  const { data: members } = await supabase
-    .from("members")
-    .select("*")
-    .order("joined_date", { ascending: false });
-
-  const { data: memberships } = await supabase
-    .from("member_memberships")
-    .select("*, plan:membership_plans(*)")
-    .order("created_at", { ascending: false });
-
-  const memberList = (members ?? []) as Member[];
-  const membershipList = (memberships ?? []) as (MemberMembership & {
-    plan: MembershipPlan;
-  })[];
-
-  // Get latest membership per member
-  const latestMembership = new Map<
-    string,
-    MemberMembership & { plan: MembershipPlan }
-  >();
-  for (const ms of membershipList) {
-    if (!latestMembership.has(ms.member_id)) {
-      latestMembership.set(ms.member_id, ms);
-    }
-  }
-
-  return memberList.map((m) => ({
-    ...m,
-    membership: latestMembership.get(m.id) ?? null,
-  }));
 }
 
 
@@ -365,20 +322,11 @@ function MemberDrawer({
 // ------------------------------------------------------------------
 
 export default function MembersPage() {
-  const [members, setMembers] = useState<MemberWithMembership[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: members = [], isLoading: loading, error: fetchError } = useMembers();
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<MemberWithMembership | null>(null);
   const [branch, setBranch] = useState<BranchFilter>("all");
-
-  useEffect(() => {
-    fetchMembers()
-      .then(setMembers)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
 
   const counts = useMemo(() => {
     const c: Record<FilterStatus, number> = {
@@ -472,9 +420,9 @@ export default function MembersPage() {
         </div>
       )}
 
-      {error && <div className="error-screen">Failed to load: {error}</div>}
+      {fetchError && <div className="error-screen">Failed to load: {fetchError.message}</div>}
 
-      {!loading && !error && (
+      {!loading && !fetchError && (
         <div className="page">
           {/* Header */}
           <div className="page-header">
