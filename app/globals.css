@@ -29,8 +29,9 @@
   --radius-pill: 99px;
   
   /* Fonts (Injected from layout.tsx via next/font) */
-  --font-display: var(--font-syne), sans-serif;
-  --font-body: var(--font-dm-sans), sans-serif;
+  --font-display: var(--font-syne), sans-serif;   /* Syne 800 — titles, logo, hero text */
+  --font-body:    var(--font-dm-sans), sans-serif; /* DM Sans 300/400/500 — body, labels */
+  --font-ui:      var(--font-dm-sans), sans-serif; /* DM Sans 600 — buttons, CTAs */
 }
 
 *, *::before, *::after {
@@ -113,7 +114,6 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display);
   font-size: 1.1rem;
   color: var(--text-secondary);
   letter-spacing: 0.05em;
@@ -165,12 +165,13 @@ button, input, select, textarea {
   border: none;
   border-radius: var(--radius-sm);
   padding: 10px 18px;
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   letter-spacing: 0.01em;
   transition: opacity 0.15s;
   white-space: nowrap;
 }
 .btn-solid:hover { opacity: 0.88; }
+
