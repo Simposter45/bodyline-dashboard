@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Member, MemberMembership, MembershipPlan } from "@/types";
 import { formatINR, formatDate, getInitials } from "@/lib/utils/format";
 import { todayISO, sevenDaysFromNow, daysUntil } from "@/lib/utils/date";
+import { STATUS_CONFIG, type StatusKey } from "@/lib/constants/status";
 
 const supabase = createClient();
 
@@ -17,15 +18,10 @@ type MemberWithMembership = Member & {
   membership: (MemberMembership & { plan: MembershipPlan }) | null;
 };
 
-type FilterStatus =
-  | "all"
-  | "active"
-  | "expiring"
-  | "overdue"
-  | "pending"
-  | "inactive";
+// StatusKey is the canonical status type — imported from lib/constants/status
+type FilterStatus = StatusKey;
 
-type BranchFilter = "all" | "Sector 14" | "DLF Phase 1" | "Sohna Road";
+type BranchFilter = "all" | string; // dynamic from gym_settings.branches
 
 // ------------------------------------------------------------------
 // Business logic (moves to lib/members/status.ts in Step A4)
@@ -81,51 +77,6 @@ async function fetchMembers(): Promise<MemberWithMembership[]> {
   }));
 }
 
-// ------------------------------------------------------------------
-// Status pill config
-// ------------------------------------------------------------------
-
-const STATUS_CONFIG: Record<
-  FilterStatus,
-  { label: string; bg: string; color: string; border: string }
-> = {
-  active: {
-    label: "Active",
-    bg: "rgba(74,222,128,0.1)",
-    color: "#4ade80",
-    border: "rgba(74,222,128,0.2)",
-  },
-  expiring: {
-    label: "Expiring soon",
-    bg: "rgba(251,191,36,0.1)",
-    color: "#fbbf24",
-    border: "rgba(251,191,36,0.2)",
-  },
-  overdue: {
-    label: "Overdue",
-    bg: "rgba(248,113,113,0.1)",
-    color: "#f87171",
-    border: "rgba(248,113,113,0.2)",
-  },
-  pending: {
-    label: "Pending",
-    bg: "rgba(251,191,36,0.08)",
-    color: "#fbbf24",
-    border: "rgba(251,191,36,0.15)",
-  },
-  inactive: {
-    label: "Inactive",
-    bg: "rgba(255,255,255,0.04)",
-    color: "#555450",
-    border: "rgba(255,255,255,0.07)",
-  },
-  all: {
-    label: "All",
-    bg: "transparent",
-    color: "#8a8987",
-    border: "transparent",
-  },
-};
 
 // ------------------------------------------------------------------
 // Member Detail Drawer
