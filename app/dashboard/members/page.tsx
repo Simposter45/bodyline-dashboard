@@ -3,8 +3,11 @@
 import "./members.css";
 import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-const supabase = createClient();
 import type { Member, MemberMembership, MembershipPlan } from "@/types";
+import { formatINR, formatDate, getInitials } from "@/lib/utils/format";
+import { todayISO, sevenDaysFromNow, daysUntil } from "@/lib/utils/date";
+
+const supabase = createClient();
 
 // ------------------------------------------------------------------
 // Types
@@ -25,48 +28,8 @@ type FilterStatus =
 type BranchFilter = "all" | "Sector 14" | "DLF Phase 1" | "Sohna Road";
 
 // ------------------------------------------------------------------
-// Helpers
+// Business logic (moves to lib/members/status.ts in Step A4)
 // ------------------------------------------------------------------
-
-function todayISO() {
-  return new Date().toISOString().split("T")[0];
-}
-
-function sevenDaysFromNow() {
-  const d = new Date();
-  d.setDate(d.getDate() + 7);
-  return d.toISOString().split("T")[0];
-}
-
-function formatINR(amount: number) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function daysUntil(iso: string) {
-  const diff = new Date(iso).getTime() - new Date().setHours(0, 0, 0, 0);
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
 
 function getMemberStatus(m: MemberWithMembership): FilterStatus {
   if (!m.is_active) return "inactive";
@@ -79,6 +42,7 @@ function getMemberStatus(m: MemberWithMembership): FilterStatus {
   if (end_date >= today && end_date <= weekFromNow) return "expiring";
   return "active";
 }
+
 
 // ------------------------------------------------------------------
 // Fetch
