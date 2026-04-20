@@ -202,8 +202,8 @@ function MemberDrawer({
         {/* Member identity */}
         <div className="drawer-identity">
           <div
-            className="drawer-avatar"
-            style={{ padding: 0, overflow: "hidden" }}
+            className="avatar avatar-lg"
+            style={{ padding: 0 }}
           >
             {member.profile_photo_url ? (
               <a
@@ -226,7 +226,7 @@ function MemberDrawer({
                     const target = e.currentTarget;
                     target.parentElement!.style.display = "none";
                     target
-                      .closest(".drawer-avatar")
+                      .closest(".avatar-lg")
                       ?.querySelector("span")
                       ?.removeAttribute("style");
                   }}
@@ -570,7 +570,7 @@ export default function MembersPage() {
                 overdue
               </p>
             </div>
-            <button className="add-btn">
+            <button className="btn-solid">
               <svg
                 width="14"
                 height="14"
@@ -681,10 +681,10 @@ export default function MembersPage() {
                       <tr key={m.id} onClick={() => setSelected(m)}>
                         {/* Member */}
                         <td>
-                          <div className="member-cell">
+                          <div className="row-cell">
                             <div
-                              className="member-avatar"
-                              style={{ padding: 0, overflow: "hidden" }}
+                              className="avatar"
+                              style={{ padding: 0 }}
                             >
                               {m.profile_photo_url ? (
                                 <img
@@ -719,8 +719,8 @@ export default function MembersPage() {
                               </span>
                             </div>
                             <div>
-                              <div className="member-name">{m.full_name}</div>
-                              <div className="member-phone">{m.phone}</div>
+                              <div className="row-name">{m.full_name}</div>
+                              <div className="row-sub">{m.phone}</div>
                             </div>
                           </div>
                         </td>
@@ -755,7 +755,7 @@ export default function MembersPage() {
                         {/* Plan */}
                         <td>
                           {plan ? (
-                            <span className="plan-tag">{plan.name}</span>
+                            <span className="tag">{plan.name}</span>
                           ) : (
                             <span
                               style={{
