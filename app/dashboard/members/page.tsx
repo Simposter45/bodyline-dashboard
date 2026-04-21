@@ -10,14 +10,14 @@ import { useMembers, type MemberWithMembership } from "@/hooks/useMembers";
 import { getMemberStatus } from "@/lib/members/status";
 import { MemberDrawer } from "./MemberDrawer";
 import { Nav } from "@/components/ui/Nav";
+import { useGymSettings } from "@/hooks/useGymSettings";
+import { MEMBER_FILTERS, type MemberFilterStatus } from "@/lib/members/filters";
 
 // ------------------------------------------------------------------
 // Types
 // ------------------------------------------------------------------
 
 // MemberWithMembership is exported from @/hooks/useMembers (single source)
-// MemberFilterStatus uses StatusKey values relevant to members (excludes 'paid' which is Payments-only)
-type MemberFilterStatus = "all" | "active" | "expiring" | "overdue" | "pending" | "inactive";
 
 type BranchFilter = "all" | string; // dynamic from gym_settings.branches
 
@@ -27,6 +27,7 @@ type BranchFilter = "all" | string; // dynamic from gym_settings.branches
 
 export default function MembersPage() {
   const { data: members = [], isLoading: loading, error: fetchError } = useMembers();
+  const { data: gymSettings } = useGymSettings();
   const [filter, setFilter] = useState<MemberFilterStatus>("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<MemberWithMembership | null>(null);
@@ -63,14 +64,7 @@ export default function MembersPage() {
     });
   }, [members, filter, search, branch]);
 
-  const FILTERS: { key: MemberFilterStatus; label: string }[] = [
-    { key: "all", label: "All members" },
-    { key: "active", label: "Active" },
-    { key: "expiring", label: "Expiring soon" },
-    { key: "overdue", label: "Overdue" },
-    { key: "pending", label: "Pending" },
-    { key: "inactive", label: "Inactive" },
-  ];
+
 
   return (
     <>
@@ -135,7 +129,7 @@ export default function MembersPage() {
             </div>
 
             <div className="filter-tabs">
-              {FILTERS.map((f) => (
+              {MEMBER_FILTERS.map((f) => (
                 <button
                   key={f.key}
                   className={`filter-tab ${filter === f.key ? "active" : ""}`}
@@ -150,12 +144,7 @@ export default function MembersPage() {
             {/* Branch filter */}
             <div className="filter-tabs" style={{ marginLeft: "auto" }}>
               {(
-                [
-                  "all",
-                  "Sector 14",
-                  "DLF Phase 1",
-                  "Sohna Road",
-                ] as BranchFilter[]
+                ["all", ...(gymSettings?.branches || [])] as BranchFilter[]
               ).map((b) => (
                 <button
                   key={b}
