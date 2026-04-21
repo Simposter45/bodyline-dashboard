@@ -4,318 +4,21 @@ import "./members.css";
 import { useState, useMemo } from "react";
 import type { Member } from "@/types";
 import { formatINR, formatDate, getInitials } from "@/lib/utils/format";
-import { todayISO, sevenDaysFromNow, daysUntil } from "@/lib/utils/date";
-import { STATUS_CONFIG, type StatusKey } from "@/lib/constants/status";
+import { daysUntil } from "@/lib/utils/date";
+import { STATUS_CONFIG } from "@/lib/constants/status";
 import { useMembers, type MemberWithMembership } from "@/hooks/useMembers";
+import { getMemberStatus } from "@/lib/members/status";
+import { MemberDrawer } from "./MemberDrawer";
 
 // ------------------------------------------------------------------
 // Types
 // ------------------------------------------------------------------
 
 // MemberWithMembership is exported from @/hooks/useMembers (single source)
-// StatusKey is the canonical status type — imported from lib/constants/status
-type FilterStatus = StatusKey;
+// MemberFilterStatus uses StatusKey values relevant to members (excludes 'paid' which is Payments-only)
+type MemberFilterStatus = "all" | "active" | "expiring" | "overdue" | "pending" | "inactive";
 
 type BranchFilter = "all" | string; // dynamic from gym_settings.branches
-
-// ------------------------------------------------------------------
-// Business logic (moves to lib/members/status.ts in Step A4)
-// ------------------------------------------------------------------
-
-function getMemberStatus(m: MemberWithMembership): FilterStatus {
-  if (!m.is_active) return "inactive";
-  if (!m.membership) return "active";
-  const today = todayISO();
-  const weekFromNow = sevenDaysFromNow();
-  const { payment_status, end_date } = m.membership;
-  if (payment_status === "overdue") return "overdue";
-  if (payment_status === "pending") return "pending";
-  if (end_date >= today && end_date <= weekFromNow) return "expiring";
-  return "active";
-}
-
-
-// ------------------------------------------------------------------
-// Member Detail Drawer
-// ------------------------------------------------------------------
-
-function MemberDrawer({
-  member,
-  onClose,
-}: {
-  member: MemberWithMembership;
-  onClose: () => void;
-}) {
-  const status = getMemberStatus(member);
-  const cfg = STATUS_CONFIG[status];
-  const ms = member.membership;
-  const plan = ms?.plan;
-
-  return (
-    <>
-      <div className="drawer-overlay" onClick={onClose} />
-      <div className="drawer">
-        {/* Header */}
-        <div className="drawer-header">
-          <button className="drawer-close" onClick={onClose}>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Member identity */}
-        <div className="drawer-identity">
-          <div
-            className="avatar avatar-lg"
-            style={{ padding: 0 }}
-          >
-            {member.profile_photo_url ? (
-              <a
-                href={member.profile_photo_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: "block", width: "100%", height: "100%" }}
-              >
-                <img
-                  src={member.profile_photo_url}
-                  alt={member.full_name}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    borderRadius: "50%",
-                    cursor: "pointer",
-                  }}
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    target.parentElement!.style.display = "none";
-                    target
-                      .closest(".avatar-lg")
-                      ?.querySelector("span")
-                      ?.removeAttribute("style");
-                  }}
-                />
-              </a>
-            ) : null}
-            <span
-              style={{
-                display: member.profile_photo_url ? "none" : "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-                height: "100%",
-              }}
-            >
-              {getInitials(member.full_name)}
-            </span>
-          </div>
-          <div>
-            <h2 className="drawer-name">{member.full_name}</h2>
-            <p className="drawer-phone">{member.phone}</p>
-            {member.email && <p className="drawer-email">{member.email}</p>}
-          </div>
-        </div>
-
-        {/* Status */}
-        <div
-          className="drawer-status-pill"
-          style={{
-            background: cfg.bg,
-            color: cfg.color,
-            border: `1px solid ${cfg.border}`,
-          }}
-        >
-          {cfg.label}
-        </div>
-
-        {/* Divider */}
-        <div className="drawer-divider" />
-
-        {/* Membership info */}
-        {ms && plan ? (
-          <div className="drawer-section">
-            <p className="drawer-section-label">Current Membership</p>
-            <div className="drawer-info-grid">
-              <div className="drawer-info-item">
-                <span className="drawer-info-key">Plan</span>
-                <span className="drawer-info-val">{plan.name}</span>
-              </div>
-              <div className="drawer-info-item">
-                <span className="drawer-info-key">Branch</span>
-                <span className="drawer-info-val">
-                  {(member as Member & { branch: string }).branch ?? "—"}
-                </span>
-              </div>
-              <div className="drawer-info-item">
-                <span className="drawer-info-key">Price</span>
-                <span className="drawer-info-val">{formatINR(plan.price)}</span>
-              </div>
-              <div className="drawer-info-item">
-                <span className="drawer-info-key">Start date</span>
-                <span className="drawer-info-val">
-                  {formatDate(ms.start_date)}
-                </span>
-              </div>
-              <div className="drawer-info-item">
-                <span className="drawer-info-key">Expiry</span>
-                <span
-                  className="drawer-info-val"
-                  style={{
-                    color:
-                      status === "expiring" || status === "overdue"
-                        ? "#f87171"
-                        : "inherit",
-                  }}
-                >
-                  {formatDate(ms.end_date)}
-                  {status === "expiring" && (
-                    <span
-                      style={{ color: "#fbbf24", marginLeft: 6, fontSize: 12 }}
-                    >
-                      ({daysUntil(ms.end_date)}d left)
-                    </span>
-                  )}
-                </span>
-              </div>
-              <div className="drawer-info-item">
-                <span className="drawer-info-key">Paid</span>
-                <span className="drawer-info-val" style={{ color: "#4ade80" }}>
-                  {formatINR(ms.amount_paid ?? 0)}
-                </span>
-              </div>
-              {ms.payment_status !== "paid" && (
-                <div className="drawer-info-item">
-                  <span className="drawer-info-key">Due</span>
-                  <span
-                    className="drawer-info-val"
-                    style={{ color: "#f87171" }}
-                  >
-                    {formatINR(plan.price - (ms.amount_paid ?? 0))}
-                  </span>
-                </div>
-              )}
-              <div className="drawer-info-item">
-                <span className="drawer-info-key">Method</span>
-                <span
-                  className="drawer-info-val"
-                  style={{ textTransform: "capitalize" }}
-                >
-                  {ms.payment_method ?? "—"}
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div
-            style={{
-              padding: "20px 0",
-              color: "var(--text-muted)",
-              fontSize: 14,
-            }}
-          >
-            No membership record found.
-          </div>
-        )}
-
-        <div className="drawer-divider" />
-
-        {/* Personal info */}
-        <div className="drawer-section">
-          <p className="drawer-section-label">Personal Details</p>
-          <div className="drawer-info-grid">
-            <div className="drawer-info-item">
-              <span className="drawer-info-key">Joined</span>
-              <span className="drawer-info-val">
-                {formatDate(member.joined_date)}
-              </span>
-            </div>
-            {member.date_of_birth && (
-              <div className="drawer-info-item">
-                <span className="drawer-info-key">DOB</span>
-                <span className="drawer-info-val">
-                  {formatDate(member.date_of_birth)}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-        {/* Documents */}
-        {member.id_proof_url && (
-          <>
-            <div className="drawer-divider" />
-            <div className="drawer-section">
-              <p className="drawer-section-label">Identity Document</p>
-
-              <a
-                href={member.id_proof_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  background: "var(--bg3)",
-                  border: "1px solid var(--border-hi)",
-                  borderRadius: "var(--radius-sm)",
-                  padding: "12px 14px",
-                  textDecoration: "none",
-                  color: "var(--text-primary)",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  transition: "border-color 0.15s",
-                }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--accent-blue)"
-                  strokeWidth="2"
-                >
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                </svg>
-                Aadhaar / ID Proof
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--text-muted)"
-                  strokeWidth="2"
-                  style={{ marginLeft: "auto" }}
-                >
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                  <polyline points="15 3 21 3 21 9" />
-                  <line x1="10" y1="14" x2="21" y2="3" />
-                </svg>
-              </a>
-            </div>
-          </>
-        )}
-
-        {/* Actions */}
-        <div className="drawer-actions">
-          <button className="drawer-btn drawer-btn-primary">
-            Renew membership
-          </button>
-          <button className="drawer-btn drawer-btn-secondary">
-            Record payment
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
 
 // ------------------------------------------------------------------
 // Page
@@ -323,13 +26,13 @@ function MemberDrawer({
 
 export default function MembersPage() {
   const { data: members = [], isLoading: loading, error: fetchError } = useMembers();
-  const [filter, setFilter] = useState<FilterStatus>("all");
+  const [filter, setFilter] = useState<MemberFilterStatus>("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<MemberWithMembership | null>(null);
   const [branch, setBranch] = useState<BranchFilter>("all");
 
   const counts = useMemo(() => {
-    const c: Record<FilterStatus, number> = {
+    const c: Record<MemberFilterStatus, number> = {
       all: members.length,
       active: 0,
       expiring: 0,
@@ -338,7 +41,7 @@ export default function MembersPage() {
       inactive: 0,
     };
     for (const m of members) {
-      c[getMemberStatus(m)]++;
+      c[getMemberStatus(m) as MemberFilterStatus]++;
     }
     return c;
   }, [members]);
@@ -359,7 +62,7 @@ export default function MembersPage() {
     });
   }, [members, filter, search, branch]);
 
-  const FILTERS: { key: FilterStatus; label: string }[] = [
+  const FILTERS: { key: MemberFilterStatus; label: string }[] = [
     { key: "all", label: "All members" },
     { key: "active", label: "Active" },
     { key: "expiring", label: "Expiring soon" },
