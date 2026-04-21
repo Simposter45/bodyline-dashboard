@@ -9,6 +9,7 @@ import { STATUS_CONFIG } from "@/lib/constants/status";
 import { useMembers, type MemberWithMembership } from "@/hooks/useMembers";
 import { getMemberStatus } from "@/lib/members/status";
 import { MemberDrawer } from "./MemberDrawer";
+import { Nav } from "@/components/ui/Nav";
 
 // ------------------------------------------------------------------
 // Types
@@ -73,48 +74,7 @@ export default function MembersPage() {
 
   return (
     <>
-      {/* Nav */}
-      <nav className="nav">
-        <a href="/dashboard" className="nav-logo">
-          Gym<span>.</span>
-        </a>
-        <div className="nav-links">
-          <a href="/dashboard" className="nav-link">
-            Dashboard
-          </a>
-          <a href="/dashboard/members" className="nav-link active">
-            Members
-          </a>
-          <a href="/dashboard/payments" className="nav-link">
-            Payments
-          </a>
-          <a href="/dashboard/trainers" className="nav-link">
-            Trainers
-          </a>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span className="nav-owner">Pradeep · Owner</span>
-          <button
-            onClick={async () => {
-              const { createClient } = await import("@/lib/supabase/client");
-              await createClient().auth.signOut();
-              window.location.href = "/login";
-            }}
-            style={{
-              fontSize: 12,
-              color: "var(--text-muted)",
-              background: "none",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-sm)",
-              padding: "5px 12px",
-              cursor: "pointer",
-              fontFamily: "var(--font-body)",
-            }}
-          >
-            Sign out
-          </button>
-        </div>
-      </nav>
+      <Nav role="owner" />
 
       {loading && (
         <div className="loading-screen">
