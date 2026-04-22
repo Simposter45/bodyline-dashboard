@@ -39,10 +39,27 @@
 - [x] 5.4 Performance Optimization (Centralized next/font loading, removed render-blocking imports)
 
 ## 🧩 Phase 6: Code Modularity & "Golden UI" Enforcement
-- [x] 6.1 `members/page.tsx` cleanup (Branch: `REFACT-003-members-page-modularity`). Extracted formatting, dates, CSS, unified Status configs. Use TanStack query hooks.
-- [ ] 6.2 `dashboard/page.tsx` cleanup (Next active branch: `REFACT-004-dashboard-cleanup`).
-- [ ] 6.3 `payments/page.tsx` cleanup (`REFACT-005-payments-cleanup`).
-- [ ] 6.4 Additional pages (trainers, onboarding, login). Ensure styling follows `members` pattern perfectly.
+- [x] 6.1 `members/page.tsx` cleanup (Branch: `refact/REFACT-003-members-page-modularity`). PR open on GitHub — pending CodeRabbit review & merge.
+- [x] 6.2-A **Add Member feature** (Branch: `FEAT-002-add-member-logic`). PR open on GitHub — pending CodeRabbit review & merge.
+    - 3-step wizard modal (Details → Payment Checkout → Success/Handoff)
+    - Zod v4 schema (`lib/validations/member.ts`) with strict Indian phone regex
+    - TanStack `useMutation` hook (`hooks/useCreateMember.ts`) — inserts `members` + `member_memberships` atomically
+    - TanStack `useQuery` hook (`hooks/usePlans.ts`) — fetches active plans
+    - Reusable `Modal` component (`components/ui/Modal.tsx`)
+    - Global `<Toaster />` wired in `app/layout.tsx`
+    - `addDays(n)` added to shared `lib/utils/date.ts`
+- [ ] 6.2-B **Renew Membership** action (Next: `FEAT-003-renew-membership`)
+- [ ] 6.2-C **Record Payment** action (Next: `FEAT-004-record-payment`)
+- [ ] 6.3 `dashboard/page.tsx` cleanup (`REFACT-004-dashboard-cleanup`).
+- [ ] 6.4 `payments/page.tsx` cleanup (`REFACT-005-payments-cleanup`).
+- [ ] 6.5 Additional pages (trainers, onboarding, login). Ensure styling follows `members` pattern perfectly.
+
+## ⚠️ Known Technical Debt
+- `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
+
+## 🔧 Production Hardening (Pending)
+- [ ] Error boundaries: Each route needs a proper `error.tsx`
+- [ ] Loading skeletons: Replace text "Loading..." with CSS skeleton pattern
 
 ## 🚀 Phase 7: Domain & Deployment (Future)
 - [ ] 7.1 Configure wildcard subdomains
