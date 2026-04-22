@@ -29,3 +29,13 @@ export function daysUntil(iso: string): number {
   const diff = new Date(iso).getTime() - new Date().setHours(0, 0, 0, 0);
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
+
+/**
+ * Returns a date N days from today as an ISO date string (YYYY-MM-DD).
+ * e.g. addDays(30) → "2024-05-23"
+ */
+export function addDays(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split("T")[0];
+}
