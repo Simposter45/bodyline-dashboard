@@ -12,6 +12,7 @@ import { MemberDrawer } from "./MemberDrawer";
 import { Nav } from "@/components/ui/Nav";
 import { useGymSettings } from "@/hooks/useGymSettings";
 import { MEMBER_FILTERS, type MemberFilterStatus } from "@/lib/members/filters";
+import { AddMemberModal } from "@/components/members/AddMemberModal";
 
 // ------------------------------------------------------------------
 // Types
@@ -32,6 +33,7 @@ export default function MembersPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<MemberWithMembership | null>(null);
   const [branch, setBranch] = useState<BranchFilter>("all");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const counts = useMemo(() => {
     const c: Record<MemberFilterStatus, number> = {
@@ -90,7 +92,7 @@ export default function MembersPage() {
                 overdue
               </p>
             </div>
-            <button className="btn-solid">
+            <button className="btn-solid" onClick={() => setIsAddModalOpen(true)}>
               <svg
                 width="14"
                 height="14"
@@ -334,6 +336,11 @@ export default function MembersPage() {
       {selected && (
         <MemberDrawer member={selected} onClose={() => setSelected(null)} />
       )}
+
+      <AddMemberModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
     </>
   );
 }

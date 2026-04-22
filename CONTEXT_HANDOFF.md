@@ -1,48 +1,83 @@
 # SaaS Migration Handoff: Production Readiness & Modularity
 
 ## 🎯 Current Objective
-Continue standardizing the entire application to follow the "Golden UI" standard and modular architecture established in the `members` page. Migrate away from monolithic pages filled with inline CSS and redundant fetches, towards TanStack Query hooks, `lib/` utilities, and global CSS UI patterns.
+Two open PRs need review and merging, then continue building out the Members page functional features before pivoting to other page refactors.
 
 ## 🏗️ Architectural Core
 - **Framework**: Next.js 14 (App Router) + Supabase SSR.
 - **Tenancy**: Multi-tenant via `gym_id`. Resolution via subdomain middleware.
 - **Security**: PostgreSQL RLS (Row Level Security) is ACTIVE and HARDENED. Helper functions `current_gym_id()` and `get_my_role()` are the source of truth.
 - **Styling**: Vanilla CSS scoped within `<style>` tags. Global tokens are in `app/globals.css`.
-- **Data Fetching**: TanStack Query (via custom hooks in `hooks/`) for all database operations instead of standard `useEffect`.
+- **Data Fetching**: TanStack Query (via custom hooks in `hooks/`) for all database operations.
+- **Forms**: `react-hook-form` + `zod` (v4) is the project standard for all write operations.
+- **Notifications**: `react-hot-toast` — `<Toaster />` is globally mounted in `app/layout.tsx`.
 
-## 📍 Modularity Status - Phase "Golden UI"
+## 📍 Open PRs (Immediate Priority)
 
-### ✅ Completed (Branch: `refact/REFACT-003-members-page-modularity`)
-1. **Members Page Modularization (Gold Standard)**: 
-   - Went from 1360+ lines to ~350 lines.
-   - Inline `<nav>` -> extracted to `<Nav />`.
-   - Business logic extracts: formatting (`lib/utils/format.ts`), dates (`lib/utils/date.ts`), status logic (`lib/members/status.ts`), filters (`lib/members/filters.ts`).
-   - Shared CSS extracted to `globals.css` (tokens, forms, avatars, nav).
-   - Data fetching extracted to `hooks/useMembers.ts` (TanStack query).
-   - `MemberDrawer` component and its CSS separated out.
-2. **Nav Component (`components/ui/Nav.tsx`)**: Now handles its own internal Supabase auth fetch, no longer relies on heavy prop tracking.
-3. Everything is fully strictly typed and `npx tsc --noEmit` returns zero errors.
+### PR 1: `refact/REFACT-003-members-page-modularity` → `main`
+**Status**: Open. CodeRabbit integrated — check review comments and resolve before merging.
+**What it does**: Full modularization of `members/page.tsx` (1360+ → ~350 lines).
+- Extracted formatting to `lib/utils/format.ts` and `lib/utils/date.ts`
+- Extracted status logic to `lib/members/status.ts`, filters to `lib/members/filters.ts`
+- Extracted `MemberDrawer` into own component + CSS
+- Replaced inline nav with `<Nav />` component
+- Data fetching via `hooks/useMembers.ts` (TanStack Query)
 
-### 🔜 To-Do (Next Branches)
-1. **Merge REFACT-003**: The REFACT-003 branch is ready to be merged into `main` via PR.
-2. **Dashboard Page Cleanup (`REFACT-004-dashboard-cleanup`)**:
-   - High Priority. Extremely monolithic.
-   - Strip out redundant local `formatINR`, `formatDate`, `getInitials` logic and use `lib/utils/format.ts`.
-   - Refactor `useEffect` fetching logic into TanStack Query hooks (e.g. `useDashboardStats`).
-   - Eliminate `<style>` tag, moving specific design pieces to a `dashboard.css` and leveraging `globals.css`.
-3. **Payments Page Cleanup (`REFACT-005-payments-cleanup`)**:
-   - Highly monolithic. 
-   - Needs TanStack hook + deduplication of logic. 
-   - Needs to adopt standard loading/error screens from Golden UI.
-4. **Trainers & Remaining Pages**:
-   - `trainers/page.tsx`, `onboarding/page.tsx`, `app/page.tsx`, `login/page.tsx`.
-   - Ensure they match the Golden UI padding, inherit the `loading-screen` component, and remove inline styles.
+### PR 2: `FEAT-002-add-member-logic` → `main`
+**Status**: Open. CodeRabbit integrated — check review comments and resolve before merging.
+**What it does**: Full "Add Member" 3-step modal feature.
+- `components/members/AddMemberModal.tsx` — 3-step wizard (Details → Payment → Success)
+- `components/ui/Modal.tsx` — reusable modal component (`min(500px, calc(100vw - 48px))` max-width)
+- `hooks/useCreateMember.ts` — TanStack `useMutation`, inserts `members` + `member_memberships`
+- `hooks/usePlans.ts` — TanStack `useQuery` for active membership plans
+- `lib/validations/member.ts` — Zod v4 schema with strict phone regex `/^[6-9]\d{9}$/`
+- `lib/utils/date.ts` — `addDays(n)` utility added
 
-## 🧪 Local Testing Protocol (Offline/Localhost)
-- Use `npm run dev`.
-- Test subdomains locally by adding `bodyline.localhost` to your hosts file or using the `?gym=slug` parameter.
+## 🔜 Next Features (Members Page Vertical Slice)
+
+### FEAT-003: Renew Membership
+- Location: `MemberDrawer.tsx` (action inside drawer for existing members)
+- Hook: `useRenewMembership.ts` — TanStack `useMutation`, inserts new row into `member_memberships`
+- Key: Must invalidate `["members"]` query on success
+- Pattern: Same Zod + RHF + Modal pattern established in FEAT-002
+
+### FEAT-004: Record Payment
+- For members with `payment_status: "pending"` or `"overdue"`
+- Updates existing `member_memberships` row: sets `payment_status → "paid"`, records `payment_method`
+- Hook: `useRecordPayment.ts`
+- Pattern: Same Zod + RHF + Modal pattern established in FEAT-002
+
+### CHORE-001: Atomic DB Transaction (Technical Debt)
+- `useCreateMember.ts` currently does two sequential inserts (members → member_memberships)
+- If second insert fails, an orphaned member is created
+- Fix: Create a Supabase RPC function (PostgreSQL transaction) and call it from the hook
+
+## 🧩 After Members Vertical Slice: Refactor Queue
+Once Add Member, Renew, and Record Payment are all done:
+1. `REFACT-004-dashboard-cleanup` — Strip inline CSS, dedupe formatINR/formatDate/getInitials, TanStack hooks
+2. `REFACT-005-payments-cleanup` — Same modularization pattern
+3. `REFACT-006` — trainers, onboarding, login pages alignment
+
+## 🧪 Local Testing Protocol
+- Use `npm run dev` (already running).
+- Test subdomains locally via `?gym=bodyline` param or hosts file entry.
 - Verify RLS by switching roles in `app_metadata` (Owner vs Trainer).
+- Always run `npx tsc --noEmit` before committing. Must return exit code 0.
 
-## 🚩 Pending Production Hardening
-- **Error Boundaries**: Ensure each page has a proper `error.tsx` for production stability.
-- **Loading Skeletons**: Replace the full-screen "Loading..." text with the CSS-skeleton pattern if applicable.
+## 🚩 Production Hardening (Pending)
+- **Error Boundaries**: Each route needs a proper `error.tsx`.
+- **Loading Skeletons**: Replace "Loading..." text with CSS skeleton pattern.
+
+## 📦 Installed Dependencies (this session)
+```json
+"react-hook-form": "^7.73.1",
+"@hookform/resolvers": "^5.2.2",
+"zod": "^4.3.6",
+"react-hot-toast": "^2.6.0"
+```
+
+## ⚠️ Agent Rules (from AGENTS.md)
+- ALL new branches must follow prefix strategy: `FEAT-XXX`, `REFACT-XXX`, `BUG-XXX`, `CHORE-XXX`
+- NEVER modify `app/globals.css` design tokens without explicit user approval
+- ALL new pages/components MUST match the padding and grid of `app/dashboard/members/page.tsx`
+- Run `tsc --noEmit` before every commit

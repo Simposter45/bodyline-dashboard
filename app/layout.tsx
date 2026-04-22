@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Syne, DM_Sans } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 
@@ -39,6 +40,16 @@ export default function RootLayout({
         `}} />
         <QueryProvider>
           {children}
+          <Toaster 
+            position="bottom-right" 
+            toastOptions={{
+              style: {
+                background: '#1c1c21',
+                color: '#f0efe8',
+                border: '1px solid rgba(255,255,255,0.07)',
+              }
+            }} 
+          />
         </QueryProvider>
       </body>
     </html>
