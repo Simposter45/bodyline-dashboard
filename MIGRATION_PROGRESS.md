@@ -38,6 +38,12 @@
 - [x] 5.3 Role Source-of-Truth fix (Middleware now relies on `app_metadata.role`)
 - [x] 5.4 Performance Optimization (Centralized next/font loading, removed render-blocking imports)
 
-## 🚀 Phase 6: Domain & Deployment (Future)
-- [ ] 6.1 Configure wildcard subdomains
-- [ ] 6.2 Test `[gym-slug].yourdomain.com` routing
+## 🧩 Phase 6: Code Modularity & "Golden UI" Enforcement
+- [x] 6.1 `members/page.tsx` cleanup (Branch: `REFACT-003-members-page-modularity`). Extracted formatting, dates, CSS, unified Status configs. Use TanStack query hooks.
+- [ ] 6.2 `dashboard/page.tsx` cleanup (Next active branch: `REFACT-004-dashboard-cleanup`).
+- [ ] 6.3 `payments/page.tsx` cleanup (`REFACT-005-payments-cleanup`).
+- [ ] 6.4 Additional pages (trainers, onboarding, login). Ensure styling follows `members` pattern perfectly.
+
+## 🚀 Phase 7: Domain & Deployment (Future)
+- [ ] 7.1 Configure wildcard subdomains
+- [ ] 7.2 Test `[gym-slug].yourdomain.com` routing

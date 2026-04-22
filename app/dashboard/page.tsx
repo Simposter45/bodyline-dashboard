@@ -248,7 +248,7 @@ export default function DashboardPage() {
         .row-item:last-child { border-bottom: none; }
       `}</style>
 
-      <Nav role="owner" userName={userName} />
+      <Nav role="owner" />
 
       {loading && (
         <div className="loading-screen">

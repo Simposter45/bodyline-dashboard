@@ -93,6 +93,13 @@ The file `app/dashboard/members/page.tsx` is the **Absolute Source of Truth** fo
 2. You **MUST** copy the exact padding, border-radius, font-weights, letter-spacings, and flex/grid patterns used there.
 3. NEVER introduce novel CSS frameworks, Tailwind structures, or "improved" experimental layouts. Replicate the members page format exactly.
 
+**🚨 THE CSS-FIRST RULE (MANDATORY)**
+*Before* writing any CSS — whether in a co-located `.css` file or inline styles:
+1. You **MUST** read `app/globals.css` in full.
+2. If a class or pattern already exists globally (e.g., `.avatar`, `.status-pill`, `.table-wrap`, `.filter-tabs`), **use it — do not redefine it**.
+3. Only write new CSS in a co-located `.css` file if the style is **100% specific to that page/component** and does not exist in globals.
+4. If you create a new CSS pattern that will be needed on 2+ pages, it **must** go into `globals.css`, not a page file.
+
 ---
 
 ## 3. AUTH ARCHITECTURE — DO NOT REWRITE

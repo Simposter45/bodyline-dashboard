@@ -1,0 +1,27 @@
+/* ============================================================
+   Members Page — Co-located Styles
+   ── Global tokens & resets    → app/globals.css
+   ── Shared UI components      → app/globals.css
+   ── Navigation                → app/globals.css  (Step A6)
+   ── Drawer component styles   → MemberDrawer.css
+   ============================================================ */
+
+/* ── Expiry states (membership domain — members page only) ── */
+.expiry-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.expiry-warning { color: var(--accent-amber); }
+.expiry-overdue { color: var(--accent-red); }
+
+/* ── Responsive (table column breakpoints) ── */
+@media (max-width: 900px) {
+  thead th:nth-child(4),
+  td:nth-child(4) { display: none; }
+}
+@media (max-width: 700px) {
+  thead th:nth-child(3),
+  td:nth-child(3) { display: none; }
+  .page { padding: 24px 16px 60px; }
+  .nav { padding: 16px; }
+}
