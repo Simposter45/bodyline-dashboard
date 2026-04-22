@@ -84,43 +84,12 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
     }
   };
 
-  const STEPS = [
-    { n: 1, label: "Details" },
-    { n: 2, label: "Payment" },
-    { n: 3, label: "Done" },
-  ];
-
   return (
     <Modal 
       isOpen={isOpen} 
       onClose={handleClose} 
       title={step === 1 ? "Add New Member" : step === 2 ? "Checkout & Payment" : "All Set!"}
     >
-      {/* Step indicator */}
-      <div className="step-bar">
-        {STEPS.map(({ n, label }, i) => (
-          <>
-            <div key={n} className="step-node">
-              <div className={`step-circle ${
-                n < step ? "done" : n === step ? "active" : ""
-              }`}>
-                {n < step ? (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                ) : (
-                  <span>{n}</span>
-                )}
-              </div>
-              <span className={`step-label ${
-                n === step ? "active" : n < step ? "done" : ""
-              }`}>{label}</span>
-            </div>
-            {i < STEPS.length - 1 && (
-              <div className={`step-line ${n < step ? "done" : ""}`} />
-            )}
-          </>
-        ))}
-      </div>
-
       <form onSubmit={handleSubmit(onSubmitFinal)} className="multi-step-form">
         
         {/* ==========================================
@@ -501,67 +470,6 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
           from { opacity: 0; transform: translateX(10px); }
           to { opacity: 1; transform: translateX(0); }
         }
-
-        /* Step Bar */
-        .step-bar {
-          display: flex;
-          align-items: center;
-          margin-bottom: 24px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid var(--border);
-        }
-        .step-node {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 6px;
-          flex-shrink: 0;
-        }
-        .step-circle {
-          width: 26px;
-          height: 26px;
-          border-radius: 50%;
-          border: 1px solid var(--text-muted);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 11px;
-          font-weight: 600;
-          color: var(--text-muted);
-          background: var(--bg);
-          transition: all 0.25s;
-        }
-        .step-circle.active {
-          border-color: var(--accent-green);
-          color: var(--accent-green);
-          background: var(--accent-green-dim);
-          box-shadow: 0 0 0 3px rgba(74,222,128,0.08);
-        }
-        .step-circle.done {
-          border-color: var(--accent-green);
-          background: var(--accent-green);
-          color: #0d0d0f;
-        }
-        .step-label {
-          font-size: 10px;
-          font-weight: 500;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-          color: var(--text-muted);
-          white-space: nowrap;
-          transition: color 0.25s;
-        }
-        .step-label.active { color: var(--text-primary); }
-        .step-label.done { color: var(--text-secondary); }
-        .step-line {
-          flex: 1;
-          height: 1px;
-          background: var(--border);
-          margin: 0 8px;
-          margin-bottom: 20px;
-          transition: background 0.25s;
-        }
-        .step-line.done { background: var(--accent-green); }
       `}</style>
     </Modal>
   );
