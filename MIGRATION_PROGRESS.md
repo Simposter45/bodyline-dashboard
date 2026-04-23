@@ -39,8 +39,8 @@
 - [x] 5.4 Performance Optimization (Centralized next/font loading, removed render-blocking imports)
 
 ## 🧩 Phase 6: Code Modularity & "Golden UI" Enforcement
-- [x] 6.1 `members/page.tsx` cleanup (Branch: `refact/REFACT-003-members-page-modularity`). PR open on GitHub — pending CodeRabbit review & merge.
-- [x] 6.2-A **Add Member feature** (Branch: `FEAT-002-add-member-logic`). PR open on GitHub — pending CodeRabbit review & merge.
+- [x] 6.1 `members/page.tsx` cleanup (Branch: `refactor/REFACT-003-members-page-modularity` — **merged to main**).
+- [x] 6.2-A **Add Member feature** (Branch: `FEAT-002-add-member-logic` — **merged to main**).
     - 3-step wizard modal (Details → Payment Checkout → Success/Handoff)
     - Zod v4 schema (`lib/validations/member.ts`) with strict Indian phone regex
     - TanStack `useMutation` hook (`hooks/useCreateMember.ts`) — inserts `members` + `member_memberships` atomically
@@ -48,11 +48,16 @@
     - Reusable `Modal` component (`components/ui/Modal.tsx`)
     - Global `<Toaster />` wired in `app/layout.tsx`
     - `addDays(n)` added to shared `lib/utils/date.ts`
-- [ ] 6.2-B **Renew Membership** action (Next: `FEAT-003-renew-membership`)
-- [ ] 6.2-C **Record Payment** action (Next: `FEAT-004-record-payment`)
-- [ ] 6.3 `dashboard/page.tsx` cleanup (`REFACT-004-dashboard-cleanup`).
-- [ ] 6.4 `payments/page.tsx` cleanup (`REFACT-005-payments-cleanup`).
-- [ ] 6.5 Additional pages (trainers, onboarding, login). Ensure styling follows `members` pattern perfectly.
+- [x] 6.2-B **CodeRabbit hotfixes + AGENTS.md coding conventions** (direct commit `ec49126` on `main`).
+    - MemberDrawer: fixed expiry color bug (expiring=amber, overdue=red), non-null assertion removed
+    - MemberDrawer.css: hidden scrollbar rules added
+    - AddMemberModal: `<style jsx>` → `<style>`, `error: any` → `unknown`, `toISOString` → `todayISO()`
+    - AGENTS.md: Section 9 added (8 coding conventions)
+- [ ] 6.3-A **Renew Membership** action (`feat/FEAT-003-renew-membership`)
+- [ ] 6.3-B **Record Payment** action (`feat/FEAT-003-record-payment`)
+- [ ] 6.4 `dashboard/page.tsx` cleanup (`refactor/REFACT-004-dashboard-cleanup`) ← **NEXT**
+- [ ] 6.5 `payments/page.tsx` cleanup (`refactor/REFACT-005-payments-cleanup`)
+- [ ] 6.6 Additional pages (trainers, onboarding, login). Ensure styling follows `members` pattern perfectly.
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
