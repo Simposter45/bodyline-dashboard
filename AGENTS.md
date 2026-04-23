@@ -192,8 +192,10 @@ $$ LANGUAGE sql STABLE;
 | Database | Supabase (Mumbai region) | `ap-south-1` |
 | Auth | @supabase/ssr | NOT auth-helpers |
 | Queries | TanStack Query v5 | For client-side data |
+| Forms | React Hook Form + Zod | Schema in `lib/validations/` |
 | Icons | lucide-react | v1.7.0 |
-| Styling | Inline `<style>` tags | No Tailwind in JSX |
+| Toasts | react-hot-toast | `toast.success()` / `toast.error()` only |
+| Styling | Co-located `.css` files | One per page, one per component |
 | TypeScript | Strict mode | No `any` types |
 
 ---
@@ -205,11 +207,13 @@ The agent must **never** do any of the following:
 1. ❌ Use `localStorage` for any auth or session data
 2. ❌ Hard-code gym-specific data (names, phone numbers, UPI IDs) outside the `gym_settings` table
 3. ❌ Import from `@supabase/auth-helpers-nextjs`
-4. ❌ Use Tailwind utility classes in JSX (the project uses inline styles)
-5. ❌ Use `any` TypeScript type
-6. ❌ Drop or alter the `middleware.ts` logic without a structural review comment
-7. ❌ Remove `"use client"` from page files
-8. ❌ Change color hex values
+4. ❌ Use `any` TypeScript type — including `catch (error: any)`. Use `unknown` and narrow it.
+5. ❌ Drop or alter the `middleware.ts` logic without a structural review comment
+6. ❌ Remove `"use client"` from page files
+7. ❌ Change color hex values
+8. ❌ Use `<style jsx>` — styled-jsx is not installed. Use plain `<style>` tags or co-located `.css` files.
+9. ❌ Call `new Date().toISOString()` in components — use `lib/utils/date.ts` helpers instead.
+10. ❌ Mix Tailwind classes and vanilla CSS in the same component file.
 
 ---
 
@@ -225,3 +229,61 @@ migration(scope): description
 Scopes: `auth`, `db`, `ui`, `tenant`, `api`, `onboarding`, `checkin`
 
 Example: `migration(db): add gym_id to members + RLS policy`
+
+---
+
+## 9. CODING CONVENTIONS — MANDATORY
+
+### Forms
+- **React Hook Form + Zod** is the project standard for all forms. No raw `useState` for form fields.
+- Schema lives in `lib/validations/<entity>.ts`. Always use `zodResolver` from `@hookform/resolvers/zod`.
+- Multi-step forms use a typed step state: `const [step, setStep] = useState<1 | 2 | 3>(1)`.
+
+### CSS & Styling
+- Each **page** gets a co-located `.css` file (e.g. `members.css` next to `page.tsx`).
+- Each **extracted component** gets its own `.css` file (e.g. `MemberDrawer.css`).
+- Inline `<style>` tags are acceptable inside modal/overlay components that are self-contained.
+- **Never use `<style jsx>`** — styled-jsx is not installed in this project.
+- **Tailwind is installed** and may be used for new pages/components created after `REFACT-004`. Do **not** mix Tailwind and vanilla CSS in the same component.
+
+### Error Handling in `catch` Blocks
+```ts
+// ✅ Correct
+catch (error: unknown) {
+  const msg = error instanceof Error ? error.message : "Something went wrong";
+  toast.error(msg);
+}
+
+// ❌ Wrong
+catch (error: any) { toast.error(error.message); }
+```
+
+### Date Utilities
+- Always use `lib/utils/date.ts` functions: `todayISO()`, `sevenDaysFromNow()`, `daysUntil()`.
+- **Never** call `new Date().toISOString()` in components — it returns UTC which causes off-by-one display for Indian (IST) users.
+- Exception: `max={todayISO()}` on `<input type="date">` is fine via the utility.
+
+### Loading & Error States
+- Always use the `.loading-screen` + `.loading-spinner` and `.error-screen` patterns from `globals.css`.
+- Never invent a custom loading UI. Consistency across all pages is required.
+
+### Supabase Query Pattern
+```ts
+// ✅ Correct — always check error before accessing data
+const { data, error } = await supabase.from("table").select("*");
+if (error) throw error;
+
+// ❌ Wrong — silently swallowing errors
+const { data } = await supabase.from("table").select("*");
+```
+- All Supabase reads → pure `async function` in the same hook file, called by `queryFn`.
+- All Supabase writes → `useMutation` hook in `hooks/use<Entity>Mutation.ts`.
+
+### Toast Notifications
+- Use `react-hot-toast` exclusively: `toast.success()` and `toast.error()`.
+- No custom alert/confirm dialogs. No `window.alert()`.
+- Place `<Toaster />` once in `app/layout.tsx` — do not add it to individual pages.
+
+### Icons
+- Use `lucide-react` for all icons. Never write custom inline SVG unless the icon genuinely does not exist in lucide.
+- Import only what you use: `import { Search, X } from "lucide-react"`.

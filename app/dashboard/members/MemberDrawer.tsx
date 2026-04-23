@@ -71,7 +71,7 @@ export function MemberDrawer({ member, onClose }: MemberDrawerProps) {
                   }}
                   onError={(e) => {
                     const target = e.currentTarget;
-                    target.parentElement!.style.display = "none";
+                    target.parentElement?.style.setProperty("display", "none");
                     target
                       .closest(".avatar-lg")
                       ?.querySelector("span")
@@ -145,9 +145,11 @@ export function MemberDrawer({ member, onClose }: MemberDrawerProps) {
                   className="drawer-info-val"
                   style={{
                     color:
-                      status === "expiring" || status === "overdue"
-                        ? ACCENT.red
-                        : "inherit",
+                      status === "expiring"
+                        ? ACCENT.amber
+                        : status === "overdue"
+                          ? ACCENT.red
+                          : "inherit",
                   }}
                 >
                   {formatDate(ms.end_date)}

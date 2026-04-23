@@ -10,6 +10,7 @@ import { useCreateMember } from "@/hooks/useCreateMember";
 import { usePlans } from "@/hooks/usePlans";
 import { useGymSettings } from "@/hooks/useGymSettings";
 import { createMemberSchema, type CreateMemberFormData } from "@/lib/validations/member";
+import { todayISO } from "@/lib/utils/date";
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -79,8 +80,9 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
         plan_duration: selectedPlan.duration_days,
       });
       setStep(3);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to add member");
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Failed to add member";
+      toast.error(msg);
     }
   };
 
@@ -129,7 +131,7 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
                   {...register("date_of_birth")}
                   type="date"
                   className="form-input"
-                  max={new Date().toISOString().split("T")[0]}
+                  max={todayISO()}
                 />
                 {errors.date_of_birth && <span className="error-text">{errors.date_of_birth.message}</span>}
               </div>
@@ -289,7 +291,7 @@ export function AddMemberModal({ isOpen, onClose }: AddMemberModalProps) {
 
       </form>
 
-      <style jsx>{`
+      <style>{`
         .multi-step-form {
           display: flex;
           flex-direction: column;

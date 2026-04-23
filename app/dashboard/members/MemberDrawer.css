@@ -27,9 +27,12 @@
   border-left: 1px solid var(--border-hi);
   z-index: 50;
   overflow-y: auto;
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / Edge legacy */
   padding: 28px;
   animation: slideIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
+.drawer::-webkit-scrollbar { display: none; } /* Chrome / Safari */
 @keyframes slideIn {
   from { transform: translateX(100%); opacity: 0.6; }
   to   { transform: translateX(0);    opacity: 1; }
