@@ -121,9 +121,9 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
     .filter((m) => m.payment_status === "pending")
     .reduce((sum, m) => sum + planPrice(m), 0);
 
-  // Overdue = price of plan minus what was already paid
+  // Overdue = price of plan minus what was already paid (floored at 0 per row)
   const totalOverdue = overdueRows.reduce(
-    (sum, m) => sum + (planPrice(m) - (m.amount_paid ?? 0)),
+    (sum, m) => sum + Math.max(0, planPrice(m) - (m.amount_paid ?? 0)),
     0,
   );
 
