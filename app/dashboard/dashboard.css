@@ -1,0 +1,105 @@
+/* ============================================================
+   Dashboard Page — Co-located Styles
+   ── Global tokens & resets    → app/globals.css
+   ── Shared UI (.page, .page-header, .loading-screen,
+                 .error-screen, .row-item, .row-name,
+                 .row-sub, .row-cell, .avatar)
+                                → app/globals.css
+   ── Navigation                → app/globals.css
+   ============================================================ */
+
+/* ── Greeting header ── */
+.greeting {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+.greeting span { color: var(--accent-green); }
+
+.date-pill {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ── Live data badge (top-right of page header) ── */
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+}
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-green);
+}
+
+/* ── Section label (Members / Revenue / Today) ── */
+.section-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  margin-top: 40px;
+}
+
+/* ── Stats grid (shared wrapper + column variants) ── */
+.stats-grid {
+  display: grid;
+  gap: 2px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 10px solid transparent; /* preserves original visual spacing */
+  margin: -10px;
+}
+.stats-grid-members { grid-template-columns: repeat(4, 1fr); }
+.stats-grid-revenue { grid-template-columns: repeat(3, 1fr); }
+
+/* Round only the outermost card corners */
+.stats-grid > div:first-child { border-radius: var(--radius) 0 0 var(--radius) !important; }
+.stats-grid > div:last-child  { border-radius: 0 var(--radius) var(--radius) 0 !important; }
+
+/* ── Bottom two-panel grid (Check-ins / Trainers) ── */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* ── Panel row inner layout ── */
+/* .row-item is in globals.css — this is only the flex:1 info block inside it */
+.row-info { flex: 1; }
+
+/* ── Panel empty state ── */
+.panel-empty {
+  padding: 32px 24px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .stats-grid-members { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid-revenue { grid-template-columns: repeat(2, 1fr); }
+  .bottom-grid        { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .stats-grid-members { grid-template-columns: 1fr 1fr; }
+  .stats-grid-revenue { grid-template-columns: 1fr 1fr; }
+  .greeting           { font-size: 1.9rem; }
+  .page               { padding: 24px 16px 60px; }
+}
