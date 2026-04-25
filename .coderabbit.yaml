@@ -17,3 +17,11 @@ tools:
     enabled: true
   ast-grep:
     enabled: true
+
+# Add your project context files here
+knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - "**/AGENTS.md"
+      - "**/CONTEXT_HANDOFF.md"
+      - "**/MIGRATION_PROGRESS.md"
