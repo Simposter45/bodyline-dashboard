@@ -7,6 +7,7 @@
 // ============================================================
 
 import "./MemberDrawer.css";
+import { useState } from "react";
 import type { Member } from "@/types";
 import { formatINR, formatDate } from "@/lib/utils/format";
 import { daysUntil } from "@/lib/utils/date";
@@ -15,6 +16,8 @@ import { getMemberStatus } from "@/lib/members/status";
 import type { MemberWithMembership } from "@/hooks/useMembers";
 import { ACCENT } from "@/lib/constants/design";
 import { Avatar } from "@/components/ui/Avatar";
+import { RenewMembershipModal } from "@/components/members/RenewMembershipModal";
+import { RecordPaymentModal } from "@/components/members/RecordPaymentModal";
 
 interface MemberDrawerProps {
   member: MemberWithMembership;
@@ -22,6 +25,9 @@ interface MemberDrawerProps {
 }
 
 export function MemberDrawer({ member, onClose }: MemberDrawerProps) {
+  const [isRenewOpen, setIsRenewOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+
   const status = getMemberStatus(member);
   const cfg = STATUS_CONFIG[status];
   const ms = member.membership;
@@ -245,14 +251,33 @@ export function MemberDrawer({ member, onClose }: MemberDrawerProps) {
 
         {/* Actions */}
         <div className="drawer-actions">
-          <button className="drawer-btn drawer-btn-primary">
+          <button className="drawer-btn drawer-btn-primary" onClick={() => setIsRenewOpen(true)}>
             Renew membership
           </button>
-          <button className="drawer-btn drawer-btn-secondary">
-            Record payment
-          </button>
+          {ms && ms.payment_status !== "paid" && (
+            <button className="drawer-btn drawer-btn-secondary" onClick={() => setIsPaymentOpen(true)}>
+              Record payment
+            </button>
+          )}
         </div>
       </div>
+
+      <RenewMembershipModal
+        isOpen={isRenewOpen}
+        onClose={() => setIsRenewOpen(false)}
+        memberId={member.id}
+      />
+
+      {ms && plan && (
+        <RecordPaymentModal
+          isOpen={isPaymentOpen}
+          onClose={() => setIsPaymentOpen(false)}
+          membershipId={ms.id}
+          remainingBalance={Math.max(0, plan.price - (ms.amount_paid ?? 0))}
+          planPrice={plan.price}
+          currentAmountPaid={ms.amount_paid ?? 0}
+        />
+      )}
     </>
   );
 }
