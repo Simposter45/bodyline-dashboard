@@ -55,12 +55,24 @@
     - AGENTS.md: Section 9 added (8 coding conventions)
 - [ ] 6.3-A **Renew Membership** action (`feat/FEAT-003-renew-membership`)
 - [ ] 6.3-B **Record Payment** action (`feat/FEAT-003-record-payment`)
-- [ ] 6.4 `dashboard/page.tsx` cleanup (`refactor/REFACT-004-dashboard-cleanup`) ← **NEXT**
+- [x] 6.4 `dashboard/page.tsx` cleanup (`refactor/REFACT-004-dashboard-cleanup`) — **branch ready, pending merge**
+    - Step 1: Extended `lib/utils/format.ts` + `lib/utils/date.ts` with shared helpers (`formatTime`, `getGreeting`, `monthStartISO`, `todayRangeISO`, `sevenDaysFromNow`)
+    - Step 2: `hooks/useCurrentUser.ts` — TanStack Query hook for auth identity
+    - Step 3: `hooks/useDashboardStats.ts` — TanStack Query hook, 6 parallel queries, `DashboardStats` return type, `amountDue` logic aligned with payments page
+    - Step 4: `app/dashboard/dashboard.css` — co-located styles, global duplicates removed
+    - Step 5: `app/dashboard/page.tsx` full rewrite — 330 → 142 lines, zero `useEffect`, zero `any`, zero inline styles
+    - Fix: `Avatar` component — font corrected to `var(--font-ui)`, accent dim background tint added
+    - Fix: `Avatar` component — `href` prop (clickable photo) + `useState` `onError` fallback added
+    - Fix: All avatar usages migrated to `<Avatar />` component (`members/page.tsx`, `MemberDrawer.tsx`)
+    - Fix: Overdue revenue calculation — `Math.max(0, plan.price - amount_paid)` (was `Math.abs`, was negative)
+    - Fix: Pending revenue calculation — balance due, not full plan price (was overcounting partial payments)
+    - Fix: `expiringThisWeek` — real DB query (was hardcoded `0`)
 - [ ] 6.5 `payments/page.tsx` cleanup (`refactor/REFACT-005-payments-cleanup`)
 - [ ] 6.6 Additional pages (trainers, onboarding, login). Ensure styling follows `members` pattern perfectly.
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
+- `payment_status` field is never auto-updated from `pending` → `overdue`. Currently requires manual owner action or does not transition at all. **Future: Supabase Edge Function or cron job that sets `overdue` where `end_date < today AND payment_status = 'pending'`.** Track as `CHORE-002`.
 
 ## 🔧 Production Hardening (Pending)
 - [ ] Error boundaries: Each route needs a proper `error.tsx`
