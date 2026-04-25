@@ -39,3 +39,27 @@ export function addDays(days: number): string {
   d.setDate(d.getDate() + days);
   return d.toISOString().split("T")[0];
 }
+
+/**
+ * Returns the first day of the current calendar month as an ISO date string.
+ * e.g. (called in April) → "2026-04-01"
+ */
+export function monthStartISO(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}-01`;
+}
+
+/**
+ * Returns ISO timestamp strings for the start and end of today (midnight to 23:59:59).
+ * Used to scope attendance queries to a single calendar day.
+ * e.g. { start: "2026-04-24T00:00:00.000Z", end: "2026-04-24T23:59:59.999Z" }
+ */
+export function todayRangeISO(): { start: string; end: string } {
+  const today = todayISO();
+  return {
+    start: `${today}T00:00:00.000Z`,
+    end:   `${today}T23:59:59.999Z`,
+  };
+}

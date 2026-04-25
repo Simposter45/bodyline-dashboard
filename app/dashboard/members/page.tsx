@@ -3,13 +3,14 @@
 import "./members.css";
 import { useState, useMemo } from "react";
 import type { Member } from "@/types";
-import { formatINR, formatDate, getInitials } from "@/lib/utils/format";
+import { formatINR, formatDate } from "@/lib/utils/format";
 import { daysUntil } from "@/lib/utils/date";
 import { STATUS_CONFIG } from "@/lib/constants/status";
 import { useMembers, type MemberWithMembership } from "@/hooks/useMembers";
 import { getMemberStatus } from "@/lib/members/status";
 import { MemberDrawer } from "./MemberDrawer";
 import { Nav } from "@/components/ui/Nav";
+import { Avatar } from "@/components/ui/Avatar";
 import { useGymSettings } from "@/hooks/useGymSettings";
 import { MEMBER_FILTERS, type MemberFilterStatus } from "@/lib/members/filters";
 import { AddMemberModal } from "@/components/members/AddMemberModal";
@@ -199,42 +200,11 @@ export default function MembersPage() {
                         {/* Member */}
                         <td>
                           <div className="row-cell">
-                            <div
-                              className="avatar"
-                              style={{ padding: 0 }}
-                            >
-                              {m.profile_photo_url ? (
-                                <img
-                                  src={m.profile_photo_url}
-                                  alt={m.full_name}
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                    borderRadius: "50%",
-                                  }}
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = "none";
-                                    e.currentTarget.nextElementSibling?.removeAttribute(
-                                      "style",
-                                    );
-                                  }}
-                                />
-                              ) : null}
-                              <span
-                                style={{
-                                  display: m.profile_photo_url
-                                    ? "none"
-                                    : "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  width: "100%",
-                                  height: "100%",
-                                }}
-                              >
-                                {getInitials(m.full_name)}
-                              </span>
-                            </div>
+                            <Avatar
+                              name={m.full_name}
+                              src={m.profile_photo_url}
+                              size={36}
+                            />
                             <div>
                               <div className="row-name">{m.full_name}</div>
                               <div className="row-sub">{m.phone}</div>

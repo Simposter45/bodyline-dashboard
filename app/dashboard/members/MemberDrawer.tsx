@@ -8,12 +8,13 @@
 
 import "./MemberDrawer.css";
 import type { Member } from "@/types";
-import { formatINR, formatDate, getInitials } from "@/lib/utils/format";
+import { formatINR, formatDate } from "@/lib/utils/format";
 import { daysUntil } from "@/lib/utils/date";
 import { STATUS_CONFIG } from "@/lib/constants/status";
 import { getMemberStatus } from "@/lib/members/status";
 import type { MemberWithMembership } from "@/hooks/useMembers";
 import { ACCENT } from "@/lib/constants/design";
+import { Avatar } from "@/components/ui/Avatar";
 
 interface MemberDrawerProps {
   member: MemberWithMembership;
@@ -48,50 +49,12 @@ export function MemberDrawer({ member, onClose }: MemberDrawerProps) {
 
         {/* Member identity */}
         <div className="drawer-identity">
-          <div
-            className="avatar avatar-lg"
-            style={{ padding: 0 }}
-          >
-            {member.profile_photo_url ? (
-              <a
-                href={member.profile_photo_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: "block", width: "100%", height: "100%" }}
-              >
-                <img
-                  src={member.profile_photo_url}
-                  alt={member.full_name}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    borderRadius: "50%",
-                    cursor: "pointer",
-                  }}
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    target.parentElement?.style.setProperty("display", "none");
-                    target
-                      .closest(".avatar-lg")
-                      ?.querySelector("span")
-                      ?.removeAttribute("style");
-                  }}
-                />
-              </a>
-            ) : null}
-            <span
-              style={{
-                display: member.profile_photo_url ? "none" : "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-                height: "100%",
-              }}
-            >
-              {getInitials(member.full_name)}
-            </span>
-          </div>
+          <Avatar
+            name={member.full_name}
+            src={member.profile_photo_url}
+            href={member.profile_photo_url}
+            size={56}
+          />
           <div>
             <h2 className="drawer-name">{member.full_name}</h2>
             <p className="drawer-phone">{member.phone}</p>
