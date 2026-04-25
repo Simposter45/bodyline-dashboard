@@ -99,24 +99,25 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
   if (expiringRes.error) throw expiringRes.error;
 
   // ── Revenue calculations ─────────────────────────────────────────
-  // Supabase JS infers the plan join as an array (its default for named aliases).
-  // We access index [0] safely — each membership has exactly one plan.
+  // Supabase returns `plan` as a single object for this many-to-one
+  // foreign key join (membership_plans). Null if the plan was deleted.
   type MembershipRow = {
     payment_status: string;
     amount_paid: number | null;
-    plan: { price: number }[] | null;
+    plan: { price: number } | null;
   };
 
   const allMM = (mmRes.data ?? []) as unknown as MembershipRow[];
   const overdueRows = allMM.filter((m) => m.payment_status === "overdue");
 
-  const planPrice = (m: MembershipRow): number =>
-    Array.isArray(m.plan) ? (m.plan[0]?.price ?? 0) : 0;
+  const planPrice = (m: MembershipRow): number => m.plan?.price ?? 0;
+
 
   // amountDue: balance still owed on a membership record.
   // Matches the payments page amountDue() helper — single source of truth.
   const amountDue = (m: MembershipRow): number =>
     Math.max(0, planPrice(m) - (m.amount_paid ?? 0));
+
 
   const totalCollected = allMM
     .filter((m) => m.payment_status === "paid")
