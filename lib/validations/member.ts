@@ -23,16 +23,19 @@ export const renewMembershipSchema = z.object({
 
 export type RenewMembershipFormData = z.infer<typeof renewMembershipSchema>;
 
+export const basePaymentSchema = z.object({
+  amount_paid: z.number({ message: "Amount is required" }).min(1, "Amount must be greater than 0"),
+  payment_method: z.enum(["cash", "upi", "card"], {
+    error: "Please select a payment method",
+  }),
+});
+
+export type RecordPaymentFormData = z.infer<typeof basePaymentSchema>;
+
 export const createPaymentSchema = (remainingBalance: number) => {
-  return z.object({
-    amount_paid: z.coerce
-      .number({ invalid_type_error: "Amount is required" })
+  return basePaymentSchema.extend({
+    amount_paid: z.number({ message: "Amount is required" })
       .min(1, "Amount must be greater than 0")
       .max(remainingBalance, `Amount cannot exceed the remaining balance of ₹${remainingBalance}`),
-    payment_method: z.enum(["cash", "upi", "card"], {
-      error: "Please select a payment method",
-    }),
   });
 };
-
-export type RecordPaymentFormData = z.infer<ReturnType<typeof createPaymentSchema>>;

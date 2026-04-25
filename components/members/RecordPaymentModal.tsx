@@ -42,7 +42,7 @@ export function RecordPaymentModal({
     resolver: zodResolver(createPaymentSchema(remainingBalance)),
     defaultValues: {
       amount_paid: remainingBalance,
-      payment_method: undefined,
+      payment_method: undefined as any,
     },
   });
 
@@ -100,7 +100,7 @@ export function RecordPaymentModal({
             <div className="form-group">
               <label>Amount Being Paid <span className="required">*</span></label>
               <input
-                {...register("amount_paid")}
+                {...register("amount_paid", { valueAsNumber: true })}
                 type="number"
                 className="form-input"
                 placeholder={`e.g. ${remainingBalance}`}

@@ -34,7 +34,7 @@ export function RenewMembershipModal({ isOpen, onClose, memberId }: RenewMembers
     resolver: zodResolver(renewMembershipSchema),
     defaultValues: {
       plan_id: "",
-      payment_method: undefined,
+      payment_method: undefined as any,
     },
   });
 
