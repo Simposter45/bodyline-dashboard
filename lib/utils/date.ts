@@ -31,11 +31,11 @@ export function daysUntil(iso: string): number {
 }
 
 /**
- * Returns a date N days from today as an ISO date string (YYYY-MM-DD).
+ * Returns a date N days from today (or a specific baseDate) as an ISO date string (YYYY-MM-DD).
  * e.g. addDays(30) → "2024-05-23"
  */
-export function addDays(days: number): string {
-  const d = new Date();
+export function addDays(days: number, baseDate?: string): string {
+  const d = baseDate ? new Date(baseDate) : new Date();
   d.setDate(d.getDate() + days);
   return d.toISOString().split("T")[0];
 }
