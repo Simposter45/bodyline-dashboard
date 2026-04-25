@@ -2,15 +2,22 @@
 
 // ============================================================
 // components/ui/Avatar.tsx
-// Circular identity display — initials fallback with accent tinting.
-// ── Font matches globals.css .avatar class: var(--font-ui) / DM Sans
-// ── Accent applies both text color AND dim background tint
-//    so trainer (blue) / owner (green) avatars are visually distinct.
+// Circular identity display — photo with initials fallback.
+//
+// ── Font: var(--font-ui) / DM Sans — matches .avatar in globals.css
+// ── Accent: applies both text color AND dim background tint
+//    so trainer (blue) / owner (green) avatars are visually distinct
+// ── href: when provided, the photo is wrapped in a clickable link
+//    (e.g. full-size photo preview in drawers)
+// ── onError: broken images fall back to initials automatically
 // ============================================================
+
+import { useState } from "react";
 
 interface AvatarProps {
   name: string;
   src?: string | null;
+  href?: string | null;   // Makes the photo clickable (e.g. full-size preview)
   size?: number;
   accent?: "green" | "amber" | "red" | "blue" | "neutral";
 }
@@ -30,16 +37,35 @@ const ACCENT_BG: Record<AccentKey, string> = {
   amber:   "var(--accent-amber-dim)",
   red:     "var(--accent-red-dim)",
   blue:    "var(--accent-blue-dim)",
-  neutral: "var(--bg3)",           // Neutral falls back to the standard surface colour
+  neutral: "var(--bg3)",
 };
 
-export function Avatar({ name, src, size = 40, accent = "neutral" }: AvatarProps) {
+export function Avatar({
+  name,
+  src,
+  href,
+  size = 40,
+  accent = "neutral",
+}: AvatarProps) {
+  const [imgError, setImgError] = useState(false);
+
   const initials = name
     .split(" ")
     .slice(0, 2)
     .map((n) => n[0])
     .join("")
     .toUpperCase();
+
+  const showPhoto = src && !imgError;
+
+  const photo = (
+    <img
+      src={src ?? ""}
+      alt={name}
+      className="avatar-img"
+      onError={() => setImgError(true)}
+    />
+  );
 
   return (
     <div
@@ -64,14 +90,32 @@ export function Avatar({ name, src, size = 40, accent = "neutral" }: AvatarProps
           width: 100%;
           height: 100%;
           object-fit: cover;
+          display: block;
+        }
+        .avatar-link {
+          display: block;
+          width: 100%;
+          height: 100%;
         }
         .avatar-initials {
           font-family: var(--font-ui);
           font-weight: 700;
         }
       `}</style>
-      {src ? (
-        <img src={src} alt={name} className="avatar-img" />
+
+      {showPhoto ? (
+        href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="avatar-link"
+          >
+            {photo}
+          </a>
+        ) : (
+          photo
+        )
       ) : (
         <div
           className="avatar-initials"
