@@ -113,17 +113,25 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
   const planPrice = (m: MembershipRow): number =>
     Array.isArray(m.plan) ? (m.plan[0]?.price ?? 0) : 0;
 
+  // amountDue: balance still owed on a membership record.
+  // Matches the payments page amountDue() helper — single source of truth.
+  const amountDue = (m: MembershipRow): number =>
+    Math.max(0, planPrice(m) - (m.amount_paid ?? 0));
+
   const totalCollected = allMM
     .filter((m) => m.payment_status === "paid")
     .reduce((sum, m) => sum + (m.amount_paid ?? 0), 0);
 
+  // Pending = balance still owed (plan.price - amount_paid), not full plan price.
+  // Accounts for partial payments recorded against a pending membership.
   const totalPending = allMM
     .filter((m) => m.payment_status === "pending")
-    .reduce((sum, m) => sum + planPrice(m), 0);
+    .reduce((sum, m) => sum + amountDue(m), 0);
 
-  // Overdue = price of plan minus what was already paid (floored at 0 per row)
+  // Overdue = balance still owed on overdue memberships.
+  // Math.max(0,...) prevents a negative contribution if data is inconsistent.
   const totalOverdue = overdueRows.reduce(
-    (sum, m) => sum + Math.max(0, planPrice(m) - (m.amount_paid ?? 0)),
+    (sum, m) => sum + amountDue(m),
     0,
   );
 
