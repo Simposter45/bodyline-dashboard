@@ -62,10 +62,11 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
         .gte("joined_date", monthStartISO()),
 
       // 3. All memberships — for revenue calculations
-      //    Only select the columns needed (no full member join needed here)
+      //    We select member_id and created_at to group by latest membership
       supabase
         .from("member_memberships")
-        .select("payment_status, amount_paid, plan:membership_plans(price)"),
+        .select("member_id, payment_status, amount_paid, created_at, plan:membership_plans(price)")
+        .order("created_at", { ascending: false }),
 
       // 4. Today's check-ins with member name/photo for the panel list
       supabase
@@ -102,12 +103,23 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
   // Supabase returns `plan` as a single object for this many-to-one
   // foreign key join (membership_plans). Null if the plan was deleted.
   type MembershipRow = {
+    member_id: string;
     payment_status: string;
     amount_paid: number | null;
     plan: { price: number } | null;
   };
 
-  const allMM = (mmRes.data ?? []) as unknown as MembershipRow[];
+  const allMMPayloads = (mmRes.data ?? []) as unknown as MembershipRow[];
+  
+  // Only use the LATEST membership per member for revenue stats (to match Members page)
+  const latestMMMap = new Map<string, MembershipRow>();
+  for (const m of allMMPayloads) {
+    if (!latestMMMap.has(m.member_id)) {
+      latestMMMap.set(m.member_id, m);
+    }
+  }
+  const allMM = Array.from(latestMMMap.values());
+
   const overdueRows = allMM.filter((m) => m.payment_status === "overdue");
 
   const planPrice = (m: MembershipRow): number => m.plan?.price ?? 0;
