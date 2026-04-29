@@ -67,12 +67,24 @@
     - Fix: Overdue revenue calculation — `Math.max(0, plan.price - amount_paid)` (was `Math.abs`, was negative)
     - Fix: Pending revenue calculation — balance due, not full plan price (was overcounting partial payments)
     - Fix: `expiringThisWeek` — real DB query (was hardcoded `0`)
-- [ ] 6.5 `payments/page.tsx` cleanup (`refactor/REFACT-005-payments-cleanup`)
+- [x] 6.5 `payments/page.tsx` cleanup (`refactor/REFACT-005-payments-cleanup`)
+    - Step 1: `hooks/usePayments.ts` — TanStack Query hook, `queryKey: ["payments"]`, exports `PaymentRecord` type. `useRecordPayment` + `useRenewMembership` now also invalidate `["payments"]`.
+    - Step 2: `app/dashboard/payments/payments.css` — co-located styles extracted from 630-line inline `<style>` block, globals duplicates removed.
+    - Step 3: `app/dashboard/payments/PaymentDrawer.tsx` + `PaymentDrawer.css` — extracted from page, uses `<Avatar>`, `STATUS_CONFIG`, `formatINR`/`formatDate` from shared libs.
+    - Step 4: `app/dashboard/payments/page.tsx` rewrite — 1,419 → 255 lines. `useEffect` removed, `<Nav>` wired, all local helpers eliminated.
+    - Fix: `useDashboardStats.ts` — `totalCollected` now sums ALL paid rows (was incorrectly deduplicated to latest-per-member, causing mismatch vs payments page).
+    - Fix: Payments page `summary` — `totalPending` + `totalOverdue` now use latest-per-member deduplication, matching dashboard/members counts exactly. `totalCollected` remains ALL rows (cumulative ledger).
 - [ ] 6.6 Additional pages (trainers, onboarding, login). Ensure styling follows `members` pattern perfectly.
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
-- `payment_status` field is never auto-updated from `pending` → `overdue`. Currently requires manual owner action or does not transition at all. **Future: Supabase Edge Function or cron job that sets `overdue` where `end_date < today AND payment_status = 'pending'`.** Track as `CHORE-002`.
+- **`CHORE-002` — `payment_status` Auto-Transition (pending → overdue)**
+  - **Problem**: `payment_status` is never auto-updated from `pending` → `overdue` when a membership's `end_date` passes. Currently requires manual owner action. This also causes stale rows in the payments ledger: when a member renews, their old `pending`/`overdue` membership row is never cleaned up, causing inflated row counts in the Payments page filter tabs (e.g. "10 pending rows" vs "8 pending members").
+  - **Fix (Two-Part)**:
+    1. **Supabase Edge Function / pg_cron job**: Daily at midnight IST, set `payment_status = 'overdue'` on all `member_memberships` rows where `end_date < today AND payment_status = 'pending'`.
+    2. **Renewal cleanup**: When `useRenewMembership` creates a new membership row, it should also mark the previous membership row as `payment_status = 'superseded'` (or similar) so it no longer pollutes pending/overdue counts.
+  - **Acceptance Criteria**: Dashboard, Members, and Payments page all show identical `pending` / `overdue` member counts with zero manual intervention required from the gym owner.
+  - **Priority**: Medium — the display discrepancy is mitigated client-side (deduplication workaround is in place), but the root data hygiene issue remains in the DB.
 
 ## 🔧 Production Hardening (Pending)
 - [ ] Error boundaries: Each route needs a proper `error.tsx`
