@@ -53,8 +53,8 @@
     - MemberDrawer.css: hidden scrollbar rules added
     - AddMemberModal: `<style jsx>` → `<style>`, `error: any` → `unknown`, `toISOString` → `todayISO()`
     - AGENTS.md: Section 9 added (8 coding conventions)
-- [ ] 6.3-A **Renew Membership** action (`feat/FEAT-003-renew-membership`)
-- [ ] 6.3-B **Record Payment** action (`feat/FEAT-003-record-payment`)
+- [x] 6.3-A **Renew Membership** action (`feat/FEAT-003-renew-and-record-payment`)
+- [x] 6.3-B **Record Payment** action (`feat/FEAT-003-renew-and-record-payment`)
 - [x] 6.4 `dashboard/page.tsx` cleanup (`refactor/REFACT-004-dashboard-cleanup`) — **branch ready, pending merge**
     - Step 1: Extended `lib/utils/format.ts` + `lib/utils/date.ts` with shared helpers (`formatTime`, `getGreeting`, `monthStartISO`, `todayRangeISO`, `sevenDaysFromNow`)
     - Step 2: `hooks/useCurrentUser.ts` — TanStack Query hook for auth identity

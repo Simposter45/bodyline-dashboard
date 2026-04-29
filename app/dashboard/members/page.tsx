@@ -304,7 +304,10 @@ export default function MembersPage() {
 
       {/* Member detail drawer */}
       {selected && (
-        <MemberDrawer member={selected} onClose={() => setSelected(null)} />
+        <MemberDrawer 
+          member={members.find(m => m.id === selected.id) || selected} 
+          onClose={() => setSelected(null)} 
+        />
       )}
 
       <AddMemberModal 

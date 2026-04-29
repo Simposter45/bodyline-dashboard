@@ -1,7 +1,7 @@
 # SaaS Migration Handoff: Production Readiness & Modularity
 
 ## 🎯 Current Objective
-Continue modularising the dashboard pages to match the "Golden UI" standard established in `app/dashboard/members/page.tsx`. The members page + Add Member modal are complete and on `main`. Next is the Dashboard page cleanup (`REFACT-004`).
+Continue modularising the dashboard pages to match the "Golden UI" standard established in `app/dashboard/members/page.tsx`. The members page, Dashboard cleanup (`REFACT-004`), and Renew/Record Payment modals (`FEAT-003`) are all completed. Next targets are `REFACT-005` (Payments Cleanup) or `FEAT-004` (Attendance Check-in).
 
 ## 🏗️ Architectural Core
 - **Framework**: Next.js 16.2.1 (App Router) + Supabase SSR. Use Next.js 16.2.1 with App Router (never Pages Router).
@@ -39,43 +39,37 @@ Continue modularising the dashboard pages to match the "Golden UI" standard esta
 4. **AGENTS.md** — Updated with Section 9: full coding conventions
    - Forms, CSS, catch blocks, date utilities, loading states, Supabase pattern, toasts, icons
 
-### Last commit on `main`
-```
-ec49126  chore(agents): add coding conventions + fix members page bugs
-178529b  Merge pull request: FEAT-002-add-member-logic
-99cc27a  refactor(members): merge REFACT-003 — modularise members page
-```
+4. **Dashboard Page Cleanup** — `app/dashboard/page.tsx` (`REFACT-004`)
+   - Fully refactored to use TanStack Query (`useDashboardStats`, `useCurrentUser`).
+   - UI aligned with Golden UI standards, removed `useEffect` and inline styles.
+
+5. **Renew & Record Payment Modals** — `feat/FEAT-003-renew-and-record-payment`
+   - Added validation schemas with `.max()` balance enforcement.
+   - `useRenewMembership` and `useRecordPayment` mutation hooks built.
+   - Modals fully integrated into `MemberDrawer.tsx` matching Golden UI.
+
+### Last actions
+- `feat/FEAT-003-renew-and-record-payment` branch is complete, passed TypeScript checks, and is pushed. Ready for PR.
+- CodeRabbit and GitHub PR templates enforce `AGENTS.md` and planning protocols.
 
 ## 🔜 Next Tasks (In Priority Order)
 
-### 1. `refactor/REFACT-004-dashboard-cleanup` ← **START HERE**
-**Branch**: `git checkout -b refactor/REFACT-004-dashboard-cleanup`
+### 1. `refactor/REFACT-005-payments-cleanup` ← **START HERE (Option A)**
+**Branch**: `git checkout -b refactor/REFACT-005-payments-cleanup`
 
-`app/dashboard/page.tsx` is the most monolithic file remaining. Work needed:
-- Replace local `formatINR` / `formatDate` / `getInitials` with `lib/utils/format.ts`
-- Migrate `useEffect` data fetching → `hooks/useDashboardStats.ts` (TanStack Query)
-- Match Golden UI loading/error states (`.loading-screen` + `.loading-spinner`)
-- Create `dashboard.css` for page-specific styles
-- Ensure the page references `lib/constants/design.ts` tokens for any inline colors
-- **Read `app/dashboard/members/page.tsx` first** — replicate its exact structure
-
-### 2. `refactor/REFACT-005-payments-cleanup`
 Same pattern as REFACT-004:
 - TanStack Query hook for payments data
 - Deduplicate logic using shared `lib/utils/`
 - Golden UI loading/error screens
 - Co-located `payments.css`
 
-### 3. `feat/FEAT-003-renew-and-record-payment`
-- `MemberDrawer` has two **stub buttons** ("Renew membership" & "Record payment") with no `onClick` handlers
-- Build these as modals using the `AddMemberModal` as the template pattern
-- Create `hooks/useRenewMembership.ts` and `hooks/useRecordPayment.ts`
+### 2. `feat/FEAT-004-attendance-checkin` ← **START HERE (Option B)**
+**Branch**: `git checkout -b feat/FEAT-004-attendance-checkin`
 
-### 4. `feat/FEAT-004-attendance-checkin`
 - Daily check-in flow — highest daily-use feature for gym owners
 - New page: `app/dashboard/attendance/page.tsx`
 
-### 5. `refactor/REFACT-006-remaining-pages`
+### 3. `refactor/REFACT-006-remaining-pages`
 - `trainers/page.tsx`, `onboarding/page.tsx`, `login/page.tsx`
 - Match Golden UI padding, fonts, loading states
 
