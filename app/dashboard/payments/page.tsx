@@ -79,14 +79,27 @@ export default function PaymentsPage() {
     const amountDue = (r: PaymentRecord) =>
       Math.max(0, (r.plan?.price ?? 0) - (r.amount_paid ?? 0));
 
+    // Deduplicate to latest membership per member — same logic as dashboard + members page.
+    // Records are already ordered created_at DESC from usePayments, so first-seen = latest.
+    // Used for pending/overdue AMOUNTS so summary cards match the dashboard exactly.
+    const latestByMember = new Map<string, PaymentRecord>();
+    for (const r of records) {
+      if (!latestByMember.has(r.member_id)) {
+        latestByMember.set(r.member_id, r);
+      }
+    }
+    const latestRecords = Array.from(latestByMember.values());
+
     return {
+      // totalCollected: sum ALL paid rows — each renewal is real money received.
       totalCollected: records
         .filter((r) => r.payment_status === "paid")
         .reduce((s, r) => s + (r.amount_paid ?? 0), 0),
-      totalPending: records
+      // totalPending / totalOverdue: current outstanding — latest per member only.
+      totalPending: latestRecords
         .filter((r) => r.payment_status === "pending")
         .reduce((s, r) => s + amountDue(r), 0),
-      totalOverdue: records
+      totalOverdue: latestRecords
         .filter((r) => r.payment_status === "overdue")
         .reduce((s, r) => s + amountDue(r), 0),
       thisMonthCollected: records
@@ -94,10 +107,14 @@ export default function PaymentsPage() {
         .reduce((s, r) => s + (r.amount_paid ?? 0), 0),
       cashCount: records.filter((r) => r.payment_method === "cash").length,
       upiCount:  records.filter((r) => r.payment_method === "upi").length,
+      // Member-level counts for header sub-text (matches dashboard + members page)
+      pendingMemberCount: latestRecords.filter((r) => r.payment_status === "pending").length,
+      overdueMemberCount: latestRecords.filter((r) => r.payment_status === "overdue").length,
     };
   }, [records]);
 
-  // ── Filter counts ───────────────────────────────────────────────
+  // ── Filter tab counts (row counts — how many RECORDS match, for the table) ──
+  // Intentionally uses ALL rows so filter tab count and visible table rows stay in sync.
   const counts = useMemo(
     () => ({
       all:     records.length,
@@ -152,7 +169,7 @@ export default function PaymentsPage() {
             <div>
               <h1 className="page-title">Payments</h1>
               <p className="page-sub">
-                {counts.paid} paid · {counts.pending} pending · {counts.overdue} overdue
+                {counts.paid} paid · {summary.pendingMemberCount} pending · {summary.overdueMemberCount} overdue
               </p>
             </div>
             <button className="export-btn">
@@ -182,14 +199,14 @@ export default function PaymentsPage() {
               <p className="summary-value" style={{ color: "var(--accent-amber)" }}>
                 {formatINR(summary.totalPending)}
               </p>
-              <p className="summary-sub">{counts.pending} members</p>
+              <p className="summary-sub">{summary.pendingMemberCount} members</p>
             </div>
             <div className="summary-card">
               <p className="summary-label">Overdue</p>
               <p className="summary-value" style={{ color: "var(--accent-red)" }}>
                 {formatINR(summary.totalOverdue)}
               </p>
-              <p className="summary-sub">{counts.overdue} members</p>
+              <p className="summary-sub">{summary.overdueMemberCount} members</p>
             </div>
           </div>
 
