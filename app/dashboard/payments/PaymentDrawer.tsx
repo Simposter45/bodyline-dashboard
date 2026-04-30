@@ -20,12 +20,12 @@ interface PaymentDrawerProps {
 }
 
 export function PaymentDrawer({ record, onClose }: PaymentDrawerProps) {
-  // Narrow to the statuses STATUS_CONFIG supports; fall back to pending
-  const statusKey = (["paid", "pending", "overdue"] as PaymentStatus[]).includes(
+  // Narrow to the statuses STATUS_CONFIG supports; fall back to superseded
+  const statusKey = (["paid", "pending", "overdue", "superseded"] as PaymentStatus[]).includes(
     record.payment_status
   )
     ? record.payment_status
-    : "pending";
+    : "superseded";
 
   const cfg = STATUS_CONFIG[statusKey];
   const planPrice = record.plan?.price ?? 0;

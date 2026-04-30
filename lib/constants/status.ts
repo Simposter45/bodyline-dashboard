@@ -20,6 +20,7 @@ export type StatusKey =
   | "pending"
   | "inactive"
   | "paid"
+  | "superseded"
   | "all";
 
 export interface StatusConfig {
@@ -66,6 +67,12 @@ export const STATUS_CONFIG: Record<StatusKey, StatusConfig> = {
   },
   inactive: {
     label:  "Inactive",
+    color:  TEXT.muted,
+    bg:     "rgba(255,255,255,0.04)",
+    border: BORDER.default,
+  },
+  superseded: {
+    label:  "Superseded",
     color:  TEXT.muted,
     bg:     "rgba(255,255,255,0.04)",
     border: BORDER.default,

@@ -35,7 +35,7 @@ export interface GymSettings {
 // Enums
 // ------------------------------------------------------------------
 
-export type PaymentStatus = "paid" | "pending" | "overdue";
+export type PaymentStatus = "paid" | "pending" | "overdue" | "superseded";
 
 export type PaymentMethod = "cash" | "upi" | "card" | "other";
 
