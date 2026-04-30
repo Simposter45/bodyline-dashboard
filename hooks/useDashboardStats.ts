@@ -110,39 +110,36 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
   };
 
   const allMMPayloads = (mmRes.data ?? []) as unknown as MembershipRow[];
-  
-  // Only use the LATEST membership per member for revenue stats (to match Members page)
+
+  // ── Deduplication: latest membership per member ──────────────────
+  // Used for CURRENT STATE metrics (pending/overdue count + amounts).
+  // Memberships are already ordered by created_at DESC from the query,
+  // so the first occurrence for each member_id is their latest.
   const latestMMMap = new Map<string, MembershipRow>();
   for (const m of allMMPayloads) {
     if (!latestMMMap.has(m.member_id)) {
       latestMMMap.set(m.member_id, m);
     }
   }
-  const allMM = Array.from(latestMMMap.values());
+  const latestMM = Array.from(latestMMMap.values());
+  const overdueRows = latestMM.filter((m) => m.payment_status === "overdue");
 
-  const overdueRows = allMM.filter((m) => m.payment_status === "overdue");
-
-  const planPrice = (m: MembershipRow): number => m.plan?.price ?? 0;
-
-
-  // amountDue: balance still owed on a membership record.
-  // Matches the payments page amountDue() helper — single source of truth.
   const amountDue = (m: MembershipRow): number =>
-    Math.max(0, planPrice(m) - (m.amount_paid ?? 0));
+    Math.max(0, (m.plan?.price ?? 0) - (m.amount_paid ?? 0));
 
-
-  const totalCollected = allMM
+  // totalCollected: cumulative money received across ALL membership rows.
+  // MUST use allMMPayloads (not deduplicated) — a renewed member has
+  // multiple paid rows and each represents real money collected.
+  const totalCollected = allMMPayloads
     .filter((m) => m.payment_status === "paid")
     .reduce((sum, m) => sum + (m.amount_paid ?? 0), 0);
 
-  // Pending = balance still owed (plan.price - amount_paid), not full plan price.
-  // Accounts for partial payments recorded against a pending membership.
-  const totalPending = allMM
+  // totalPending / totalOverdue: outstanding balance on CURRENT memberships.
+  // Uses latest-per-member so superseded old rows don't inflate the figure.
+  const totalPending = latestMM
     .filter((m) => m.payment_status === "pending")
     .reduce((sum, m) => sum + amountDue(m), 0);
 
-  // Overdue = balance still owed on overdue memberships.
-  // Math.max(0,...) prevents a negative contribution if data is inconsistent.
   const totalOverdue = overdueRows.reduce(
     (sum, m) => sum + amountDue(m),
     0,
