@@ -44,7 +44,20 @@ export function useRenewMembership() {
         }
       }
 
-      // 2. Insert new Membership
+      // 2. Supersede all existing pending/overdue rows for this member.
+      //    Done AFTER reading the start date (above) so the query still finds
+      //    the correct end_date before we tombstone those rows.
+      //    Scoped to both member_id + gym_id (defense-in-depth on top of RLS).
+      const { error: supersededErr } = await supabase
+        .from("member_memberships")
+        .update({ payment_status: "superseded" })
+        .eq("member_id", data.member_id)
+        .eq("gym_id", gymId)
+        .in("payment_status", ["pending", "overdue"]);
+
+      if (supersededErr) throw new Error(supersededErr.message);
+
+      // 3. Insert new Membership
       const isUpiPaid = data.payment_method === "upi";
       const { error: mmErr } = await supabase
         .from("member_memberships")
