@@ -7,7 +7,7 @@ import { Nav } from "@/components/ui/Nav";
 import { Avatar } from "@/components/ui/Avatar";
 import { STATUS_CONFIG } from "@/lib/constants/status";
 import { formatINR, formatDate } from "@/lib/utils/format";
-import { monthStartISO } from "@/lib/utils/date";
+import { monthStartISTTimestamp } from "@/lib/utils/date";
 import { PaymentDrawer } from "./PaymentDrawer";
 import type { PaymentStatus } from "@/types";
 
@@ -75,7 +75,7 @@ export default function PaymentsPage() {
 
   // ── Revenue summary ─────────────────────────────────────────────
   const summary = useMemo(() => {
-    const monthStart = monthStartISO();
+    const monthStart = monthStartISTTimestamp();
     const amountDue = (r: PaymentRecord) =>
       Math.max(0, (r.plan?.price ?? 0) - (r.amount_paid ?? 0));
 
