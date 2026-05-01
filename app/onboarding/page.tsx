@@ -2,6 +2,7 @@
 
 import "./onboarding.css";
 import { Suspense, useEffect, useState } from "react";
+import { Camera, FileText, Smartphone, Banknote, CreditCard } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useGymSettings } from "@/hooks/useGymSettings";
 import { usePlans } from "@/hooks/usePlans";
@@ -326,7 +327,7 @@ function OnboardingContent() {
                 </div>
                 <div className="qr-upi-id">{settings?.upi_id || "gym@upi"}</div>
                 <button className="qr-paid-btn" onClick={() => setQrPaid(true)}>
-                  I've Paid âœ“
+                  I've Paid ✔
                 </button>
                 <button className="qr-cancel" onClick={() => setShowQR(false)}>
                   Cancel - pay later
@@ -334,7 +335,7 @@ function OnboardingContent() {
               </>
             ) : (
               <div className="qr-paid-state">
-                <div className="qr-paid-icon">âœ“</div>
+                <div className="qr-paid-icon">✔</div>
                 <div className="qr-title">Payment Received</div>
                 <div className="qr-sub" style={{ marginBottom: 24 }}>
                   {selectedPlan && formatINR(selectedPlan.price)} via UPI. Your
@@ -358,7 +359,7 @@ function OnboardingContent() {
       {step === 5 ? (
         <div className="success-page">
           <div className="success-card">
-            <div className="success-icon">ðŸŽ‰</div>
+            <div className="success-icon">🎉</div>
             <div className="success-label">Welcome to {settings?.gym_display_name || "our Gym"}</div>
             <h1 className="success-h1">
               You're In,
@@ -387,7 +388,7 @@ function OnboardingContent() {
                   style={{ textTransform: "capitalize" }}
                 >
                   {form.payment_method === "upi" && qrPaid
-                    ? "Paid via UPI âœ“"
+                    ? "Paid via UPI ✔"
                     : form.payment_method === "cash"
                       ? "Cash (pay at counter)"
                       : form.payment_method}
@@ -567,7 +568,7 @@ function OnboardingContent() {
                               alt="preview"
                             />
                           ) : (
-                            "ðŸ“·"
+                            <Camera size={20} />
                           )}
                         </div>
                         <div className="upload-info">
@@ -604,7 +605,7 @@ function OnboardingContent() {
                             setIdFile(e.target.files?.[0] ?? null)
                           }
                         />
-                        <div className="upload-icon">ðŸ“„</div>
+                        <div className="upload-icon"><FileText size={20} /></div>
                         <div className="upload-info">
                           <div className="upload-name">
                             {idFile ? idFile.name : "Upload Aadhaar"}
@@ -728,19 +729,19 @@ function OnboardingContent() {
                     {[
                       {
                         id: "upi" as PaymentMethod,
-                        icon: "ðŸ“±",
+                        icon: <Smartphone size={18} />,
                         name: "UPI",
                         desc: "PhonePe, GPay, Paytm - scan & pay instantly",
                       },
                       {
                         id: "cash" as PaymentMethod,
-                        icon: "ðŸ’µ",
+                        icon: <Banknote size={18} />,
                         name: "Cash",
                         desc: "Pay at the counter when you arrive",
                       },
                       {
                         id: "card" as PaymentMethod,
-                        icon: "ðŸ’³",
+                        icon: <CreditCard size={18} />,
                         name: "Card",
                         desc: "Debit or credit card at the front desk",
                       },
@@ -811,7 +812,7 @@ function OnboardingContent() {
                     <div className="sum-row">
                       <span className="sum-key">Start Date</span>
                       <span className="sum-val">
-                        {new Date().toLocaleDateString("en-IN")}
+                        {todayISO()}
                       </span>
                     </div>
                     <div className="sum-row">
@@ -829,7 +830,7 @@ function OnboardingContent() {
                           className={`payment-badge ${form.payment_method}`}
                         >
                           {form.payment_method === "upi" && qrPaid
-                            ? "âœ“ Paid via UPI"
+                            ? "✔ Paid via UPI"
                             : form.payment_method === "cash"
                               ? "Cash at counter"
                               : "Card at counter"}
