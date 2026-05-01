@@ -11,7 +11,7 @@ import { addDays, todayISO } from "@/lib/utils/date";
 
 const supabase = createClient();
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Types --------------------------------------------------------------------
 
 type PaymentMethod = "cash" | "upi" | "card";
 
@@ -27,7 +27,7 @@ interface FormData {
   id_proof_url: string;
 }
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Helpers ------------------------------------------------------------------
 
 function durationLabel(days: number) {
   if (days <= 31) return "1 Month";
@@ -37,7 +37,7 @@ function durationLabel(days: number) {
   return "Per Session";
 }
 
-// â”€â”€â”€ Step indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Step indicator -----------------------------------------------------------
 
 function StepBar({ step }: { step: number }) {
   const steps = ["Your Details", "Choose Plan", "Payment", "Confirm"];
@@ -82,7 +82,7 @@ function StepBar({ step }: { step: number }) {
   );
 }
 
-// â”€â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- Main Page ----------------------------------------------------------------
 
 function OnboardingContent() {
   const searchParams = useSearchParams();
@@ -147,7 +147,7 @@ function OnboardingContent() {
     setForm((f) => ({ ...f, [key]: val }));
   }
 
-  // â”€â”€ Validation â”€â”€
+  // -- Validation --
   function step1Valid() {
     return (
       form.full_name.trim().length >= 2 &&
@@ -167,7 +167,7 @@ function OnboardingContent() {
     return form.payment_method !== "";
   }
 
-  // â”€â”€ Upload files to Supabase Storage â”€â”€
+  // -- Upload files to Supabase Storage --
   async function uploadFiles(memberId: string) {
     const ext = (f: File) => f.name.split(".").pop();
     const [photoRes, idRes] = await Promise.all([
@@ -195,7 +195,7 @@ function OnboardingContent() {
     };
   }
 
-  // â”€â”€ Submit to Supabase â”€â”€
+  // -- Submit to Supabase --
   async function handleSubmit() {
     if (!selectedPlan) return;
     setLoading(true);
@@ -286,7 +286,7 @@ function OnboardingContent() {
 
 
 
-      {/* â”€â”€ UPI QR Modal â”€â”€ */}
+      {/* -- UPI QR Modal -- */}
       {showQR && (
         <div
           className="qr-backdrop"
@@ -329,7 +329,7 @@ function OnboardingContent() {
                   I've Paid âœ“
                 </button>
                 <button className="qr-cancel" onClick={() => setShowQR(false)}>
-                  Cancel â€” pay later
+                  Cancel - pay later
                 </button>
               </>
             ) : (
@@ -346,7 +346,7 @@ function OnboardingContent() {
                     setShowQR(false);
                   }}
                 >
-                  Continue â†’
+                  Continue
                 </button>
               </div>
             )}
@@ -354,7 +354,7 @@ function OnboardingContent() {
         </div>
       )}
 
-      {/* â”€â”€ Success Screen â”€â”€ */}
+      {/* -- Success Screen -- */}
       {step === 5 ? (
         <div className="success-page">
           <div className="success-card">
@@ -367,7 +367,7 @@ function OnboardingContent() {
             </h1>
             <p className="success-sub">
               Your membership is confirmed. Head to any {settings?.gym_display_name || "Gym"} branch and tell
-              them your name â€” you're good to go.
+              them your name - you're good to go.
             </p>
             <div className="success-details">
               <div className="sd-row">
@@ -377,7 +377,7 @@ function OnboardingContent() {
               <div className="sd-row">
                 <span className="sd-key">Valid Until</span>
                 <span className="sd-val">
-                  {selectedPlan ? addDays(selectedPlan.duration_days) : "â€”"}
+                  {selectedPlan ? addDays(selectedPlan.duration_days) : "-"}
                 </span>
               </div>
               <div className="sd-row">
@@ -406,15 +406,15 @@ function OnboardingContent() {
               <div className="progress-fill" />
             </div>
             <p className="success-redirect">
-              Redirecting to your portal in <span>{countdown}s</span>â€¦
+              Redirecting to your portal in <span>{countdown}s</span>...
             </p>
             <a href={`/member?guest=${memberId}`} className="btn-portal">
-              Go to Member Portal â†’
+              Go to Member Portal
             </a>
           </div>
         </div>
       ) : (
-        /* â”€â”€ Main Onboarding Layout â”€â”€ */
+        /* -- Main Onboarding Layout -- */
         <div className="ob-page">
           {/* LEFT SIDE PANEL */}
           <div className="side">
@@ -440,7 +440,7 @@ function OnboardingContent() {
                   `Access all ${settings?.branches?.length || 1} ${settings?.city || ''} branches`,
                   "Expert trainers from day one",
                   "Digital check-in & session tracking",
-                  "Flexible plans â€” monthly to annual",
+                  "Flexible plans - monthly to annual",
                 ].map((f) => (
                   <div key={f} className="side-feat">
                     <div className="feat-dot" />
@@ -450,7 +450,7 @@ function OnboardingContent() {
               </div>
             </div>
             <div className="side-bottom">
-              Â© {new Date().getFullYear()} {settings?.gym_display_name || "Gym"} {settings?.city ? `Â· ${settings.city}` : ""}
+              (c) {new Date().getFullYear()} {settings?.gym_display_name || "Gym"} {settings?.city ? `. ${settings.city}` : ""}
             </div>
             <div className="side-bg-num">{step}</div>
           </div>
@@ -481,7 +481,7 @@ function OnboardingContent() {
             <StepBar step={step} />
 
             <div className="form-body">
-              {/* â”€â”€â”€ STEP 1: Personal Info â”€â”€â”€ */}
+              {/* --- STEP 1: Personal Info --- */}
               {step === 1 && (
                 <>
                   <h2 className="form-heading">Tell us about yourself</h2>
@@ -631,7 +631,7 @@ function OnboardingContent() {
                   <div className="field" style={{ animationDelay: "0.22s" }}>
                     <label className="label">Your Branch *</label>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      {["Sector 14", "DLF Phase 1", "Sohna Road"].map((b) => (
+                      {(settings?.branches ?? []).map((b) => (
                         <button
                           key={b}
                           type="button"
@@ -660,12 +660,14 @@ function OnboardingContent() {
                 </>
               )}
 
-              {/* â”€â”€â”€ STEP 2: Choose Plan â”€â”€â”€ */}
+              {/* --- STEP 2: Choose Plan --- */}
               {step === 2 && (
                 <>
                   <h2 className="form-heading">Pick your plan</h2>
                   <p className="form-sub">
-                    All plans include access to all 3 branches. No hidden fees.
+                    {settings?.branches?.length
+                      ? `Access to all ${settings.branches.length} branch${settings.branches.length > 1 ? 'es' : ''}. No hidden fees.`
+                      : 'Choose a plan below. No hidden fees.'}
                   </p>
                   <div className="plans-grid">
                     {plans.map((plan, i) => {
@@ -713,13 +715,13 @@ function OnboardingContent() {
                 </>
               )}
 
-              {/* â”€â”€â”€ STEP 3: Payment â”€â”€â”€ */}
+              {/* --- STEP 3: Payment --- */}
               {step === 3 && (
                 <>
                   <h2 className="form-heading">How would you like to pay?</h2>
                   <p className="form-sub">
                     {selectedPlan
-                      ? `${selectedPlan.name} Â· ${formatINR(selectedPlan.price)}`
+                      ? `${selectedPlan.name} . ${formatINR(selectedPlan.price)}`
                       : "Select a payment method."}
                   </p>
                   <div className="pay-methods">
@@ -728,7 +730,7 @@ function OnboardingContent() {
                         id: "upi" as PaymentMethod,
                         icon: "ðŸ“±",
                         name: "UPI",
-                        desc: "PhonePe, GPay, Paytm â€” scan & pay instantly",
+                        desc: "PhonePe, GPay, Paytm - scan & pay instantly",
                       },
                       {
                         id: "cash" as PaymentMethod,
@@ -764,7 +766,7 @@ function OnboardingContent() {
                 </>
               )}
 
-              {/* â”€â”€â”€ STEP 4: Confirm â”€â”€â”€ */}
+              {/* --- STEP 4: Confirm --- */}
               {step === 4 && (
                 <>
                   <h2 className="form-heading">Confirm your details</h2>
@@ -803,7 +805,7 @@ function OnboardingContent() {
                       <span className="sum-val">
                         {selectedPlan
                           ? durationLabel(selectedPlan.duration_days)
-                          : "â€”"}
+                          : "-"}
                       </span>
                     </div>
                     <div className="sum-row">
@@ -817,7 +819,7 @@ function OnboardingContent() {
                       <span className="sum-val">
                         {selectedPlan
                           ? addDays(selectedPlan.duration_days)
-                          : "â€”"}
+                          : "-"}
                       </span>
                     </div>
                     <div className="sum-row">
@@ -837,7 +839,7 @@ function OnboardingContent() {
                     <div className="sum-total">
                       <span className="sum-total-key">Total</span>
                       <span className="sum-total-val">
-                        {selectedPlan ? formatINR(selectedPlan.price) : "â€”"}
+                        {selectedPlan ? formatINR(selectedPlan.price) : "-"}
                       </span>
                     </div>
                   </div>
@@ -845,7 +847,7 @@ function OnboardingContent() {
                 </>
               )}
 
-              {/* â”€â”€â”€ NAV BUTTONS â”€â”€â”€ */}
+              {/* --- NAV BUTTONS --- */}
               <div className="btn-row">
                 {step > 1 && (
                   <button
@@ -906,7 +908,7 @@ function OnboardingContent() {
                     {loading ? (
                       <>
                         <div className="ob-spinner" />{" "}
-                        {uploading ? "Uploading docsâ€¦" : "Savingâ€¦"}
+                        {uploading ? "Uploading docs..." : "Saving..."}
                       </>
                     ) : (
                       <>Confirm & Join {settings?.gym_display_name ? settings.gym_display_name.split(' ')[0] : 'Gym'}</>
