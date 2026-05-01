@@ -1,21 +1,17 @@
 "use client";
 
+import "./onboarding.css";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGymSettings } from "@/hooks/useGymSettings";
+import { usePlans } from "@/hooks/usePlans";
 import { createClient } from "@/lib/supabase/client";
+import { formatINR } from "@/lib/utils/format";
+import { addDays, todayISO } from "@/lib/utils/date";
 
 const supabase = createClient();
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  duration_days: number;
-  description: string | null;
-}
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type PaymentMethod = "cash" | "upi" | "card";
 
@@ -31,15 +27,7 @@ interface FormData {
   id_proof_url: string;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatINR(n: number) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(n);
-}
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function durationLabel(days: number) {
   if (days <= 31) return "1 Month";
@@ -49,13 +37,7 @@ function durationLabel(days: number) {
   return "Per Session";
 }
 
-function addDays(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split("T")[0];
-}
-
-// ─── Step indicator ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Step indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StepBar({ step }: { step: number }) {
   const steps = ["Your Details", "Choose Plan", "Payment", "Confirm"];
@@ -100,7 +82,7 @@ function StepBar({ step }: { step: number }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function OnboardingContent() {
   const searchParams = useSearchParams();
@@ -123,7 +105,8 @@ function OnboardingContent() {
   const { data: settings } = useGymSettings(gymSlug ? { gymSlug } : undefined);
 
   const [step, setStep] = useState(1);
-  const [plans, setPlans] = useState<Plan[]>([]);
+  // Plans are scoped to this gym_id; null = settings still loading (query held)
+  const { data: plans = [] } = usePlans(settings?.gym_id ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(5);
@@ -147,16 +130,6 @@ function OnboardingContent() {
     id_proof_url: "",
   });
 
-  // Load plans
-  useEffect(() => {
-    supabase
-      .from("membership_plans")
-      .select("*")
-      .eq("is_active", true)
-      .order("price", { ascending: true })
-      .then(({ data }) => setPlans((data as Plan[]) ?? []));
-  }, []);
-
   // Countdown on success
   useEffect(() => {
     if (step !== 5) return;
@@ -174,7 +147,7 @@ function OnboardingContent() {
     setForm((f) => ({ ...f, [key]: val }));
   }
 
-  // ── Validation ──
+  // â”€â”€ Validation â”€â”€
   function step1Valid() {
     return (
       form.full_name.trim().length >= 2 &&
@@ -194,7 +167,7 @@ function OnboardingContent() {
     return form.payment_method !== "";
   }
 
-  // ── Upload files to Supabase Storage ──
+  // â”€â”€ Upload files to Supabase Storage â”€â”€
   async function uploadFiles(memberId: string) {
     const ext = (f: File) => f.name.split(".").pop();
     const [photoRes, idRes] = await Promise.all([
@@ -222,13 +195,13 @@ function OnboardingContent() {
     };
   }
 
-  // ── Submit to Supabase ──
+  // â”€â”€ Submit to Supabase â”€â”€
   async function handleSubmit() {
     if (!selectedPlan) return;
     setLoading(true);
     setError(null);
     try {
-      const today = new Date().toISOString().split("T")[0];
+      const today = todayISO();
       const endDate = addDays(selectedPlan.duration_days);
 
       // Insert member
@@ -310,522 +283,10 @@ function OnboardingContent() {
 
   return (
     <div style={{"--green": accentColor, "--gd": accentColorDim} as React.CSSProperties}>
-      <style>{`
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        :root {
-          --bg:     #0d0d0f;
-          --bg2:    #141417;
-          --bg3:    #1c1c21;
-          --bdr:    rgba(255,255,255,0.07);
-          --bdr2:   rgba(255,255,255,0.13);
-          --tx:     #f0efe8;
-          --muted:  #8a8987;
-          --dim:    #3a3a3a;
-          --green:  #4ade80;
-          --gd:     rgba(74,222,128,0.1);
-          --amber:  #fbbf24;
-          --red:    #f87171;
-          --fd:     var(--font-syne), sans-serif;
-          --fb:     var(--font-dm-sans), sans-serif;
-          --r:      14px;
-          --rsm:    8px;
-        }
 
-        body {
-          background: var(--bg); color: var(--tx);
-          font-family: var(--fb); font-size: 15px; line-height: 1.6;
-        }
 
-        ::-webkit-scrollbar {
-          display: none;
-        }
-
-        /* ─── LAYOUT ─── */
-        .page {
-          min-height: 100vh;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-        }
-        @media(max-width: 900px) {
-          .page { grid-template-columns: 1fr; }
-          .side { display: none; }
-        }
-
-        /* ─── LEFT SIDE PANEL ─── */
-        .side {
-          position: sticky; top: 0; height: 100vh;
-          background: var(--bg2);
-          border-right: 1px solid var(--bdr);
-          display: flex; flex-direction: column;
-          justify-content: space-between;
-          padding: 48px;
-          overflow: hidden;
-        }
-        .side-logo {
-          font-family: var(--fd); font-size: 26px; font-weight: 800;
-          letter-spacing: -0.02em; color: var(--tx); text-decoration: none;
-        }
-        .side-logo span { color: var(--green); }
-        .side-center {}
-        .side-tag {
-          display: inline-flex; align-items: center; gap: 8px;
-          font-size: 11px; font-weight: 500; letter-spacing: 0.1em;
-          text-transform: uppercase; color: var(--green);
-          margin-bottom: 20px;
-        }
-        .side-tag-line { width: 20px; height: 1px; background: var(--green); }
-        .side-headline {
-          font-family: var(--fd); font-size: 3rem; font-weight: 800;
-          letter-spacing: -0.03em; line-height: 1.05;
-          color: var(--tx); margin-bottom: 20px;
-        }
-        .side-headline em { color: var(--green); font-style: normal; display: block; }
-        .side-body { font-size: 14px; font-weight: 300; color: var(--muted); line-height: 1.8; max-width: 320px; }
-        .side-features { display: flex; flex-direction: column; gap: 16px; margin-top: 40px; }
-        .side-feat {
-          display: flex; align-items: center; gap: 12px;
-          font-size: 13px; color: var(--muted);
-        }
-        .feat-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: var(--green); flex-shrink: 0;
-        }
-        .side-bg-num {
-          position: absolute; bottom: -20px; right: -10px;
-          font-family: var(--fd); font-size: 200px; font-weight: 800;
-          color: rgba(255,255,255,0.02); line-height: 1;
-          pointer-events: none; user-select: none;
-        }
-        .side-bottom { font-size: 12px; color: var(--dim); }
-
-        /* ─── RIGHT FORM PANEL ─── */
-        .form-panel {
-          display: flex; flex-direction: column;
-          min-height: 100vh; padding: 48px;
-          background: var(--bg);
-        }
-        @media(max-width:600px){ .form-panel { padding: 28px 20px; } }
-
-        .form-top {
-          display: flex; justify-content: space-between; align-items: center;
-          margin-bottom: 48px;
-        }
-        .back-link {
-          display: inline-flex; align-items: center; gap: 6px;
-          font-size: 13px; color: var(--muted); text-decoration: none;
-          transition: color 0.2s;
-        }
-        .back-link:hover { color: var(--tx); }
-        .step-count { font-size: 13px; color: var(--dim); }
-
-        /* ─── STEP BAR ─── */
-        .stepbar {
-          display: flex; align-items: center;
-          gap: 0; margin-bottom: 48px; overflow: hidden;
-        }
-        .step-item {
-          display: flex; align-items: center; gap: 10px; flex: 1;
-        }
-        .step-item:last-child { flex: 0; }
-        .step-circle {
-          width: 30px; height: 30px; border-radius: 50%;
-          border: 1px solid var(--dim);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 12px; font-weight: 600; color: var(--muted);
-          flex-shrink: 0; transition: all 0.3s ease;
-          background: var(--bg);
-        }
-        .step-circle.active {
-          border-color: var(--green); color: var(--green);
-          background: var(--gd); box-shadow: 0 0 0 4px rgba(74,222,128,0.08);
-        }
-        .step-circle.done {
-          border-color: var(--green); background: var(--green); color: #000;
-        }
-        .step-label {
-          font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
-          color: var(--dim); white-space: nowrap; transition: color 0.3s;
-        }
-        .step-label.active { color: var(--tx); }
-        .step-label.done { color: var(--muted); }
-        .step-line {
-          flex: 1; height: 1px; background: var(--dim);
-          margin: 0 8px; transition: background 0.3s;
-        }
-        .step-line.done { background: var(--green); }
-
-        /* ─── FORM BODY ─── */
-        .form-body { flex: 1; }
-        .form-heading {
-          font-family: var(--fd); font-size: 2rem; font-weight: 700;
-          letter-spacing: -0.02em; margin-bottom: 6px;
-          animation: stepIn 0.35s ease forwards;
-        }
-        .form-sub {
-          font-size: 14px; font-weight: 300; color: var(--muted);
-          margin-bottom: 36px;
-          animation: stepIn 0.35s ease 0.05s both;
-        }
-        @keyframes stepIn {
-          from { opacity: 0; transform: translateX(16px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-
-        /* ─── INPUTS ─── */
-        .field { margin-bottom: 20px; animation: stepIn 0.35s ease both; }
-        .label {
-          display: block; font-size: 12px; font-weight: 500;
-          letter-spacing: 0.06em; text-transform: uppercase;
-          color: var(--muted); margin-bottom: 8px;
-        }
-        .input {
-          width: 100%; background: var(--bg2); border: 1px solid var(--bdr);
-          border-radius: var(--rsm); padding: 13px 16px;
-          color: var(--tx); font-family: var(--fb); font-size: 15px;
-          outline: none; transition: border-color 0.2s, box-shadow 0.2s;
-          -webkit-appearance: none;
-        }
-        .input:focus {
-          border-color: rgba(74,222,128,0.4);
-          box-shadow: 0 0 0 3px rgba(74,222,128,0.06);
-        }
-        .input::placeholder { color: var(--dim); }
-        .input-hint { font-size: 12px; color: var(--dim); margin-top: 6px; }
-        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        @media(max-width:500px){ .field-row { grid-template-columns: 1fr; } }
-
-        /* ─── PLAN CARDS ─── */
-        .plans-grid {
-          display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 10px; margin-bottom: 32px;
-          animation: stepIn 0.35s ease both;
-        }
-        .plan-card {
-          background: var(--bg2); border: 1px solid var(--bdr);
-          border-radius: var(--r); padding: 22px 20px;
-          cursor: pointer; transition: all 0.2s; position: relative;
-        }
-        .plan-card:hover { border-color: var(--bdr2); background: var(--bg3); }
-        .plan-card.selected {
-          border-color: var(--green);
-          background: var(--gd);
-          box-shadow: 0 0 0 1px rgba(74,222,128,0.2);
-        }
-        .plan-card.popular::before {
-          content: 'Popular';
-          position: absolute; top: -1px; right: 14px;
-          font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
-          text-transform: uppercase; background: var(--green); color: #000;
-          padding: 3px 10px; border-radius: 0 0 6px 6px;
-        }
-        .plan-dur {
-          font-size: 11px; font-weight: 500; letter-spacing: 0.1em;
-          text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
-        }
-        .plan-name { font-family: var(--fd); font-size: 17px; font-weight: 700; margin-bottom: 12px; }
-        .plan-price { font-family: var(--fd); font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
-        .plan-price span { font-size: 14px; color: var(--muted); font-weight: 400; }
-        .plan-desc { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
-        .plan-check {
-          position: absolute; top: 14px; right: 14px;
-          width: 20px; height: 20px; border-radius: 50%;
-          background: var(--green); display: none;
-          align-items: center; justify-content: center;
-        }
-        .plan-card.selected .plan-check { display: flex; }
-
-        /* ─── PAYMENT METHOD ─── */
-        .pay-methods { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; animation: stepIn 0.35s ease both; }
-        .pay-opt {
-          display: flex; align-items: center; gap: 16px;
-          background: var(--bg2); border: 1px solid var(--bdr);
-          border-radius: var(--r); padding: 18px 20px;
-          cursor: pointer; transition: all 0.2s;
-        }
-        .pay-opt:hover { border-color: var(--bdr2); }
-        .pay-opt.selected { border-color: var(--green); background: var(--gd); }
-        .pay-icon {
-          width: 40px; height: 40px; border-radius: var(--rsm);
-          background: var(--bg3); display: flex; align-items: center;
-          justify-content: center; font-size: 20px; flex-shrink: 0;
-        }
-        .pay-info { flex: 1; }
-        .pay-name { font-size: 15px; font-weight: 500; }
-        .pay-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
-        .pay-radio {
-          width: 18px; height: 18px; border-radius: 50%;
-          border: 1px solid var(--dim); flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
-          transition: all 0.2s;
-        }
-        .pay-opt.selected .pay-radio {
-          border-color: var(--green);
-          background: var(--green);
-        }
-        .pay-opt.selected .pay-radio::after {
-          content: ''; width: 6px; height: 6px;
-          border-radius: 50%; background: #000;
-        }
-
-        /* ─── UPI QR MODAL ─── */
-        .qr-backdrop {
-          position: fixed; inset: 0; z-index: 100;
-          background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
-          display: flex; align-items: center; justify-content: center;
-          padding: 24px;
-          animation: fadeIn 0.2s ease;
-        }
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        .qr-modal {
-          background: var(--bg2); border: 1px solid var(--bdr);
-          border-radius: 20px; padding: 40px 36px;
-          max-width: 380px; width: 100%;
-          text-align: center;
-          animation: slideUp 0.3s ease;
-        }
-        @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-        .qr-title { font-family: var(--fd); font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
-        .qr-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
-        .qr-amount {
-          font-family: var(--fd); font-size: 2.5rem; font-weight: 700;
-          color: var(--green); margin-bottom: 24px; letter-spacing: -0.02em;
-        }
-        .qr-box {
-          background: #fff; border-radius: 12px;
-          padding: 20px; margin: 0 auto 20px;
-          width: 200px; height: 200px;
-          display: flex; align-items: center; justify-content: center;
-          position: relative; overflow: hidden;
-        }
-        /* Fake QR pattern using CSS */
-        .qr-pattern {
-          width: 160px; height: 160px;
-          background-image:
-            repeating-linear-gradient(0deg, #000 0px, #000 8px, transparent 8px, transparent 16px),
-            repeating-linear-gradient(90deg, #000 0px, #000 8px, transparent 8px, transparent 16px);
-          background-size: 16px 16px;
-          opacity: 0.15;
-          position: absolute;
-        }
-        .qr-inner {
-          position: relative; z-index: 1;
-          display: grid; grid-template-columns: repeat(7,1fr);
-          gap: 3px; width: 140px;
-        }
-        .qr-cell {
-          width: 16px; height: 16px; border-radius: 2px;
-          background: #000;
-        }
-        .qr-upi-id {
-          font-size: 13px; color: var(--muted);
-          margin-bottom: 24px; font-family: monospace;
-        }
-        .qr-paid-btn {
-          width: 100%; padding: 14px;
-          background: var(--green); color: #000;
-          border: none; border-radius: var(--rsm);
-          font-family: var(--fd); font-size: 15px; font-weight: 700;
-          letter-spacing: 0.06em; cursor: pointer;
-          transition: opacity 0.15s;
-        }
-        .qr-paid-btn:hover { opacity: 0.88; }
-        .qr-cancel {
-          display: block; margin-top: 14px;
-          font-size: 13px; color: var(--muted); cursor: pointer;
-          background: none; border: none; font-family: var(--fb);
-          transition: color 0.2s;
-        }
-        .qr-cancel:hover { color: var(--tx); }
-
-        /* QR paid state */
-        .qr-paid-state { animation: stepIn 0.3s ease; }
-        .qr-paid-icon {
-          width: 64px; height: 64px; border-radius: 50%;
-          background: var(--gd); border: 1px solid rgba(74,222,128,0.3);
-          display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 16px; font-size: 28px;
-        }
-
-        /* ─── SUMMARY ─── */
-        .summary-card {
-          background: var(--bg2); border: 1px solid var(--bdr);
-          border-radius: var(--r); overflow: hidden;
-          margin-bottom: 28px;
-          animation: stepIn 0.35s ease both;
-        }
-        .sum-header {
-          padding: 18px 22px; border-bottom: 1px solid var(--bdr);
-          font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
-          text-transform: uppercase; color: var(--muted);
-        }
-        .sum-row {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: 14px 22px; border-bottom: 1px solid var(--bdr);
-          font-size: 14px;
-        }
-        .sum-row:last-child { border-bottom: none; }
-        .sum-key { color: var(--muted); }
-        .sum-val { font-weight: 500; }
-        .sum-total {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: 18px 22px; background: var(--gd);
-          border-top: 1px solid rgba(74,222,128,0.15);
-        }
-        .sum-total-key { font-size: 14px; font-weight: 600; color: var(--green); }
-        .sum-total-val { font-family: var(--fd); font-size: 22px; font-weight: 700; color: var(--green); }
-        .payment-badge {
-          display: inline-flex; align-items: center; gap: 6px;
-          font-size: 12px; font-weight: 500; padding: 4px 12px;
-          border-radius: 99px; margin-top: 4px;
-        }
-        .payment-badge.upi { background: rgba(74,222,128,0.12); color: var(--green); }
-        .payment-badge.cash { background: rgba(251,191,36,0.12); color: var(--amber); }
-        .payment-badge.card { background: rgba(96,165,250,0.12); color: #60a5fa; }
-
-        /* ─── BUTTONS ─── */
-        .btn-row { display: flex; gap: 12px; margin-top: 32px; }
-        .btn-back {
-          flex: 0 0 auto; padding: 14px 22px;
-          background: transparent; border: 1px solid var(--dim);
-          border-radius: var(--rsm); color: var(--muted);
-          font-family: var(--fb); font-size: 14px; font-weight: 500;
-          cursor: pointer; transition: all 0.2s; display: flex;
-          align-items: center; gap: 8px;
-        }
-        .btn-back:hover { border-color: var(--bdr2); color: var(--tx); }
-        .btn-next {
-          flex: 1; padding: 14px 28px;
-          background: var(--green); border: none;
-          border-radius: var(--rsm); color: #000;
-          font-family: var(--fd); font-size: 16px; font-weight: 700;
-          letter-spacing: 0.04em; cursor: pointer;
-          transition: all 0.15s; display: flex;
-          align-items: center; justify-content: center; gap: 10px;
-        }
-        .btn-next:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-        .btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-        .btn-next.loading { pointer-events: none; }
-
-        /* Spinner */
-        .spinner {
-          width: 18px; height: 18px;
-          border: 2px solid rgba(0,0,0,0.3);
-          border-top-color: #000;
-          border-radius: 50%;
-          animation: spin 0.6s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-        /* ─── UPLOAD FIELDS ─── */
-        .upload-field { margin-bottom: 20px; animation: stepIn 0.35s ease both; }
-        .upload-zone {
-          width: 100%; background: var(--bg2); border: 1px dashed var(--bdr);
-          border-radius: var(--rsm); padding: 20px;
-          display: flex; align-items: center; gap: 16px;
-          cursor: pointer; transition: all 0.2s; position: relative;
-          overflow: hidden;
-        }
-        .upload-zone:hover { border-color: rgba(74,222,128,0.4); background: var(--bg3); }
-        .upload-zone.has-file { border-color: rgba(74,222,128,0.4); background: var(--gd); }
-        .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-        .upload-icon {
-          width: 40px; height: 40px; border-radius: var(--rsm);
-          background: var(--bg3); display: flex; align-items: center;
-          justify-content: center; flex-shrink: 0; font-size: 18px;
-        }
-        .upload-info { flex: 1; }
-        .upload-name { font-size: 14px; font-weight: 500; color: var(--tx); }
-        .upload-hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
-        .upload-preview {
-          width: 40px; height: 40px; border-radius: var(--rsm);
-          object-fit: cover; border: 1px solid var(--bdr2); flex-shrink: 0;
-        }
-        .upload-check {
-          width: 20px; height: 20px; border-radius: 50%;
-          background: var(--green); display: flex; align-items: center;
-          justify-content: center; flex-shrink: 0;
-        }
-
-        /* ─── ERROR ─── */
-        .err-box {
-          background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2);
-          border-radius: var(--rsm); padding: 14px 16px;
-          font-size: 13px; color: var(--red); margin-top: 16px;
-        }
-
-        /* ─── SUCCESS ─── */
-        .success-page {
-          min-height: 100vh; display: flex; align-items: center;
-          justify-content: center; background: var(--bg);
-          padding: 40px 20px;
-        }
-        .success-card {
-          background: var(--bg2); border: 1px solid var(--bdr);
-          border-radius: 20px; padding: 56px 48px;
-          max-width: 480px; width: 100%; text-align: center;
-          animation: slideUp 0.5s ease;
-        }
-        .success-icon {
-          width: 80px; height: 80px; border-radius: 50%;
-          background: var(--gd); border: 1px solid rgba(74,222,128,0.25);
-          display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 28px; font-size: 36px;
-          animation: popIn 0.5s ease 0.2s both;
-        }
-        @keyframes popIn {
-          from { transform: scale(0.5); opacity: 0; }
-          to   { transform: scale(1); opacity: 1; }
-        }
-        .success-label {
-          font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
-          text-transform: uppercase; color: var(--green); margin-bottom: 12px;
-        }
-        .success-h1 {
-          font-family: var(--fd); font-size: 2.2rem; font-weight: 800;
-          letter-spacing: -0.02em; margin-bottom: 12px;
-        }
-        .success-sub {
-          font-size: 15px; font-weight: 300; color: var(--muted);
-          line-height: 1.7; margin-bottom: 36px;
-        }
-        .success-details {
-          background: var(--bg3); border-radius: var(--rsm);
-          padding: 20px 24px; margin-bottom: 32px; text-align: left;
-        }
-        .sd-row {
-          display: flex; justify-content: space-between;
-          font-size: 13px; padding: 6px 0;
-          border-bottom: 1px solid var(--bdr);
-        }
-        .sd-row:last-child { border-bottom: none; }
-        .sd-key { color: var(--muted); }
-        .sd-val { font-weight: 500; }
-        .success-redirect {
-          font-size: 13px; color: var(--muted); margin-bottom: 20px;
-        }
-        .success-redirect span { color: var(--green); font-weight: 600; }
-        .progress-bar {
-          height: 3px; background: var(--bg3); border-radius: 99px;
-          overflow: hidden; margin-bottom: 20px;
-        }
-        .progress-fill {
-          height: 100%; background: var(--green); border-radius: 99px;
-          animation: progress 5s linear forwards;
-        }
-        @keyframes progress { from{width:0%} to{width:100%} }
-        .btn-portal {
-          display: block; width: 100%; padding: 14px;
-          background: var(--green); color: #000; border: none;
-          border-radius: var(--rsm); font-family: var(--fd); font-size: 16px;
-          font-weight: 700; letter-spacing: 0.04em; cursor: pointer;
-          text-decoration: none; text-align: center;
-          transition: opacity 0.15s;
-        }
-        .btn-portal:hover { opacity: 0.88; }
-      `}</style>
-
-      {/* ── UPI QR Modal ── */}
+      {/* â”€â”€ UPI QR Modal â”€â”€ */}
       {showQR && (
         <div
           className="qr-backdrop"
@@ -865,15 +326,15 @@ function OnboardingContent() {
                 </div>
                 <div className="qr-upi-id">{settings?.upi_id || "gym@upi"}</div>
                 <button className="qr-paid-btn" onClick={() => setQrPaid(true)}>
-                  I've Paid ✓
+                  I've Paid âœ“
                 </button>
                 <button className="qr-cancel" onClick={() => setShowQR(false)}>
-                  Cancel — pay later
+                  Cancel â€” pay later
                 </button>
               </>
             ) : (
               <div className="qr-paid-state">
-                <div className="qr-paid-icon">✓</div>
+                <div className="qr-paid-icon">âœ“</div>
                 <div className="qr-title">Payment Received</div>
                 <div className="qr-sub" style={{ marginBottom: 24 }}>
                   {selectedPlan && formatINR(selectedPlan.price)} via UPI. Your
@@ -885,7 +346,7 @@ function OnboardingContent() {
                     setShowQR(false);
                   }}
                 >
-                  Continue →
+                  Continue â†’
                 </button>
               </div>
             )}
@@ -893,11 +354,11 @@ function OnboardingContent() {
         </div>
       )}
 
-      {/* ── Success Screen ── */}
+      {/* â”€â”€ Success Screen â”€â”€ */}
       {step === 5 ? (
         <div className="success-page">
           <div className="success-card">
-            <div className="success-icon">🎉</div>
+            <div className="success-icon">ðŸŽ‰</div>
             <div className="success-label">Welcome to {settings?.gym_display_name || "our Gym"}</div>
             <h1 className="success-h1">
               You're In,
@@ -906,7 +367,7 @@ function OnboardingContent() {
             </h1>
             <p className="success-sub">
               Your membership is confirmed. Head to any {settings?.gym_display_name || "Gym"} branch and tell
-              them your name — you're good to go.
+              them your name â€” you're good to go.
             </p>
             <div className="success-details">
               <div className="sd-row">
@@ -916,7 +377,7 @@ function OnboardingContent() {
               <div className="sd-row">
                 <span className="sd-key">Valid Until</span>
                 <span className="sd-val">
-                  {selectedPlan ? addDays(selectedPlan.duration_days) : "—"}
+                  {selectedPlan ? addDays(selectedPlan.duration_days) : "â€”"}
                 </span>
               </div>
               <div className="sd-row">
@@ -926,7 +387,7 @@ function OnboardingContent() {
                   style={{ textTransform: "capitalize" }}
                 >
                   {form.payment_method === "upi" && qrPaid
-                    ? "Paid via UPI ✓"
+                    ? "Paid via UPI âœ“"
                     : form.payment_method === "cash"
                       ? "Cash (pay at counter)"
                       : form.payment_method}
@@ -945,16 +406,16 @@ function OnboardingContent() {
               <div className="progress-fill" />
             </div>
             <p className="success-redirect">
-              Redirecting to your portal in <span>{countdown}s</span>…
+              Redirecting to your portal in <span>{countdown}s</span>â€¦
             </p>
             <a href={`/member?guest=${memberId}`} className="btn-portal">
-              Go to Member Portal →
+              Go to Member Portal â†’
             </a>
           </div>
         </div>
       ) : (
-        /* ── Main Onboarding Layout ── */
-        <div className="page">
+        /* â”€â”€ Main Onboarding Layout â”€â”€ */
+        <div className="ob-page">
           {/* LEFT SIDE PANEL */}
           <div className="side">
             <a href="/" className="side-logo">
@@ -979,7 +440,7 @@ function OnboardingContent() {
                   `Access all ${settings?.branches?.length || 1} ${settings?.city || ''} branches`,
                   "Expert trainers from day one",
                   "Digital check-in & session tracking",
-                  "Flexible plans — monthly to annual",
+                  "Flexible plans â€” monthly to annual",
                 ].map((f) => (
                   <div key={f} className="side-feat">
                     <div className="feat-dot" />
@@ -989,7 +450,7 @@ function OnboardingContent() {
               </div>
             </div>
             <div className="side-bottom">
-              © {new Date().getFullYear()} {settings?.gym_display_name || "Gym"} {settings?.city ? `· ${settings.city}` : ""}
+              Â© {new Date().getFullYear()} {settings?.gym_display_name || "Gym"} {settings?.city ? `Â· ${settings.city}` : ""}
             </div>
             <div className="side-bg-num">{step}</div>
           </div>
@@ -1020,7 +481,7 @@ function OnboardingContent() {
             <StepBar step={step} />
 
             <div className="form-body">
-              {/* ─── STEP 1: Personal Info ─── */}
+              {/* â”€â”€â”€ STEP 1: Personal Info â”€â”€â”€ */}
               {step === 1 && (
                 <>
                   <h2 className="form-heading">Tell us about yourself</h2>
@@ -1062,7 +523,7 @@ function OnboardingContent() {
                         type="date"
                         value={form.date_of_birth}
                         onChange={(e) => set("date_of_birth", e.target.value)}
-                        max={new Date().toISOString().split("T")[0]}
+                        max={todayISO()}
                       />
                     </div>
                   </div>
@@ -1106,7 +567,7 @@ function OnboardingContent() {
                               alt="preview"
                             />
                           ) : (
-                            "📷"
+                            "ðŸ“·"
                           )}
                         </div>
                         <div className="upload-info">
@@ -1143,7 +604,7 @@ function OnboardingContent() {
                             setIdFile(e.target.files?.[0] ?? null)
                           }
                         />
-                        <div className="upload-icon">📄</div>
+                        <div className="upload-icon">ðŸ“„</div>
                         <div className="upload-info">
                           <div className="upload-name">
                             {idFile ? idFile.name : "Upload Aadhaar"}
@@ -1199,7 +660,7 @@ function OnboardingContent() {
                 </>
               )}
 
-              {/* ─── STEP 2: Choose Plan ─── */}
+              {/* â”€â”€â”€ STEP 2: Choose Plan â”€â”€â”€ */}
               {step === 2 && (
                 <>
                   <h2 className="form-heading">Pick your plan</h2>
@@ -1252,32 +713,32 @@ function OnboardingContent() {
                 </>
               )}
 
-              {/* ─── STEP 3: Payment ─── */}
+              {/* â”€â”€â”€ STEP 3: Payment â”€â”€â”€ */}
               {step === 3 && (
                 <>
                   <h2 className="form-heading">How would you like to pay?</h2>
                   <p className="form-sub">
                     {selectedPlan
-                      ? `${selectedPlan.name} · ${formatINR(selectedPlan.price)}`
+                      ? `${selectedPlan.name} Â· ${formatINR(selectedPlan.price)}`
                       : "Select a payment method."}
                   </p>
                   <div className="pay-methods">
                     {[
                       {
                         id: "upi" as PaymentMethod,
-                        icon: "📱",
+                        icon: "ðŸ“±",
                         name: "UPI",
-                        desc: "PhonePe, GPay, Paytm — scan & pay instantly",
+                        desc: "PhonePe, GPay, Paytm â€” scan & pay instantly",
                       },
                       {
                         id: "cash" as PaymentMethod,
-                        icon: "💵",
+                        icon: "ðŸ’µ",
                         name: "Cash",
                         desc: "Pay at the counter when you arrive",
                       },
                       {
                         id: "card" as PaymentMethod,
-                        icon: "💳",
+                        icon: "ðŸ’³",
                         name: "Card",
                         desc: "Debit or credit card at the front desk",
                       },
@@ -1303,7 +764,7 @@ function OnboardingContent() {
                 </>
               )}
 
-              {/* ─── STEP 4: Confirm ─── */}
+              {/* â”€â”€â”€ STEP 4: Confirm â”€â”€â”€ */}
               {step === 4 && (
                 <>
                   <h2 className="form-heading">Confirm your details</h2>
@@ -1342,7 +803,7 @@ function OnboardingContent() {
                       <span className="sum-val">
                         {selectedPlan
                           ? durationLabel(selectedPlan.duration_days)
-                          : "—"}
+                          : "â€”"}
                       </span>
                     </div>
                     <div className="sum-row">
@@ -1356,7 +817,7 @@ function OnboardingContent() {
                       <span className="sum-val">
                         {selectedPlan
                           ? addDays(selectedPlan.duration_days)
-                          : "—"}
+                          : "â€”"}
                       </span>
                     </div>
                     <div className="sum-row">
@@ -1366,7 +827,7 @@ function OnboardingContent() {
                           className={`payment-badge ${form.payment_method}`}
                         >
                           {form.payment_method === "upi" && qrPaid
-                            ? "✓ Paid via UPI"
+                            ? "âœ“ Paid via UPI"
                             : form.payment_method === "cash"
                               ? "Cash at counter"
                               : "Card at counter"}
@@ -1376,7 +837,7 @@ function OnboardingContent() {
                     <div className="sum-total">
                       <span className="sum-total-key">Total</span>
                       <span className="sum-total-val">
-                        {selectedPlan ? formatINR(selectedPlan.price) : "—"}
+                        {selectedPlan ? formatINR(selectedPlan.price) : "â€”"}
                       </span>
                     </div>
                   </div>
@@ -1384,7 +845,7 @@ function OnboardingContent() {
                 </>
               )}
 
-              {/* ─── NAV BUTTONS ─── */}
+              {/* â”€â”€â”€ NAV BUTTONS â”€â”€â”€ */}
               <div className="btn-row">
                 {step > 1 && (
                   <button
@@ -1444,8 +905,8 @@ function OnboardingContent() {
                   >
                     {loading ? (
                       <>
-                        <div className="spinner" />{" "}
-                        {uploading ? "Uploading docs…" : "Saving…"}
+                        <div className="ob-spinner" />{" "}
+                        {uploading ? "Uploading docsâ€¦" : "Savingâ€¦"}
                       </>
                     ) : (
                       <>Confirm & Join {settings?.gym_display_name ? settings.gym_display_name.split(' ')[0] : 'Gym'}</>
