@@ -1,7 +1,7 @@
 # SaaS Migration Handoff: Production Readiness & Modularity
 
 ## 🎯 Current Objective
-CHORE-002 (payment_status supersede + BUG-001 IST timestamp fix) is **complete and pushed**. Branch `chore/CHORE-002-payment-status-auto-transition` is ready for PR. Next targets are `REFACT-006` (Trainers/Onboarding/Login cleanup) or `FEAT-004` (Attendance Check-in). Batch job (`pending → overdue` pg_cron) is deferred to a later DB-only session.
+REFACT-006 Steps 1 & 2 are **complete and committed** on branch `refactor/REFACT-006-remaining-pages`. Next task is **Step 3 — `login/page.tsx`** (extract styles to `login.css`, pull real DB stats for left panel from `useGymSettings` + a new `usePublicGymStats` hook).
 
 ## 🏗️ Architectural Core
 - **Framework**: Next.js 16.2.1 (App Router) + Supabase SSR. Use Next.js 16.2.1 with App Router (never Pages Router).
@@ -48,14 +48,21 @@ CHORE-002 (payment_status supersede + BUG-001 IST timestamp fix) is **complete a
    - `useRenewMembership` and `useRecordPayment` mutation hooks built.
    - Modals fully integrated into `MemberDrawer.tsx` matching Golden UI.
 
-6. **Payments Page Cleanup** — `refactor/REFACT-005-payments-cleanup` ✅ **branch pushed, PR pending**
-   - `hooks/usePayments.ts` — TanStack Query hook, `queryKey: ["payments"]`, `PaymentRecord` type exported.
-   - `app/dashboard/payments/payments.css` — co-located styles, 630-line inline `<style>` removed.
-   - `app/dashboard/payments/PaymentDrawer.tsx` + `PaymentDrawer.css` — extracted component using `<Avatar>`, `STATUS_CONFIG`, shared utils.
-   - `app/dashboard/payments/page.tsx` — 1,419 → 255 lines. Zero `useEffect`, `<Nav>` wired.
-   - `useRecordPayment` + `useRenewMembership` — now invalidate `["payments"]` on success.
-   - Fix: `useDashboardStats` `totalCollected` now sums ALL paid rows (was wrongly deduplicated).
-   - Fix: Payments page pending/overdue amounts now use latest-per-member deduplication — numbers match dashboard exactly.
+7. **REFACT-006 Steps 1 & 2** — `refactor/REFACT-006-remaining-pages` ✅ **in progress (2 of 3 steps done)**
+   - **Step 1**: `hooks/usePlans.ts` — upgraded with `gymId?: string | null` three-state pattern:
+     - `undefined` (no arg) → relies on RLS, `enabled: true` — dashboard callers unchanged
+     - `null` → query held (`enabled: false`) — used while `useGymSettings` is still loading
+     - `string` → explicit `.eq("gym_id", gymId)` filter — used by pre-auth pages
+   - **Step 2**: `app/onboarding/page.tsx` + `app/onboarding/onboarding.css`:
+     - 1,471 → 934 lines. Inline `<style>` (500 lines) extracted to `onboarding.css`
+     - Local `:root {}` block removed; CSS aliases now map to design tokens in `onboarding.css`
+     - Local `formatINR()`, `addDays()` removed → import from `lib/utils/`
+     - `new Date().toISOString()` × 2 → `todayISO()`
+     - Raw plans `useEffect` + `useState<Plan[]>` → `usePlans(settings?.gym_id ?? null)`
+     - **Hardcoded branches** `["Sector 14", "DLF Phase 1", "Sohna Road"]` → `settings?.branches ?? []`
+     - **Step 2 copy** hardcoded "all 3 branches" → dynamic from `settings.branches.length`
+     - Encoding corruption (PowerShell double-encode) fixed throughout
+   - **Step 3 (next)**: `app/login/page.tsx` — see section below
 
 ### Last actions
 - `refactor/REFACT-005-payments-cleanup` is complete (4 commits + 2 fixes). Pushed. Ready for PR.
@@ -63,31 +70,25 @@ CHORE-002 (payment_status supersede + BUG-001 IST timestamp fix) is **complete a
 
 ## 🔜 Next Tasks (In Priority Order)
 
-### 1. `CHORE-002` — `payment_status` Auto-Transition ← **PARTIALLY COMPLETE**
+### 1. REFACT-006 Step 3 — `login/page.tsx` ← **NEXT**
+**Branch**: `refactor/REFACT-006-remaining-pages` (already checked out)
 
-**What's done (client-side):**
-- `"superseded"` added to `PaymentStatus` type, `StatusKey`, `STATUS_CONFIG` (muted pill)
-- `useRenewMembership` — supersedes all `pending`/`overdue` rows (scoped to `member_id + gym_id`) before inserting the new membership row
-- `usePayments` — excludes `superseded` rows from the query entirely (internal bookkeeping only)
-- `BUG-001` fixed: `thisMonthCollected` now uses `monthStartISTTimestamp()` for correct UTC `created_at` comparison
-- DB `CHECK` constraint updated: `payment_status IN ('paid', 'pending', 'overdue', 'superseded')`
+**What needs doing:**
+- Extract inline `<style>` (599 lines total, ~430 lines CSS) → co-located `login.css`
+- Left panel currently shows **hardcoded stats** (`20+ Members`, `3 Trainers`) — replace with real DB query
+- Create `hooks/usePublicGymStats.ts` — anon-safe query to `members` + `trainers` tables filtered by `gym_id`, returns `{ memberCount, trainerCount }`. Must work pre-auth (check RLS allows anon SELECT on these tables or use a Supabase RPC).
+- Left panel stat for "Locations" already uses `settings?.branches?.length` ✅
+- Wire `usePublicGymStats(settings?.gym_id)` — `enabled: !!settings?.gym_id`
 
-**What's deferred (DB batch job — `CHORE-002b`):**
-- pg_cron job: daily at midnight IST — `UPDATE member_memberships SET payment_status = 'overdue' WHERE end_date < today AND payment_status = 'pending'`
-- **Current workaround**: client-side deduplication to latest-per-member in `useDashboardStats` and `payments/page.tsx`
-- **Future**: per-gym timezone support — `monthStartISTTimestamp()` is currently hardcoded IST; will need to read from `gym_settings.timezone` once that column exists
+**Key things to preserve:**
+- The `gymSlug` detection `useEffect` (reads `?gym=` param + subdomain)
+- The `ROLE_CONFIG` object with dynamic accent colors
+- The `Suspense` wrapper (required because of `useSearchParams`)
+- `--accent-current` CSS custom property set via inline style for role-based color theming
+- Login is fully working — this is a CSS extraction + stats fix only, no logic rewrites
 
-**Acceptance Criteria (remaining)**: All three pages show identical pending/overdue counts with no manual intervention — blocked on pg_cron.
-
-### 2. `refactor/REFACT-006-remaining-pages`
-**Branch**: `git checkout -b refactor/REFACT-006-remaining-pages`
-- `trainers/page.tsx`, `onboarding/page.tsx`, `login/page.tsx`
-- Match Golden UI padding, fonts, loading states, `<Nav>` component
-
-### 3. `feat/FEAT-004-attendance-checkin`
-**Branch**: `git checkout -b feat/FEAT-004-attendance-checkin`
-- Daily check-in flow — highest daily-use feature for gym owners
-- New page: `app/dashboard/attendance/page.tsx`
+### 2. `feat/FEAT-004-attendance-checkin` (after login)
+- Daily check-in flow — new `app/dashboard/attendance/page.tsx`
 
 ## 🗂️ Key File Structure (Current)
 ```
