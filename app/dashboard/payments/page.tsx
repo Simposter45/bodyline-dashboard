@@ -7,7 +7,7 @@ import { Nav } from "@/components/ui/Nav";
 import { Avatar } from "@/components/ui/Avatar";
 import { STATUS_CONFIG } from "@/lib/constants/status";
 import { formatINR, formatDate } from "@/lib/utils/format";
-import { monthStartISO } from "@/lib/utils/date";
+import { monthStartISTTimestamp } from "@/lib/utils/date";
 import { PaymentDrawer } from "./PaymentDrawer";
 import type { PaymentStatus } from "@/types";
 
@@ -75,7 +75,7 @@ export default function PaymentsPage() {
 
   // ── Revenue summary ─────────────────────────────────────────────
   const summary = useMemo(() => {
-    const monthStart = monthStartISO();
+    const monthStart = monthStartISTTimestamp();
     const amountDue = (r: PaymentRecord) =>
       Math.max(0, (r.plan?.price ?? 0) - (r.amount_paid ?? 0));
 
@@ -117,10 +117,11 @@ export default function PaymentsPage() {
   // Intentionally uses ALL rows so filter tab count and visible table rows stay in sync.
   const counts = useMemo(
     () => ({
-      all:     records.length,
-      paid:    records.filter((r) => r.payment_status === "paid").length,
-      pending: records.filter((r) => r.payment_status === "pending").length,
-      overdue: records.filter((r) => r.payment_status === "overdue").length,
+      all:        records.length,
+      paid:       records.filter((r) => r.payment_status === "paid").length,
+      pending:    records.filter((r) => r.payment_status === "pending").length,
+      overdue:    records.filter((r) => r.payment_status === "overdue").length,
+      superseded: records.filter((r) => r.payment_status === "superseded").length,
     }),
     [records],
   );
@@ -298,9 +299,9 @@ export default function PaymentsPage() {
                 </thead>
                 <tbody>
                   {filtered.map((r) => {
-                    const statusKey = (["paid", "pending", "overdue"] as PaymentStatus[]).includes(
+                    const statusKey = (["paid", "pending", "overdue", "superseded"] as PaymentStatus[]).includes(
                       r.payment_status
-                    ) ? r.payment_status : "pending";
+                    ) ? r.payment_status : "superseded";
                     const cfg = STATUS_CONFIG[statusKey];
                     const due = Math.max(0, (r.plan?.price ?? 0) - (r.amount_paid ?? 0));
 

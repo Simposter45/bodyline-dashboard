@@ -78,13 +78,17 @@
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
-- **`CHORE-002` — `payment_status` Auto-Transition (pending → overdue)**
-  - **Problem**: `payment_status` is never auto-updated from `pending` → `overdue` when a membership's `end_date` passes. Currently requires manual owner action. This also causes stale rows in the payments ledger: when a member renews, their old `pending`/`overdue` membership row is never cleaned up, causing inflated row counts in the Payments page filter tabs (e.g. "10 pending rows" vs "8 pending members").
-  - **Fix (Two-Part)**:
-    1. **Supabase Edge Function / pg_cron job**: Daily at midnight IST, set `payment_status = 'overdue'` on all `member_memberships` rows where `end_date < today AND payment_status = 'pending'`.
-    2. **Renewal cleanup**: When `useRenewMembership` creates a new membership row, it should also mark the previous membership row as `payment_status = 'superseded'` (or similar) so it no longer pollutes pending/overdue counts.
-  - **Acceptance Criteria**: Dashboard, Members, and Payments page all show identical `pending` / `overdue` member counts with zero manual intervention required from the gym owner.
-  - **Priority**: Medium — the display discrepancy is mitigated client-side (deduplication workaround is in place), but the root data hygiene issue remains in the DB.
+- **`CHORE-002` — `payment_status` Auto-Transition (pending → overdue)** — **PARTIALLY DONE**
+  - **Client-side complete** (branch `chore/CHORE-002-payment-status-auto-transition`):
+    - `"superseded"` status added to `PaymentStatus` type, `StatusKey`, `STATUS_CONFIG`
+    - `useRenewMembership` supersedes old `pending`/`overdue` rows (gym_id scoped) on renewal
+    - `usePayments` excludes superseded rows from all queries (internal bookkeeping only)
+    - DB `CHECK` constraint updated to allow `'superseded'`
+  - **`CHORE-002b` — Deferred (DB batch job)**: pg_cron daily job to auto-transition `pending → overdue` when `end_date < today`. Non-blocking — client-side deduplication workaround is in place.
+  - **Future — `CHORE-003`**: Per-gym timezone support — `monthStartISTTimestamp()` is hardcoded IST; needs `gym_settings.timezone` column and dynamic offset resolution.
+- **`BUG-001` — "This month collected" showing ₹0** — **FIXED** in `chore/CHORE-002` branch
+  - Root cause: `created_at` (UTC timestamp) was compared against a plain date string (`monthStartISO()`), causing IST payments to be excluded
+  - Fix: Added `monthStartISTTimestamp()` to `lib/utils/date.ts` — converts IST month start to its UTC equivalent for correct timestamp comparison
 
 ## 🔧 Production Hardening (Pending)
 - [ ] Error boundaries: Each route needs a proper `error.tsx`

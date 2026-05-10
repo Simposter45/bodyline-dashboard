@@ -41,14 +41,37 @@ export function addDays(days: number, baseDate?: string): string {
 }
 
 /**
- * Returns the first day of the current calendar month as an ISO date string.
- * e.g. (called in April) → "2026-04-01"
+ * Returns the first day of the current calendar month as an ISO date string,
+ * computed in IST (UTC+5:30) — NOT UTC.
+ *
+ * Using new Date() in UTC can give the wrong month for Indian users between
+ * midnight IST and 05:30 IST (when UTC is still on the previous day).
+ *
+ * e.g. (called in May) → "2026-05-01"
  */
 export function monthStartISO(): string {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
+  // Shift to IST by adding 5h30m (19800 seconds)
+  const istDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+  const year  = istDate.getUTCFullYear();
+  const month = String(istDate.getUTCMonth() + 1).padStart(2, "0");
   return `${year}-${month}-01`;
+}
+
+/**
+ * Returns the UTC ISO timestamp that corresponds to midnight IST on the
+ * first day of the current calendar month.
+ *
+ * Use this when filtering Supabase `created_at` timestamps (stored in UTC)
+ * against the IST calendar month boundary.
+ *
+ * e.g. (called in May IST) → "2026-04-30T18:30:00.000Z"
+ */
+export function monthStartISTTimestamp(): string {
+  const monthStr = monthStartISO(); // e.g. "2026-05-01"
+  // IST midnight = UTC 18:30 the previous day
+  const istMidnight = new Date(`${monthStr}T00:00:00+05:30`);
+  return istMidnight.toISOString(); // Converts to UTC automatically
 }
 
 /**

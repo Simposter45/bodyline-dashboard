@@ -9,6 +9,10 @@
 // not just the latest per member — because the Payments page
 // is a full audit ledger showing every transaction.
 //
+// Superseded rows (tombstoned when a member renews over an unpaid row)
+// are excluded from this query — they are internal bookkeeping only
+// and are never actionable for gym owners.
+//
 // Automatically scoped to the calling user's gym via RLS.
 // ============================================================
 
@@ -29,6 +33,7 @@ async function fetchPayments(): Promise<PaymentRecord[]> {
   const { data, error } = await supabase
     .from("member_memberships")
     .select("*, member:members(*), plan:membership_plans(*)")
+    .neq("payment_status", "superseded")
     .order("created_at", { ascending: false });
 
   if (error) throw error;

@@ -1,7 +1,7 @@
 # SaaS Migration Handoff: Production Readiness & Modularity
 
 ## 🎯 Current Objective
-REFACT-005 (Payments Cleanup) is **complete and pushed**. Branch `refactor/REFACT-005-payments-cleanup` is ready for PR. Next targets are `REFACT-006` (Trainers/Onboarding/Login cleanup) or `FEAT-004` (Attendance Check-in). `CHORE-002` (payment_status auto-transition) is formally tracked below.
+CHORE-002 (payment_status supersede + BUG-001 IST timestamp fix) is **complete and pushed**. Branch `chore/CHORE-002-payment-status-auto-transition` is ready for PR. Next targets are `REFACT-006` (Trainers/Onboarding/Login cleanup) or `FEAT-004` (Attendance Check-in). Batch job (`pending → overdue` pg_cron) is deferred to a later DB-only session.
 
 ## 🏗️ Architectural Core
 - **Framework**: Next.js 16.2.1 (App Router) + Supabase SSR. Use Next.js 16.2.1 with App Router (never Pages Router).
@@ -63,16 +63,21 @@ REFACT-005 (Payments Cleanup) is **complete and pushed**. Branch `refactor/REFAC
 
 ## 🔜 Next Tasks (In Priority Order)
 
-### 1. `CHORE-002` — `payment_status` Auto-Transition ← **NEEDS DB WORK**
-**Problem**: `payment_status` is never auto-updated from `pending` → `overdue`. Old superseded membership rows (from renewals) also keep their stale status, causing filter tab counts on the Payments page to be higher than the member-level counts shown on Dashboard/Members.
+### 1. `CHORE-002` — `payment_status` Auto-Transition ← **PARTIALLY COMPLETE**
 
-**Fix — Two parts:**
-1. **pg_cron / Edge Function**: Daily at midnight IST — `UPDATE member_memberships SET payment_status = 'overdue' WHERE end_date < today AND payment_status = 'pending'`
-2. **Renewal mutation cleanup**: `useRenewMembership` should mark the previous row `payment_status = 'superseded'` when creating a new membership row.
+**What's done (client-side):**
+- `"superseded"` added to `PaymentStatus` type, `StatusKey`, `STATUS_CONFIG` (muted pill)
+- `useRenewMembership` — supersedes all `pending`/`overdue` rows (scoped to `member_id + gym_id`) before inserting the new membership row
+- `usePayments` — excludes `superseded` rows from the query entirely (internal bookkeeping only)
+- `BUG-001` fixed: `thisMonthCollected` now uses `monthStartISTTimestamp()` for correct UTC `created_at` comparison
+- DB `CHECK` constraint updated: `payment_status IN ('paid', 'pending', 'overdue', 'superseded')`
 
-**Acceptance Criteria**: All three pages (Dashboard, Members, Payments) show identical pending/overdue member counts with no manual intervention.
+**What's deferred (DB batch job — `CHORE-002b`):**
+- pg_cron job: daily at midnight IST — `UPDATE member_memberships SET payment_status = 'overdue' WHERE end_date < today AND payment_status = 'pending'`
+- **Current workaround**: client-side deduplication to latest-per-member in `useDashboardStats` and `payments/page.tsx`
+- **Future**: per-gym timezone support — `monthStartISTTimestamp()` is currently hardcoded IST; will need to read from `gym_settings.timezone` once that column exists
 
-**Current Workaround**: Client-side deduplication to latest-per-member in `useDashboardStats` and `payments/page.tsx` summary. Filter tab counts intentionally remain on all rows (they reflect the ledger, not member state).
+**Acceptance Criteria (remaining)**: All three pages show identical pending/overdue counts with no manual intervention — blocked on pg_cron.
 
 ### 2. `refactor/REFACT-006-remaining-pages`
 **Branch**: `git checkout -b refactor/REFACT-006-remaining-pages`
