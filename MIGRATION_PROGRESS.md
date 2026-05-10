@@ -101,9 +101,23 @@
     - `components/ui/Nav.tsx` — Attendance link added for owner role (between Payments and Trainers)
     - `scripts/01_handoff_migration.sql` — RLS `att_gym_isolation` WITH CHECK now enforces role guard on INSERT/UPDATE (was missing)
     - **Confirmed**: 12 live attendance rows exist in DB; RLS working
-    - **Deferred (next chat)**: UTC date boundary fix for `useAttendance` (see BUG-002)
-    - **Deferred (next chat)**: Member drawer on log row click (see FEAT-004b below)
-    - **Deferred (later)**: Full attendance page smoke test
+- [x] 6.10 **FEAT-004b — Attendance page enhancements + historical view** (branch `feat/FEAT-004-attendance-checkin`, commit `36159a4`)
+    - **BUG-002 fixed**: `todayRangeIST()` added to `lib/utils/date.ts`; `useAttendance` now uses IST-aware boundaries
+    - `hooks/useMember.ts` — NEW single-member TanStack Query fetch (enables MemberDrawer from attendance log rows)
+    - `hooks/useAttendance.ts` — refactored to `useAttendance(range: AttendanceDateRange, isLive?: bool)`; historical ranges skip 30s poll; each range cached independently by `[start, end]` key
+    - `lib/utils/date.ts` — added `yesterdayRangeIST()`, `lastNDaysRangeIST(n)`, private `toISTDateString()`
+    - `lib/utils/format.ts` — added `formatDuration(checkIn, checkOut)`, `formatShortDate(iso)`
+    - Dashboard: check-ins panel capped at 5 rows + "View all N check-ins →" link
+    - Attendance page full rewrite:
+        - Member drawer on log row click (MemberDrawer reused, useMember fetches on demand)
+        - Payment status column (zero extra DB calls — cross-refs cached members)
+        - Log search bar + 3-stage payment status filter pipeline (All/Paid/Pending/Overdue)
+        - Duration column (green=live, muted=historic)
+        - Historical view: Today / Yesterday / Last 7 days / Last 30 days / Custom date range
+        - Date column for non-Today ranges; Check Out button hidden for historical
+        - Pagination: 25 rows/page, resets on any filter/range change
+        - CSV export: full filtered dataset, no new npm dependencies
+    - Deferred as CHORE-004: branch-level attendance filter (needs `branch` col on `attendance` table)
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
@@ -118,10 +132,14 @@
 - **`BUG-001` — "This month collected" showing ₹0** — **FIXED** in `chore/CHORE-002` branch
   - Root cause: `created_at` (UTC timestamp) was compared against a plain date string (`monthStartISO()`), causing IST payments to be excluded
   - Fix: Added `monthStartISTTimestamp()` to `lib/utils/date.ts` — converts IST month start to its UTC equivalent for correct timestamp comparison
-- **`BUG-002` — Attendance UTC date boundary** — **KNOWN, NOT YET FIXED**
-  - `hooks/useAttendance.ts` uses `todayRangeISO()` which produces `T00:00:00.000Z` (UTC midnight). For IST users, check-ins before 5:30 AM IST are on the previous UTC day and won't appear on the attendance page.
-  - Fix: Replace with IST-aware range: `new Date(\`${todayISO()}T00:00:00+05:30\`).toISOString()` for start and `+05:30` end. Same pattern as `monthStartISTTimestamp()`.
-  - **Do this before go-live of attendance page.**
+- **`BUG-002` — Attendance UTC date boundary** — **✅ FIXED** (FEAT-004b, commit `36159a4`)
+  - Was: `hooks/useAttendance.ts` used `todayRangeISO()` (UTC midnight), missing check-ins before 5:30 AM IST.
+  - Fix: `todayRangeIST()` added to `lib/utils/date.ts`; `useAttendance` refactored to accept `AttendanceDateRange` param; hook no longer owns date logic.
+- **`CHORE-004` — Branch-level attendance tracking** — **DEFERRED**
+  - The `attendance` table has no `branch` column. Currently only `members.branch` (home branch) is available.
+  - A member from Branch A visiting Branch B would show their home branch, not where they checked in.
+  - Fix: add `branch` column to `attendance` table; operator selects/confirms branch at check-in time; UI shows a branch filter tab on the attendance page.
+  - Non-blocking — home-branch filtering is useful and available now; location accuracy deferred.
 
 ## 🔧 Production Hardening (Pending)
 - [ ] Error boundaries: Each route needs a proper `error.tsx`
