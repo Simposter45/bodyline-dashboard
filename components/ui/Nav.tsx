@@ -20,10 +20,11 @@ const supabase = createClient();
 // Links are role-scoped — trainers and members see their own portals only.
 const ROLE_LINKS: Record<NavProps["role"], { href: string; label: string }[]> = {
   owner: [
-    { href: "/dashboard",           label: "Dashboard" },
-    { href: "/dashboard/members",   label: "Members"   },
-    { href: "/dashboard/payments",  label: "Payments"  },
-    { href: "/dashboard/trainers",  label: "Trainers"  },
+    { href: "/dashboard",            label: "Dashboard"  },
+    { href: "/dashboard/members",    label: "Members"    },
+    { href: "/dashboard/payments",   label: "Payments"   },
+    { href: "/dashboard/attendance", label: "Attendance" },
+    { href: "/dashboard/trainers",   label: "Trainers"   },
   ],
   trainer: [{ href: "/trainer", label: "My Portal"  }],
   member:  [{ href: "/member",  label: "My Profile" }],
