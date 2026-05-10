@@ -1,181 +1,211 @@
 # SaaS Migration Handoff: Production Readiness & Modularity
 
 ## 🎯 Current Objective
-REFACT-006 Steps 1 & 2 are **complete and committed** on branch `refactor/REFACT-006-remaining-pages`. Next task is **Step 3 — `login/page.tsx`** (extract styles to `login.css`, pull real DB stats for left panel from `useGymSettings` + a new `usePublicGymStats` hook).
+**FEAT-004b** — Attendance page enhancements (next chat, branch `feat/FEAT-004-attendance-checkin`):
+1. **Member drawer on log row click** — clicking any row in "Today's Log" should open a member detail drawer showing member info + payment status (similar to `MemberDrawer.tsx` used on members page, or a lightweight read-only variant)
+2. **BUG-002 fix** — `useAttendance.ts` UTC date boundary (see bug section below)
+
+Then: publish `feat/FEAT-004-attendance-checkin`, create PR.
+
+---
 
 ## 🏗️ Architectural Core
 - **Framework**: Next.js 16.2.1 (App Router) + Supabase SSR. Use Next.js 16.2.1 with App Router (never Pages Router).
 - **Tenancy**: Multi-tenant via `gym_id`. Resolution via subdomain middleware.
 - **Security**: PostgreSQL RLS (Row Level Security) is ACTIVE and HARDENED. Helper functions `current_gym_id()` and `get_my_role()` are the source of truth.
-- **Styling**: Co-located `.css` files (one per page, one per extracted component). Global tokens in `app/globals.css`. Tailwind is installed and may be used for **new** pages/components after REFACT-004.
+- **Styling**: Co-located `.css` files (one per page, one per extracted component). Global tokens in `app/globals.css`. No Tailwind mixing with vanilla CSS.
 - **Data Fetching**: TanStack Query (via custom hooks in `hooks/`) for all database operations. No raw `useEffect` fetching.
 - **Forms**: React Hook Form + Zod. Schema in `lib/validations/<entity>.ts`. Always `zodResolver`.
 - **Toasts**: `react-hot-toast`. `toast.success()` / `toast.error()` only. `<Toaster />` is in `app/layout.tsx`.
 
-## 📍 Current `main` Branch State
+---
 
-### ✅ Fully Complete & Merged
+## 📍 Current Branch State
+
+### Active branch: `feat/FEAT-004-attendance-checkin`
+
+**Commits on this branch (not yet pushed/PRed):**
+1. `feat(attendance): FEAT-004 - daily check-in/check-out page` — all 5 steps
+2. `fix(rls): enforce role guard on attendance INSERT/UPDATE`
+
+**To push:** `git push -u origin feat/FEAT-004-attendance-checkin`
+
+### Recently merged / PR-ready branches
+- `refactor/REFACT-006-remaining-pages` — pushed, PR open (login + onboarding cleanup + encoding fixes)
+
+---
+
+## ✅ Fully Complete & Merged to Main
+
 1. **Members Page (Golden UI Standard)** — `app/dashboard/members/page.tsx`
-   - ~347 lines (was 1360+). Fully modular.
-   - `MemberDrawer.tsx` + `MemberDrawer.css` extracted
-   - `members.css` co-located for page-specific styles
-   - `hooks/useMembers.ts` — TanStack Query, RLS-scoped
-   - `lib/utils/format.ts`, `lib/utils/date.ts` — pure utilities
-   - `lib/constants/design.ts`, `lib/constants/status.ts` — design tokens
-   - `lib/members/status.ts`, `lib/members/filters.ts` — business logic
+2. **Add Member Modal** — `components/members/AddMemberModal.tsx` (3-step wizard)
+3. **Nav Component** — `components/ui/Nav.tsx` (now includes Attendance link for owner)
+4. **Dashboard Page Cleanup** — `app/dashboard/page.tsx` (REFACT-004)
+5. **Renew & Record Payment Modals** — `FEAT-003` ✅ merged to main
+6. **CHORE-002** — `superseded` payment status, client-side logic complete
+7. **Payments Page Cleanup** — `app/dashboard/payments/page.tsx` (REFACT-005)
 
-2. **Add Member Modal** — `components/members/AddMemberModal.tsx`
-   - 3-step wizard: Details → Payment → Success
-   - React Hook Form + Zod (`lib/validations/member.ts`)
-   - `hooks/useCreateMember.ts` + `hooks/usePlans.ts`
-   - QR code display for UPI payments
-   - Wired to members page via `isAddModalOpen` state
+---
 
-3. **Nav Component** — `components/ui/Nav.tsx`
-   - Self-contained auth fetch (no prop drilling)
-   - Brand logo is a real `<a href="/">` link (accessible)
-   - Role-scoped links (owner / trainer / member)
+## 🔜 Next Tasks (Priority Order)
 
-4. **AGENTS.md** — Updated with Section 9: full coding conventions
-   - Forms, CSS, catch blocks, date utilities, loading states, Supabase pattern, toasts, icons
+### 1. FEAT-004b — Attendance Page Enhancements ← **START HERE**
+**Branch**: `feat/FEAT-004-attendance-checkin` (already checked out)
 
-4. **Dashboard Page Cleanup** — `app/dashboard/page.tsx` (`REFACT-004`)
-   - Fully refactored to use TanStack Query (`useDashboardStats`, `useCurrentUser`).
-   - UI aligned with Golden UI standards, removed `useEffect` and inline styles.
+#### a) Member drawer on log row click
+- Clicking a row in the "Today's Log" table should open a drawer showing:
+  - Member photo, name, phone, email
+  - Current membership plan + status (paid/pending/overdue)
+  - Payment method, start/end dates
+- **Reuse options** (evaluate in order):
+  1. **Preferred**: `MemberDrawer.tsx` is already fully built at `app/dashboard/members/MemberDrawer.tsx`. Check if it can be used as-is — it accepts a `member: MemberFull` prop. Need to fetch the full member data when a row is clicked (by `member_id` from the attendance record). May need a `useMember(id)` hook that fetches a single member.
+  2. **Alternative**: A lightweight read-only `AttendanceMemberPanel` if `MemberDrawer` is too tightly coupled to members-page-specific actions (Renew, Record Payment) that shouldn't appear from the attendance context.
+- The drawer should also have the Renew/Record Payment actions if the member's payment is overdue or pending — so full `MemberDrawer` reuse is ideal.
 
-5. **Renew & Record Payment Modals** — `feat/FEAT-003-renew-and-record-payment` ✅ **merged to main**
-   - Added validation schemas with `.max()` balance enforcement.
-   - `useRenewMembership` and `useRecordPayment` mutation hooks built.
-   - Modals fully integrated into `MemberDrawer.tsx` matching Golden UI.
+#### b) BUG-002 — UTC date boundary fix
+In `hooks/useAttendance.ts`, replace `todayRangeISO()` with IST-aware range:
+```ts
+// Current (wrong — UTC midnight, not IST midnight)
+const { start, end } = todayRangeISO();
 
-7. **REFACT-006 Steps 1 & 2** — `refactor/REFACT-006-remaining-pages` ✅ **in progress (2 of 3 steps done)**
-   - **Step 1**: `hooks/usePlans.ts` — upgraded with `gymId?: string | null` three-state pattern:
-     - `undefined` (no arg) → relies on RLS, `enabled: true` — dashboard callers unchanged
-     - `null` → query held (`enabled: false`) — used while `useGymSettings` is still loading
-     - `string` → explicit `.eq("gym_id", gymId)` filter — used by pre-auth pages
-   - **Step 2**: `app/onboarding/page.tsx` + `app/onboarding/onboarding.css`:
-     - 1,471 → 934 lines. Inline `<style>` (500 lines) extracted to `onboarding.css`
-     - Local `:root {}` block removed; CSS aliases now map to design tokens in `onboarding.css`
-     - Local `formatINR()`, `addDays()` removed → import from `lib/utils/`
-     - `new Date().toISOString()` × 2 → `todayISO()`
-     - Raw plans `useEffect` + `useState<Plan[]>` → `usePlans(settings?.gym_id ?? null)`
-     - **Hardcoded branches** `["Sector 14", "DLF Phase 1", "Sohna Road"]` → `settings?.branches ?? []`
-     - **Step 2 copy** hardcoded "all 3 branches" → dynamic from `settings.branches.length`
-     - Encoding corruption (PowerShell double-encode) fixed throughout
-   - **Step 3 (next)**: `app/login/page.tsx` — see section below
+// Fix — IST midnight → UTC
+const istStart = new Date(`${todayISO()}T00:00:00+05:30`).toISOString();
+const istEnd   = new Date(`${todayISO()}T23:59:59+05:30`).toISOString();
+```
+Same pattern as `monthStartISTTimestamp()` in `lib/utils/date.ts`. Consider adding `todayRangeIST()` to that file so it's reusable.
 
-### Last actions
-- `refactor/REFACT-005-payments-cleanup` is complete (4 commits + 2 fixes). Pushed. Ready for PR.
-- `CHORE-002` formally defined — see section below.
+---
 
-## 🔜 Next Tasks (In Priority Order)
+### 2. After FEAT-004 PR is merged
 
-### 1. REFACT-006 Step 3 — `login/page.tsx` ← **NEXT**
-**Branch**: `refactor/REFACT-006-remaining-pages` (already checked out)
+| Priority | Task | Notes |
+|----------|------|-------|
+| 🟠 | Error boundaries | Each route needs `error.tsx` |
+| 🟠 | Loading skeletons | Replace text "Loading..." with CSS skeleton pattern |
+| 🔵 | `CHORE-002b` | pg_cron job: `pending → overdue` daily auto-transition |
+| 🔵 | `CHORE-003` | Per-gym timezone (needs `gym_settings.timezone` column) |
+| 🔵 | `CHORE-001` | Atomic member creation via Supabase RPC |
 
-**What needs doing:**
-- Extract inline `<style>` (599 lines total, ~430 lines CSS) → co-located `login.css`
-- Left panel currently shows **hardcoded stats** (`20+ Members`, `3 Trainers`) — replace with real DB query
-- Create `hooks/usePublicGymStats.ts` — anon-safe query to `members` + `trainers` tables filtered by `gym_id`, returns `{ memberCount, trainerCount }`. Must work pre-auth (check RLS allows anon SELECT on these tables or use a Supabase RPC).
-- Left panel stat for "Locations" already uses `settings?.branches?.length` ✅
-- Wire `usePublicGymStats(settings?.gym_id)` — `enabled: !!settings?.gym_id`
-
-**Key things to preserve:**
-- The `gymSlug` detection `useEffect` (reads `?gym=` param + subdomain)
-- The `ROLE_CONFIG` object with dynamic accent colors
-- The `Suspense` wrapper (required because of `useSearchParams`)
-- `--accent-current` CSS custom property set via inline style for role-based color theming
-- Login is fully working — this is a CSS extraction + stats fix only, no logic rewrites
-
-### 2. `feat/FEAT-004-attendance-checkin` (after login)
-- Daily check-in flow — new `app/dashboard/attendance/page.tsx`
+---
 
 ## 🗂️ Key File Structure (Current)
 ```
 app/
   globals.css                    ← Design tokens, shared UI (DO NOT duplicate here)
   layout.tsx                     ← Has <Toaster /> from react-hot-toast
+  login/
+    page.tsx                     ← ✅ Cleaned up (REFACT-006 Step 3)
+    login.css                    ← ✅ Co-located styles
   dashboard/
     page.tsx                     ← ✅ Refactored (REFACT-004)
     dashboard.css                ← ✅ Co-located styles
+    attendance/
+      page.tsx                   ← ✅ FEAT-004 (branch: feat/FEAT-004-attendance-checkin)
+      attendance.css             ← ✅ Co-located styles
     members/
       page.tsx                   ← ✅ Golden UI reference
-      members.css                ← Page-specific styles
-      MemberDrawer.tsx           ← ✅ Extracted drawer component
-      MemberDrawer.css           ← Drawer-specific styles
+      members.css
+      MemberDrawer.tsx           ← ✅ Full member detail drawer (reuse for attendance!)
+      MemberDrawer.css
     payments/
       page.tsx                   ← ✅ Refactored (REFACT-005)
-      payments.css               ← ✅ Co-located styles
-      PaymentDrawer.tsx          ← ✅ Extracted drawer component
-      PaymentDrawer.css          ← Drawer-specific styles
+      payments.css
+      PaymentDrawer.tsx          ← ✅ Payment detail drawer
+      PaymentDrawer.css
+  onboarding/
+    page.tsx                     ← ✅ Cleaned up (REFACT-006 Step 2)
+    onboarding.css
 components/
   ui/
-    Nav.tsx                      ← ✅ Reusable, self-contained
-    Modal.tsx                    ← ✅ Reusable modal wrapper
-    Avatar.tsx, StatCard.tsx, etc.
+    Nav.tsx                      ← ✅ Attendance link added
+    Modal.tsx, Avatar.tsx, StatCard.tsx, StatusPill.tsx, Panel.tsx
   members/
     AddMemberModal.tsx           ← ✅ 3-step wizard
-    RenewMembershipModal.tsx     ← ✅ 3-step wizard
-    RecordPaymentModal.tsx       ← ✅ 2-step wizard
+    RenewMembershipModal.tsx     ← ✅
+    RecordPaymentModal.tsx       ← ✅
 hooks/
   useMembers.ts                  ← ✅ TanStack Query
-  usePayments.ts                 ← ✅ TanStack Query (REFACT-005)
-  useCreateMember.ts             ← ✅ useMutation
-  useRenewMembership.ts          ← ✅ useMutation
-  useRecordPayment.ts            ← ✅ useMutation
-  usePlans.ts                    ← ✅
-  useGymSettings.ts              ← ✅
-  useDashboardStats.ts           ← ✅ TanStack Query
-  useCurrentUser.ts              ← ✅ TanStack Query
+  usePayments.ts                 ← ✅ TanStack Query
+  useAttendance.ts               ← ✅ NEW (FEAT-004) — 30s refetch, midnight cache reset
+  useCheckin.ts                  ← ✅ NEW (FEAT-004) — useCheckIn + useCheckOut mutations
+  usePublicGymStats.ts           ← ✅ NEW (REFACT-006) — anon-safe member/trainer counts
+  useCreateMember.ts, useRenewMembership.ts, useRecordPayment.ts
+  usePlans.ts, useGymSettings.ts, useDashboardStats.ts, useCurrentUser.ts
 lib/
   utils/
-    format.ts                    ← formatINR, formatDate, getInitials
-    date.ts                      ← todayISO, monthStartISO, sevenDaysFromNow, addDays, todayRangeISO
+    format.ts                    ← formatINR, formatDate, formatTime, getInitials, getGreeting
+    date.ts                      ← todayISO, monthStartISO, sevenDaysFromNow, addDays,
+                                    todayRangeISO, monthStartISTTimestamp,
+                                    todayFormatted, currentMonthName
   constants/
-    design.ts                    ← ACCENT, BG, TEXT, BORDER, ACCENT_DIM tokens
-    status.ts                    ← STATUS_CONFIG (single source for all status pills)
+    design.ts, status.ts
   members/
-    status.ts                    ← getMemberStatus() business logic
-    filters.ts                   ← MEMBER_FILTERS, MemberFilterStatus type
+    status.ts, filters.ts
   validations/
-    member.ts                    ← createMemberSchema (Zod)
+    member.ts
 types/
   index.ts                       ← All shared TypeScript types
+scripts/
+  01_handoff_migration.sql       ← ✅ RLS att_gym_isolation WITH CHECK fixed this session
+  02_public_rls_policies.sql
 ```
 
-## ⚠️ Known Decisions & Conventions
+---
 
-### CSS Strategy
-- **Keep co-located `.css` files** — one per page, one per component. This is the convention.
-- **No `<style jsx>`** — styled-jsx is not installed. Use plain `<style>` tags or `.css` files.
-- **Tailwind**: installed but not yet used. May be introduced for new pages/components after REFACT-004. Do NOT mix Tailwind and vanilla CSS in the same component.
+## ⚠️ Known Bugs & Decisions
+
+### BUG-002 — Attendance UTC date boundary (NOT YET FIXED)
+`useAttendance.ts` uses `todayRangeISO()` → UTC midnight. Check-ins before 5:30 AM IST won't appear on the attendance page. Fix before go-live (see FEAT-004b above).
+
+### RLS: Attendance table
+`att_gym_isolation` policy is now fully hardened — `WITH CHECK` enforces role guard on INSERT/UPDATE. Applied in Supabase directly. Migration file updated.
+
+### Live update mechanism
+`useAttendance` polls every 30s via `refetchInterval`. It is **not** Supabase Realtime — it's TanStack Query polling. Tab must be focused for polling to run. On mutation (check-in/check-out), both `["attendance"]` and `["dashboard-stats"]` caches are invalidated immediately.
+
+### Double check-in guard
+`inGymMemberIds` Set built from open attendance rows — shows "Already in gym" badge in search results instead of the check-in button. Prevents duplicate open rows from the same device. NOT a DB-level constraint (see CHORE-001 pattern).
+
+---
+
+## ⚠️ Known Conventions (AGENTS.md §9)
+
+### CSS
+- Co-located `.css` files only. No `<style jsx>`. No Tailwind mixing with vanilla CSS.
+- Always check `globals.css` first before writing any style.
 
 ### Date Handling
-- **Always use `lib/utils/date.ts`** helpers. Never `new Date().toISOString()` in components — returns UTC and shows wrong date for IST users.
+- Use `lib/utils/date.ts` helpers. Never `new Date().toISOString()` in components.
+- For IST-aware queries: `monthStartISTTimestamp()`, and the upcoming `todayRangeIST()`.
 
 ### Error Handling
 ```ts
-// ✅ Always
 catch (error: unknown) {
   const msg = error instanceof Error ? error.message : "Something went wrong";
   toast.error(msg);
 }
-// ❌ Never
-catch (error: any) { ... }
 ```
 
 ### Supabase Pattern
 ```ts
 const { data, error } = await supabase.from("table").select("*");
-if (error) throw error; // ← always check before accessing data
+if (error) throw error; // always check before accessing data
 ```
+
+### Icons
+Use `lucide-react` components only. No raw emoji strings in JSX (PowerShell encoding risk).
+
+---
 
 ## 🧪 Local Testing
 - `npm run dev` (already running)
 - Test subdomains: `bodyline.localhost` or `?gym=slug` param
 - TypeScript check: `npx tsc --noEmit` (must return 0 errors before any commit)
 
+---
+
 ## 🚩 Pending Production Items
-- **`<Toaster />`** in `app/layout.tsx` — verify it's there (added during FEAT-002)
-- **Error boundaries**: each page needs `error.tsx` for production stability
-- **Loading skeletons**: replace text-only loading screens with CSS skeleton pattern
+- Error boundaries: each page needs `error.tsx`
+- Loading skeletons: replace text-only loading screens with CSS skeleton pattern
+- `CHORE-002b`: pg_cron daily `pending → overdue` transition
+- `CHORE-003`: Per-gym timezone support

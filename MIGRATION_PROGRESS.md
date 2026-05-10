@@ -86,9 +86,24 @@
     - Hardcoded branches `["Sector 14", ...]` → `settings?.branches ?? []`
     - Step 2 copy "all 3 branches" → dynamic from `settings.branches.length`
     - PowerShell-induced UTF-8 encoding corruption fixed
-- [ ] 6.8 `app/login/page.tsx` cleanup (REFACT-006 Step 3 — IN PROGRESS)
-    - Extract ~430-line inline `<style>` → `login.css`
-    - Replace hardcoded left-panel stats (20+ members, 3 trainers) → `usePublicGymStats` hook
+- [x] 6.8 `app/login/page.tsx` cleanup (REFACT-006 Step 3 — **COMPLETE**, branch `refactor/REFACT-006-remaining-pages`)
+    - Extracted 332-line inline `<style>` → `app/login/login.css`
+    - Created `hooks/usePublicGymStats.ts` — anon-safe TanStack Query hook, explicit `.eq('gym_id')` filter (pre-auth safe), returns `{ memberCount, trainerCount }`
+    - Replaced hardcoded `20+` members / `3` trainers with live DB counts
+    - Three-state `gymId` pattern: `null` = query held, `string` = fetch (matches `usePlans`)
+    - Also fixed: `todayFormatted()` + `currentMonthName()` added to `lib/utils/date.ts`; raw `new Date()` calls in `dashboard/page.tsx` and `payments/page.tsx` replaced
+    - Also fixed: onboarding PowerShell UTF-8 encoding corruption (10 chars + Lucide icon swap)
+- [x] 6.9 `app/dashboard/attendance/page.tsx` — **FEAT-004 Check-In/Check-Out** (branch `feat/FEAT-004-attendance-checkin`)
+    - `hooks/useAttendance.ts` — TanStack Query, `queryKey: ["attendance", todayISO()]` (cache resets at midnight), `refetchInterval: 30s`
+    - `hooks/useCheckin.ts` — `useCheckIn()` (insert row) + `useCheckOut()` (patch `check_out`); both invalidate `["attendance"]` + `["dashboard-stats"]`
+    - `app/dashboard/attendance/attendance.css` — co-located styles (stat chips, check-in panel, log table)
+    - `app/dashboard/attendance/page.tsx` — header stat chips, member search (active only, max 5, already-in guard), today's log table with inline check-out button
+    - `components/ui/Nav.tsx` — Attendance link added for owner role (between Payments and Trainers)
+    - `scripts/01_handoff_migration.sql` — RLS `att_gym_isolation` WITH CHECK now enforces role guard on INSERT/UPDATE (was missing)
+    - **Confirmed**: 12 live attendance rows exist in DB; RLS working
+    - **Deferred (next chat)**: UTC date boundary fix for `useAttendance` (see BUG-002)
+    - **Deferred (next chat)**: Member drawer on log row click (see FEAT-004b below)
+    - **Deferred (later)**: Full attendance page smoke test
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
@@ -103,6 +118,10 @@
 - **`BUG-001` — "This month collected" showing ₹0** — **FIXED** in `chore/CHORE-002` branch
   - Root cause: `created_at` (UTC timestamp) was compared against a plain date string (`monthStartISO()`), causing IST payments to be excluded
   - Fix: Added `monthStartISTTimestamp()` to `lib/utils/date.ts` — converts IST month start to its UTC equivalent for correct timestamp comparison
+- **`BUG-002` — Attendance UTC date boundary** — **KNOWN, NOT YET FIXED**
+  - `hooks/useAttendance.ts` uses `todayRangeISO()` which produces `T00:00:00.000Z` (UTC midnight). For IST users, check-ins before 5:30 AM IST are on the previous UTC day and won't appear on the attendance page.
+  - Fix: Replace with IST-aware range: `new Date(\`${todayISO()}T00:00:00+05:30\`).toISOString()` for start and `+05:30` end. Same pattern as `monthStartISTTimestamp()`.
+  - **Do this before go-live of attendance page.**
 
 ## 🔧 Production Hardening (Pending)
 - [ ] Error boundaries: Each route needs a proper `error.tsx`
