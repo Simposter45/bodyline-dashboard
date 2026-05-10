@@ -78,6 +78,8 @@ export function monthStartISTTimestamp(): string {
  * Returns ISO timestamp strings for the start and end of today (midnight to 23:59:59).
  * Used to scope attendance queries to a single calendar day.
  * e.g. { start: "2026-04-24T00:00:00.000Z", end: "2026-04-24T23:59:59.999Z" }
+ *
+ * ⚠️ Uses UTC midnight — NOT IST-aware. For attendance queries prefer todayRangeIST().
  */
 export function todayRangeISO(): { start: string; end: string } {
   const today = todayISO();
@@ -86,6 +88,75 @@ export function todayRangeISO(): { start: string; end: string } {
     end:   `${today}T23:59:59.999Z`,
   };
 }
+
+/**
+ * Returns UTC ISO timestamp strings for the start and end of today in IST
+ * (IST midnight → IST 23:59:59, converted to UTC).
+ *
+ * Fixes BUG-002: todayRangeISO() used UTC midnight, so check-ins between
+ * 00:00–05:30 IST were on the previous UTC day and invisible on the page.
+ *
+ * Use this for all attendance queries. Same pattern as monthStartISTTimestamp().
+ *
+ * e.g. (called at any time on 2026-05-10 IST) →
+ *   { start: "2026-05-09T18:30:00.000Z", end: "2026-05-10T18:29:59.999Z" }
+ */
+export function todayRangeIST(): { start: string; end: string } {
+  const today = todayISO(); // YYYY-MM-DD in local/UTC — good enough as the date label
+  return {
+    start: new Date(`${today}T00:00:00+05:30`).toISOString(),
+    end:   new Date(`${today}T23:59:59.999+05:30`).toISOString(),
+  };
+}
+
+// ── Private IST helper ────────────────────────────────────────────────────────
+// Shifts a JS Date to IST and returns its YYYY-MM-DD string.
+// Used by the range builders below — NOT exported (use todayISO for today).
+function toISTDateString(d: Date): string {
+  const ist = new Date(d.getTime() + 5.5 * 60 * 60 * 1000);
+  const year  = ist.getUTCFullYear();
+  const month = String(ist.getUTCMonth() + 1).padStart(2, "0");
+  const day   = String(ist.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Returns UTC ISO timestamps for yesterday's full day in IST
+ * (IST 00:00:00 → IST 23:59:59.999, expressed as UTC).
+ *
+ * e.g. called on 2026-05-10 IST →
+ *   { start: "2026-05-08T18:30:00.000Z", end: "2026-05-09T18:29:59.999Z" }
+ */
+export function yesterdayRangeIST(): { start: string; end: string } {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const yesterday = toISTDateString(d);
+  return {
+    start: new Date(`${yesterday}T00:00:00+05:30`).toISOString(),
+    end:   new Date(`${yesterday}T23:59:59.999+05:30`).toISOString(),
+  };
+}
+
+/**
+ * Returns UTC ISO timestamps spanning the last N days in IST,
+ * from N-1 days ago (IST midnight) through today (IST 23:59:59).
+ * "Last 7 days" includes today — 7 calendar days total.
+ *
+ * e.g. lastNDaysRangeIST(7) called on 2026-05-10 IST →
+ *   { start: "2026-05-03T18:30:00.000Z" (May 4 IST),
+ *     end:   "2026-05-10T18:29:59.999Z" (May 10 IST) }
+ */
+export function lastNDaysRangeIST(n: number): { start: string; end: string } {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - (n - 1));
+  const start = toISTDateString(startDate);
+  const today = toISTDateString(new Date());
+  return {
+    start: new Date(`${start}T00:00:00+05:30`).toISOString(),
+    end:   new Date(`${today}T23:59:59.999+05:30`).toISOString(),
+  };
+}
+
 
 /**
  * Returns today's date as a formatted human-readable string in IST.

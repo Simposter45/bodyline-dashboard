@@ -181,6 +181,12 @@
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
+/* Duration cell — member still in gym (live, updates every 30s) */
+.log-time-live {
+  font-size: 13px;
+  color: var(--accent-green);
+  font-variant-numeric: tabular-nums;
+}
 
 /* "Check Out" button in the log table */
 .checkout-btn {
@@ -207,8 +213,106 @@
   cursor: not-allowed;
 }
 
+/* Result count label shown when search or payment filter is active */
+.log-count {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .checkin-panel { padding: 16px; }
   .att-stats     { gap: 8px; }
+}
+
+/* ── Range selector ── */
+
+/* Row containing the range preset tabs — sits above the search toolbar */
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* Custom date range inputs — shown only when "Custom" tab is active */
+.date-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.date-range-input {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+  color-scheme: dark;    /* dark date picker in Chromium browsers */
+}
+.date-range-input:focus { border-color: var(--border-hi); }
+.date-range-sep {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ── Pagination ── */
+
+/* Outer wrapper — sits below the table inside .table-wrap */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pagination-info {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.pagination-btn:hover:not(:disabled) {
+  border-color: var(--border-hi);
+  color: var(--text-primary);
+}
+.pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.pagination-btn.active {
+  background: var(--bg3);
+  border-color: var(--border-hi);
+  color: var(--text-primary);
+  font-weight: 500;
 }

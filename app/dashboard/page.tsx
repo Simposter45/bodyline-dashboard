@@ -110,19 +110,44 @@ export default function DashboardPage() {
               {stats.today.attendance.length === 0 ? (
                 <div className="panel-empty">No check-ins today.</div>
               ) : (
-                stats.today.attendance.map((a) => (
-                  <div key={a.id} className="row-item">
-                    <Avatar name={a.member.full_name} size={36} />
-                    <div className="row-info">
-                      <div className="row-name">{a.member.full_name}</div>
-                      <div className="row-sub">In {formatTime(a.check_in)}</div>
+                <>
+                  {stats.today.attendance.slice(0, 5).map((a) => (
+                    <div key={a.id} className="row-item">
+                      <Avatar name={a.member.full_name} size={36} />
+                      <div className="row-info">
+                        <div className="row-name">{a.member.full_name}</div>
+                        <div className="row-sub">In {formatTime(a.check_in)}</div>
+                      </div>
+                      <StatusPill
+                        label={a.check_out ? "Left" : "In gym"}
+                        type={a.check_out ? "neutral" : "success"}
+                      />
                     </div>
-                    <StatusPill
-                      label={a.check_out ? "Left" : "In gym"}
-                      type={a.check_out ? "neutral" : "success"}
-                    />
-                  </div>
-                ))
+                  ))}
+                  {stats.today.attendance.length > 5 && (
+                    <a
+                      href="/dashboard/attendance"
+                      style={{
+                        display: "block",
+                        textAlign: "center",
+                        padding: "13px 24px",
+                        fontSize: 13,
+                        color: "var(--text-secondary)",
+                        borderTop: "1px solid var(--border)",
+                        textDecoration: "none",
+                        transition: "color 0.15s",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "var(--accent-green)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "var(--text-secondary)")
+                      }
+                    >
+                      View all {stats.today.todayCheckins} check-ins →
+                    </a>
+                  )}
+                </>
               )}
             </Panel>
 
