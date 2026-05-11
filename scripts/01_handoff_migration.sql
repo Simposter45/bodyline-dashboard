@@ -397,7 +397,10 @@ CREATE POLICY "att_gym_isolation"
     gym_id = current_gym_id()
     AND get_my_role() IN ('owner', 'trainer')
   )
-  WITH CHECK (gym_id = current_gym_id());
+  WITH CHECK (
+    gym_id = current_gym_id()
+    AND get_my_role() IN ('owner', 'trainer')  -- enforced on INSERT/UPDATE (was missing before)
+  );
 
 CREATE POLICY "att_self_read"
   ON attendance FOR SELECT

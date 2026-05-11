@@ -13,7 +13,7 @@ import type { AttendanceWithMember, Trainer } from "@/types";
 import {
   todayISO,
   monthStartISO,
-  todayRangeISO,
+  todayRangeIST,
   sevenDaysFromNow,
 } from "@/lib/utils/date";
 
@@ -44,7 +44,7 @@ export interface DashboardStats {
 // ── Fetcher (private to this module) ────────────────────────────────
 async function fetchDashboardStats(): Promise<DashboardStats> {
   const supabase = createClient();
-  const { start: todayStart, end: todayEnd } = todayRangeISO();
+  const { start: todayStart, end: todayEnd } = todayRangeIST();
 
   const [activeRes, newRes, mmRes, attRes, trainerRes, expiringRes] =
     await Promise.all([

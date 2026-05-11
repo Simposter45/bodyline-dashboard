@@ -65,3 +65,40 @@ export function getGreeting(): string {
   if (hour >= 17) return "Good evening";
   return "Good morning";
 }
+
+/**
+ * Formats the duration between a check-in and check-out timestamp.
+ * If checkOut is null (member still in gym), uses the current time as the end.
+ *
+ * Examples:
+ *   "< 1 min"  — less than 60 seconds
+ *   "45 min"   — less than 60 minutes
+ *   "1h 30m"   — 90 minutes
+ *   "2h"       — exact hours with no minute remainder
+ *
+ * For still-in members the result refreshes with the 30s attendance poll.
+ */
+export function formatDuration(checkIn: string, checkOut: string | null): string {
+  const end = checkOut ? new Date(checkOut) : new Date();
+  const diffMs = end.getTime() - new Date(checkIn).getTime();
+  const totalMinutes = Math.floor(diffMs / 60000);
+  if (totalMinutes < 1)  return "< 1 min";
+  if (totalMinutes < 60) return `${totalMinutes} min`;
+  const hours = Math.floor(totalMinutes / 60);
+  const mins  = totalMinutes % 60;
+  return mins === 0 ? `${hours}h` : `${hours}h ${mins}m`;
+}
+
+/**
+ * Formats an ISO timestamp as a short weekday + date in IST.
+ * e.g. "2026-05-10T09:15:00Z" → "Sat, 10 May"
+ * Used in the attendance Date column for multi-day views.
+ */
+export function formatShortDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-IN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Asia/Kolkata",
+  });
+}
