@@ -2,15 +2,16 @@
 
 ## 🎯 Current Objective
 
-**`feat/FEAT-004-attendance-checkin` branch is COMPLETE and ready to PR.**
+**`refactor/REFACT-007-trainers-page` branch is COMPLETE and ready to PR.**
 
-Four commits are on this branch:
-1. FEAT-004 — daily check-in/check-out page
-2. RLS role guard hardening (INSERT/UPDATE)
-3. FEAT-004b — historical view, pagination, CSV export, BUG-002 fix
-4. BUG-003 — IST date boundary fix (attendance page + dashboard widget)
+Three commits are on this branch (on top of main which already has FEAT-004):
+1. Steps 1+2 — `useTrainers.ts` hook + `trainers.css`
+2. Step 3 — `page.tsx` rewrite (861 → ~210 lines)
+3. Docs + merge commit (FEAT-004 attendance merged in from main)
 
-**Immediate next action:** Open PR `feat/FEAT-004-attendance-checkin` → `main`, then start **FEAT-006** (pagination on Members and Payments tables).
+**Immediate next action:** Open PR `refactor/REFACT-007-trainers-page` → `main`.
+
+After merge, next priority is **FEAT-006** (pagination on Members and Payments tables).
 
 ---
 
@@ -28,18 +29,19 @@ Four commits are on this branch:
 
 ## 📍 Current Branch State
 
-### Active branch: `feat/FEAT-004-attendance-checkin`
+### Active branch: `refactor/REFACT-007-trainers-page`
 
 **Commits on this branch (pushed, not yet PRed):**
-1. `feat(attendance): FEAT-004 - daily check-in/check-out page`
-2. `fix(rls): enforce role guard on attendance INSERT/UPDATE`
-3. `feat(checkin): FEAT-004b -- attendance page enhancements and historical view`
-4. `fix(attendance): BUG-003 -- use IST-aware date range for today's attendance queries` ← latest
+1. `refactor(trainers): REFACT-007 steps 1+2 -- useTrainers hook + co-located trainers.css`
+2. `refactor(trainers): REFACT-007 step 3 -- rewrite page.tsx (861 -> ~210 lines, zero useEffect, Nav wired, lucide icons, shared utils)`
+3. `chore(docs): update MIGRATION_PROGRESS for REFACT-007 trainers page + FEAT-006/007 backlog`
+4. `chore(merge): merge origin/main into REFACT-007 -- bring in FEAT-004 attendance + resolve MIGRATION_PROGRESS conflict` ← latest
 
 **Action needed:** Open PR to merge into `main`.
 
 ### Recently merged to main
-- `refactor/REFACT-006-remaining-pages` — login + onboarding cleanup
+- `feat/FEAT-004-attendance-checkin` — attendance check-in/out page, historical view, pagination, CSV, BUG-002, BUG-003 (PR #10)
+- `refactor/REFACT-006-remaining-pages` — login + onboarding cleanup (PR #9)
 
 ---
 
@@ -47,39 +49,77 @@ Four commits are on this branch:
 
 1. **Members Page (Golden UI Standard)** — `app/dashboard/members/page.tsx`
 2. **Add Member Modal** — 3-step wizard, Zod validation, TanStack mutation
-3. **Nav Component** — Attendance link added for owner
+3. **Nav Component** — Attendance link added for owner role
 4. **Dashboard Page** — REFACT-004, zero `useEffect`, TanStack stats
 5. **Renew & Record Payment Modals** — FEAT-003 ✅
 6. **CHORE-002** — `superseded` payment status, client-side logic complete
 7. **Payments Page** — REFACT-005, 1419 → 255 lines
+8. **Login Page** — REFACT-006, live gym stats via `usePublicGymStats`
+9. **Onboarding Page** — REFACT-006, dynamic branches, shared utils
+10. **Attendance Page** — FEAT-004 + FEAT-004b: check-in/out, historical view, pagination, CSV export, IST-aware date queries
 
 ---
 
-## ✅ FEAT-004b + BUG-003 — What Was Done Last Session
+## ✅ REFACT-007 — What Was Done Last Session
 
-### FEAT-004b (commit `36159a4`)
-Full attendance page enhancements — see MIGRATION_PROGRESS.md §6.10 for detail.
+### Branch: `refactor/REFACT-007-trainers-page` (based off `origin/main` @ `5d66885`)
 
-### BUG-003 (commit `e44d2ab`)
-- **Root cause**: `todayRangeIST()` called `todayISO()` (UTC date), so between 00:00–05:30 IST the range window pointed at the *previous* IST day. `useDashboardStats` also used the fully deprecated `todayRangeISO()` (UTC midnight boundary).
-- **Fix 1** — `lib/utils/date.ts`: `todayRangeIST()` now uses `toISTDateString(new Date())` — same pattern as `yesterdayRangeIST()` and `lastNDaysRangeIST()`.
-- **Fix 2** — `hooks/useDashboardStats.ts`: swapped `todayRangeISO()` import/call → `todayRangeIST()`.
-- **Result**: `todayRangeISO()` has zero active callers and is fully deprecated (do not use).
+**Problem:** `app/dashboard/trainers/page.tsx` was 861 lines — a pre-modularisation monolith with:
+- Raw `useEffect` for data fetching
+- 450-line inline `<style>` block (with `:root`, `body`, nav, global duplicates)
+- Hardcoded `"Pradeep · Owner"` in a custom nav (not using `<Nav />`)
+- Raw inline SVG icons instead of `lucide-react`
+- Local `getInitials()` and `formatDate()` duplicating `lib/utils/format.ts`
+- Wrong Supabase import path (`@/lib/supabase` instead of `@/lib/supabase/client`)
+- `assignmentsRes.error` was silently ignored (only `trainersRes.error` was checked)
+
+**What was built:**
+
+#### Step 1 — `hooks/useTrainers.ts`
+- TanStack Query hook, `queryKey: ["trainers"]`
+- `Promise.all` parallel fetch: `trainers` + `trainer_assignments` (with `members` join, `is_current = true`)
+- Exports `TrainerWithAssignments` type (Trainer & { assignments: (TrainerAssignment & { member: Member })[] })
+- Both `trainersRes.error` AND `assignmentsRes.error` now checked (bug fix)
+- 60s staleTime, 5min gcTime
+
+#### Step 2 — `app/dashboard/trainers/trainers.css`
+- 450-line `<style>` block extracted to co-located CSS file
+- Removed all global duplicates: `:root`, `body`, `*`, `::-webkit-scrollbar`, `@import`, `.nav*`, `.page*`, `.loading*`, `.error-screen`
+- Kept trainer-specific only: `.trainers-layout`, `.trainer-card*`, `.trainer-active-badge`, `.trainer-spec-tag`, `.trainer-card-stats`, `.assignment-panel`, `.ap-*`, `.panel-empty`
+- `99px` hardcoded values → `var(--radius-pill)` token
+
+#### Step 3 — `app/dashboard/trainers/page.tsx` rewrite
+- 861 → ~210 lines
+- `<Nav role="owner" />` replaces custom nav + hardcoded `"Pradeep · Owner"`
+- `useTrainers()` replaces raw `useEffect` + local `fetchTrainers()`
+- `getInitials`, `formatDate` from `lib/utils/format.ts` (local copies removed)
+- `<Phone />`, `<Mail />`, `<Plus />` from `lucide-react` (raw SVGs removed)
+- `.btn-solid` global class replaces local `.add-btn`
+- `trainer.phone` null-guard added (was rendering null — `phone: string | null` in types)
+- Auto-select first trainer via pure derivation, no `useEffect`
+- `import "./trainers.css"` wired
+
+#### Step 4 — `types/index.ts` verified
+- Zero changes needed. `Trainer`, `TrainerAssignment`, `Member` all correct.
+- `TrainerWithMembers` (lighter shape in types) is distinct from `TrainerWithAssignments` (richer, in hook) — no conflict.
+
+#### Merge
+- `origin/main` (with FEAT-004 attendance) merged into branch mid-work
+- Single conflict in `MIGRATION_PROGRESS.md` — resolved by keeping full FEAT-004 history (6.8–6.11) from main + adding REFACT-007 as 6.12
+
+**TypeScript:** `npx tsc --noEmit` — **0 errors** (verified post-merge)
 
 ---
 
 ## 🔜 Next Tasks (Priority Order)
 
-### 1. Merge FEAT-004 PR
-Open PR: `feat/FEAT-004-attendance-checkin` → `main`
-
-### 2. After merge — backlog
-
 | Priority | ID | Task | Notes |
 |----------|-----|------|-------|
+| 🔴 | — | **Merge REFACT-007 PR** | `refactor/REFACT-007-trainers-page` → `main` |
 | 🔴 | — | Error boundaries | Each route needs `error.tsx` |
 | 🔴 | — | Loading skeletons | CSS skeleton pattern, replace text loaders |
-| 🟠 | FEAT-006 | Pagination on Members & Payments tables | Members and Payments pages have no pagination — will break at scale. Use same 25-row pattern as attendance. |
+| 🟠 | FEAT-006 | Pagination on Members & Payments tables | Use same 25-row pattern as attendance page |
+| 🟠 | FEAT-007 | Trainer actions | "Add trainer", "Assign member", "Edit trainer" buttons wired but modals TBD |
 | 🟠 | CHORE-002b | `pending → overdue` auto-transition | pg_cron daily job; client-side dedup workaround in place |
 | 🔵 | CHORE-003 | Per-gym timezone | `gym_settings.timezone` column + dynamic offset in date helpers |
 | 🔵 | CHORE-001 | Atomic member creation | Supabase RPC/PostgreSQL transaction (replaces 2-step insert) |
@@ -113,6 +153,9 @@ app/
       payments.css
       PaymentDrawer.tsx
       PaymentDrawer.css
+    trainers/
+      page.tsx                   ✅ REFACT-007 rewrite (~210 lines, zero useEffect)
+      trainers.css               ✅ REFACT-007 co-located styles
   onboarding/
     page.tsx                     ✅ Cleaned up (REFACT-006)
     onboarding.css
@@ -126,7 +169,8 @@ components/
     RecordPaymentModal.tsx       ✅
 hooks/
   useMembers.ts                  ✅ TanStack Query
-  useMember.ts                   ✅ NEW — single-member fetch (attendance drawer)
+  useMember.ts                   ✅ single-member fetch (attendance drawer)
+  useTrainers.ts                 ✅ REFACT-007 — TanStack Query, TrainerWithAssignments type
   usePayments.ts                 ✅ TanStack Query
   useAttendance.ts               ✅ FEAT-004b — param-driven range + isLive flag
   useCheckin.ts                  ✅ useCheckIn + useCheckOut mutations
@@ -195,6 +239,7 @@ if (error) throw error; // always check before accessing data
 - Error boundaries: each route needs `error.tsx`
 - Loading skeletons: replace text loaders with CSS skeleton pattern
 - **FEAT-006**: Pagination on Members and Payments tables (use same 25-row pattern as attendance)
+- **FEAT-007**: Trainer action modals (Add Trainer, Assign Member, Edit Trainer)
 - `CHORE-002b`: pg_cron daily `pending → overdue` auto-transition
 - `CHORE-003`: Per-gym timezone support
 - `CHORE-004`: Branch-level attendance tracking (schema change needed)
