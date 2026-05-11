@@ -1,0 +1,318 @@
+/* ============================================================
+   Attendance Page — Co-located Styles
+   ── Global tokens & resets    → app/globals.css
+   ── Shared UI (.page, .page-header, .page-title, .page-sub,
+                 .loading-screen, .error-screen, .row-item,
+                 .row-name, .row-sub, .toolbar, .search-wrap,
+                 .search-input, .search-icon, .table-wrap,
+                 .table-meta, .empty-state, .btn-solid,
+                 .status-pill, .status-dot)
+                                → app/globals.css
+   ── .section-label, .live-badge, .live-dot, .row-info
+                                → app/dashboard/dashboard.css
+   ============================================================ */
+
+/* ── Page header stat chips ── */
+.att-stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.att-stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.att-stat-num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.att-stat-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Check-in panel (search + results) ── */
+.checkin-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 32px;
+}
+.checkin-panel-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+/* Member search results list */
+.member-results {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.member-result {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s;
+}
+.member-result:hover {
+  border-color: var(--border-hi);
+}
+.member-result-info {
+  flex: 1;
+  min-width: 0;
+}
+.member-result-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.member-result-phone {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* "Check In" button on each search result */
+.checkin-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hi);
+  background: var(--bg2);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.checkin-btn:hover {
+  background: var(--accent-green-dim);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+.checkin-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* "Already in gym" badge shown instead of the check-in button */
+.already-in-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-green-dim);
+  color: var(--accent-green);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* No results hint */
+.no-results {
+  padding: 16px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Today's log table ── */
+
+/* Member cell inside the log table */
+.log-member-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.log-member-info { flex: 1; }
+.log-member-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.log-member-phone {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* Time cells */
+.log-time {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.log-time-muted {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Duration cell — member still in gym (live, updates every 30s) */
+.log-time-live {
+  font-size: 13px;
+  color: var(--accent-green);
+  font-variant-numeric: tabular-nums;
+}
+
+/* "Check Out" button in the log table */
+.checkout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(251,191,36,0.25);
+  background: var(--accent-amber-dim);
+  color: var(--accent-amber);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.checkout-btn:hover {
+  border-color: var(--accent-amber);
+}
+.checkout-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Result count label shown when search or payment filter is active */
+.log-count {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .checkin-panel { padding: 16px; }
+  .att-stats     { gap: 8px; }
+}
+
+/* ── Range selector ── */
+
+/* Row containing the range preset tabs — sits above the search toolbar */
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* Custom date range inputs — shown only when "Custom" tab is active */
+.date-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.date-range-input {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+  color-scheme: dark;    /* dark date picker in Chromium browsers */
+}
+.date-range-input:focus { border-color: var(--border-hi); }
+.date-range-sep {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ── Pagination ── */
+
+/* Outer wrapper — sits below the table inside .table-wrap */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pagination-info {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.pagination-btn:hover:not(:disabled) {
+  border-color: var(--border-hi);
+  color: var(--text-primary);
+}
+.pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.pagination-btn.active {
+  background: var(--bg3);
+  border-color: var(--border-hi);
+  color: var(--text-primary);
+  font-weight: 500;
+}
