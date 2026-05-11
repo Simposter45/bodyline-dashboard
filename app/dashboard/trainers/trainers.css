@@ -1,0 +1,310 @@
+/* ============================================================
+   app/dashboard/trainers/trainers.css
+   Page-specific styles for the Trainers page.
+   All shared tokens, layout, nav, loading/error, .page,
+   .page-header, .page-title, .page-sub, .btn-solid come
+   from globals.css — do NOT redefine them here.
+   ============================================================ */
+
+/* ── Two-column layout ── */
+.trainers-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .trainers-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Trainer card list ── */
+.trainer-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trainer-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.trainer-card:hover { border-color: var(--border-hi); }
+.trainer-card--selected {
+  border-color: rgba(74, 222, 128, 0.3) !important;
+  background: rgba(74, 222, 128, 0.03);
+}
+
+.trainer-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+/* Square avatar on the trainer card — distinct from global round .avatar */
+.trainer-card-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  border: 1px solid var(--border-hi);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.trainer-active-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+}
+.trainer-active-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.trainer-card-name {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.trainer-spec-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.04em;
+}
+
+.trainer-card-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+.trainer-card-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.trainer-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.trainer-stat-value {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.trainer-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+.trainer-stat-sep {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+}
+
+/* ── Assignment panel (sticky right column) ── */
+.assignment-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  position: sticky;
+  top: 92px;
+}
+
+.ap-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* Square avatar in the panel — larger than card, same square style */
+.ap-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  border: 1px solid var(--border-hi);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.ap-info { flex: 1; }
+.ap-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.ap-spec {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.04em;
+}
+
+.ap-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.ap-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.ap-contact-item svg { color: var(--text-muted); flex-shrink: 0; }
+
+.ap-divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+.ap-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ap-count {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.ap-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 12px 0;
+}
+
+.ap-members { display: flex; flex-direction: column; gap: 2px; }
+.ap-member-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s;
+}
+.ap-member-row:hover { background: var(--bg3); }
+
+/* Small round avatar inside the panel member list */
+.ap-member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border-hi);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.ap-member-info { flex: 1; min-width: 0; }
+.ap-member-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ap-member-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.ap-member-phone {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Panel action buttons ── */
+.ap-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ap-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  border: none;
+  letter-spacing: 0.01em;
+}
+.ap-btn:hover { opacity: 0.85; }
+.ap-btn-primary   { background: var(--accent-green); color: #0d0d0f; }
+.ap-btn-secondary {
+  background: var(--bg3);
+  border: 1px solid var(--border-hi);
+  color: var(--text-primary);
+}
+
+/* ── Empty panel state (no trainer selected) ── */
+.panel-empty {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 56px 32px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
