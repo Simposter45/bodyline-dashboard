@@ -89,6 +89,19 @@
 - [ ] 6.8 `app/login/page.tsx` cleanup (REFACT-006 Step 3 — IN PROGRESS)
     - Extract ~430-line inline `<style>` → `login.css`
     - Replace hardcoded left-panel stats (20+ members, 3 trainers) → `usePublicGymStats` hook
+- [x] 6.9 `app/dashboard/trainers/page.tsx` cleanup (`refactor/REFACT-007-trainers-page`) — **branch pushed, pending PR**
+    - Step 1: `hooks/useTrainers.ts` — TanStack Query hook, `queryKey: ["trainers"]`, `Promise.all` parallel fetch (trainers + assignments+members join), exports `TrainerWithAssignments` type
+    - Step 2: `app/dashboard/trainers/trainers.css` — 450-line inline `<style>` extracted; global classes (nav, page, loading, error, btn-solid) removed; trainer-specific layout/card/panel classes kept
+    - Step 3: `app/dashboard/trainers/page.tsx` full rewrite — 861 → ~210 lines, zero `useEffect`, zero `any`, zero inline styles, zero hardcoded strings
+        - `<Nav role="owner" />` replaces custom nav + hardcoded `"Pradeep · Owner"`
+        - `useTrainers()` replaces raw `useEffect` + `fetchTrainers()`
+        - `getInitials`, `formatDate` from `lib/utils/format.ts` (local duplicates removed)
+        - `<Phone />`, `<Mail />`, `<Plus />` from `lucide-react` (raw SVGs removed)
+        - `.btn-solid` global class replaces local `.add-btn`
+        - `trainer.phone` null-guard added in card stats (latent bug fixed — `phone: string | null`)
+        - Auto-select first trainer via pure derivation (no `useEffect`)
+    - Step 4: `types/index.ts` verified — zero changes needed
+    - TypeScript: `npx tsc --noEmit` — 0 errors
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
@@ -107,6 +120,8 @@
 ## 🔧 Production Hardening (Pending)
 - [ ] Error boundaries: Each route needs a proper `error.tsx`
 - [ ] Loading skeletons: Replace text "Loading..." with CSS skeleton pattern
+- [ ] **FEAT-006 — Pagination**: Members and Payments tables have no pagination. Add the same 25-row pattern used in the attendance page. Will be needed before any serious user volume.
+- [ ] **FEAT-007 — Trainer actions**: "Add trainer", "Assign member", "Edit trainer" buttons are wired but modals are TBD (deferred from REFACT-007 scope).
 
 ## 🚀 Phase 7: Domain & Deployment (Future)
 - [ ] 7.1 Configure wildcard subdomains
