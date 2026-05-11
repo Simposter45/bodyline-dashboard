@@ -7,7 +7,7 @@ import { Nav } from "@/components/ui/Nav";
 import { Avatar } from "@/components/ui/Avatar";
 import { STATUS_CONFIG } from "@/lib/constants/status";
 import { formatINR, formatDate } from "@/lib/utils/format";
-import { monthStartISTTimestamp } from "@/lib/utils/date";
+import { monthStartISTTimestamp, currentMonthName } from "@/lib/utils/date";
 import { PaymentDrawer } from "./PaymentDrawer";
 import type { PaymentStatus } from "@/types";
 
@@ -147,7 +147,7 @@ export default function PaymentsPage() {
   }, [records, filter, search, sort]);
 
   const maxRevBar = Math.max(summary.totalCollected, summary.totalPending, summary.totalOverdue, 1);
-  const currentMonth = new Date().toLocaleString("en-IN", { month: "long" });
+  const currentMonth = currentMonthName();
 
   return (
     <>

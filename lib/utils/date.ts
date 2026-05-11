@@ -86,3 +86,31 @@ export function todayRangeISO(): { start: string; end: string } {
     end:   `${today}T23:59:59.999Z`,
   };
 }
+
+/**
+ * Returns today's date as a formatted human-readable string in IST.
+ * e.g. "Friday, 1 May 2026"
+ * Uses timeZone: "Asia/Kolkata" so it's correct near the UTC midnight boundary.
+ */
+export function todayFormatted(): string {
+  return new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  });
+}
+
+/**
+ * Returns the current month name in IST.
+ * e.g. "May"
+ * Uses timeZone: "Asia/Kolkata" so it's correct near the UTC month boundary.
+ */
+export function currentMonthName(): string {
+  return new Date().toLocaleString("en-IN", {
+    month: "long",
+    timeZone: "Asia/Kolkata",
+  });
+}
+

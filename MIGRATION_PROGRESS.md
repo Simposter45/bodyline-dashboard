@@ -74,7 +74,21 @@
     - Step 4: `app/dashboard/payments/page.tsx` rewrite — 1,419 → 255 lines. `useEffect` removed, `<Nav>` wired, all local helpers eliminated.
     - Fix: `useDashboardStats.ts` — `totalCollected` now sums ALL paid rows (was incorrectly deduplicated to latest-per-member, causing mismatch vs payments page).
     - Fix: Payments page `summary` — `totalPending` + `totalOverdue` now use latest-per-member deduplication, matching dashboard/members counts exactly. `totalCollected` remains ALL rows (cumulative ledger).
-- [ ] 6.6 Additional pages (trainers, onboarding, login). Ensure styling follows `members` pattern perfectly.
+- [x] 6.6 `hooks/usePlans.ts` upgrade (REFACT-006 Step 1 — branch `refactor/REFACT-006-remaining-pages`)
+    - Added `gymId?: string | null` three-state pattern: `undefined` = RLS (dashboard), `null` = hold query (pre-auth loading), `string` = explicit gym_id filter
+    - Existing callers (`AddMemberModal`, `RenewMembershipModal`) pass no arg → unchanged
+- [x] 6.7 `app/onboarding/page.tsx` cleanup (REFACT-006 Step 2)
+    - 1,471 → 934 lines. Inline `<style>` extracted to co-located `onboarding.css`
+    - Local CSS `:root {}` removed; aliases map to design tokens via `onboarding.css`
+    - Local `formatINR()`, `addDays()` removed → shared `lib/utils/`
+    - `new Date().toISOString()` × 2 → `todayISO()`
+    - Raw plans `useEffect` → `usePlans(settings?.gym_id ?? null)` (gym-scoped, pre-auth safe)
+    - Hardcoded branches `["Sector 14", ...]` → `settings?.branches ?? []`
+    - Step 2 copy "all 3 branches" → dynamic from `settings.branches.length`
+    - PowerShell-induced UTF-8 encoding corruption fixed
+- [ ] 6.8 `app/login/page.tsx` cleanup (REFACT-006 Step 3 — IN PROGRESS)
+    - Extract ~430-line inline `<style>` → `login.css`
+    - Replace hardcoded left-panel stats (20+ members, 3 trainers) → `usePublicGymStats` hook
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.

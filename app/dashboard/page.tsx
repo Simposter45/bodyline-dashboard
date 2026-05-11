@@ -9,6 +9,7 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { formatINR, formatTime, getGreeting } from "@/lib/utils/format";
+import { todayFormatted } from "@/lib/utils/date";
 
 // ------------------------------------------------------------------
 // Page
@@ -19,12 +20,7 @@ export default function DashboardPage() {
   const { data: userInfo } = useCurrentUser();
 
   const userName = userInfo?.userName ?? "";
-  const todayStr = new Date().toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const todayStr = todayFormatted();
 
   return (
     <>
