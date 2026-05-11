@@ -102,7 +102,7 @@ export function todayRangeISO(): { start: string; end: string } {
  *   { start: "2026-05-09T18:30:00.000Z", end: "2026-05-10T18:29:59.999Z" }
  */
 export function todayRangeIST(): { start: string; end: string } {
-  const today = todayISO(); // YYYY-MM-DD in local/UTC — good enough as the date label
+  const today = toISTDateString(new Date()); // IST-correct YYYY-MM-DD (fixes UTC date drift after midnight IST)
   return {
     start: new Date(`${today}T00:00:00+05:30`).toISOString(),
     end:   new Date(`${today}T23:59:59.999+05:30`).toISOString(),
