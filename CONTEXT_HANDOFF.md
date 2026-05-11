@@ -2,9 +2,15 @@
 
 ## 🎯 Current Objective
 
-**FEAT-004b is COMPLETE and committed** (commit `36159a4` on `feat/FEAT-004-attendance-checkin`).
+**`feat/FEAT-004-attendance-checkin` branch is COMPLETE and ready to PR.**
 
-**Next action:** Open PR for `feat/FEAT-004-attendance-checkin` → `main`, then move to the items in the Next Tasks section below.
+Four commits are on this branch:
+1. FEAT-004 — daily check-in/check-out page
+2. RLS role guard hardening (INSERT/UPDATE)
+3. FEAT-004b — historical view, pagination, CSV export, BUG-002 fix
+4. BUG-003 — IST date boundary fix (attendance page + dashboard widget)
+
+**Immediate next action:** Open PR `feat/FEAT-004-attendance-checkin` → `main`, then start **FEAT-006** (pagination on Members and Payments tables).
 
 ---
 
@@ -27,7 +33,8 @@
 **Commits on this branch (pushed, not yet PRed):**
 1. `feat(attendance): FEAT-004 - daily check-in/check-out page`
 2. `fix(rls): enforce role guard on attendance INSERT/UPDATE`
-3. `feat(checkin): FEAT-004b -- attendance page enhancements and historical view` ← latest
+3. `feat(checkin): FEAT-004b -- attendance page enhancements and historical view`
+4. `fix(attendance): BUG-003 -- use IST-aware date range for today's attendance queries` ← latest
 
 **Action needed:** Open PR to merge into `main`.
 
@@ -48,45 +55,16 @@
 
 ---
 
-## ✅ FEAT-004b — What Was Done This Session
+## ✅ FEAT-004b + BUG-003 — What Was Done Last Session
 
-All committed in `36159a4`. Full attendance page enhancements:
+### FEAT-004b (commit `36159a4`)
+Full attendance page enhancements — see MIGRATION_PROGRESS.md §6.10 for detail.
 
-### BUG-002 Fixed
-- `todayRangeIST()` added to `lib/utils/date.ts` — IST midnight boundary fix
-- `useAttendance.ts` now uses IST-aware range (check-ins 00:00–05:30 IST no longer missed)
-
-### New Utilities
-| File | Added |
-|------|-------|
-| `lib/utils/date.ts` | `todayRangeIST()`, `yesterdayRangeIST()`, `lastNDaysRangeIST(n)`, `toISTDateString()` (private) |
-| `lib/utils/format.ts` | `formatDuration(checkIn, checkOut)`, `formatShortDate(iso)` |
-
-### New / Updated Hooks
-| Hook | Change |
-|------|--------|
-| `hooks/useMember.ts` | **NEW** — single-member TanStack Query fetch (for drawer from attendance row) |
-| `hooks/useAttendance.ts` | **Refactored** — now `useAttendance(range: AttendanceDateRange, isLive?: bool)`. Exports `AttendanceDateRange` type. Historical ranges skip 30s poll. Each range cached independently. |
-
-### Dashboard Widget
-- Check-ins panel capped at **5 rows**
-- "View all N check-ins →" footer link shown when total > 5, routes to `/dashboard/attendance`
-
-### Attendance Page (full rewrite)
-- **Member drawer** on log row click (reuses `MemberDrawer.tsx`; `useMember(id)` fetches on demand)
-- **Payment status column** — `paymentStatusMap` cross-refs cached `members` data (zero extra DB calls)
-- **Log search bar** — filter by name or phone; "X of Y shown" count
-- **Payment status filter tabs** — All / Paid / Pending / Overdue with live counts; 3-stage filter pipeline
-- **Duration column** — `formatDuration()`; green for still-in (live), muted for checked-out
-- **Historical view** — Today / Yesterday / Last 7 days / Last 30 days / Custom date range
-- **Date column** — shown for non-Today ranges; `formatShortDate()`, IST-aware
-- **Check Out button** — hidden for historical records (shows `—` for open rows)
-- **Pagination** — 25 rows/page; Prev / `page / total` / Next; resets on any filter/range change
-- **CSV export** — exports full `filteredLog` (not just current page); no new npm deps (Blob + createObjectURL)
-- **Check-in panel** — hidden for historical ranges (only shown for Today)
-
-### Deferred (logged)
-- **CHORE-004** — Branch filter on attendance (needs `branch` column on `attendance` table + check-in location selection at check-in time). Member's home branch is in `members.branch` but doesn't tell you which branch they visited.
+### BUG-003 (commit `e44d2ab`)
+- **Root cause**: `todayRangeIST()` called `todayISO()` (UTC date), so between 00:00–05:30 IST the range window pointed at the *previous* IST day. `useDashboardStats` also used the fully deprecated `todayRangeISO()` (UTC midnight boundary).
+- **Fix 1** — `lib/utils/date.ts`: `todayRangeIST()` now uses `toISTDateString(new Date())` — same pattern as `yesterdayRangeIST()` and `lastNDaysRangeIST()`.
+- **Fix 2** — `hooks/useDashboardStats.ts`: swapped `todayRangeISO()` import/call → `todayRangeIST()`.
+- **Result**: `todayRangeISO()` has zero active callers and is fully deprecated (do not use).
 
 ---
 
@@ -101,6 +79,7 @@ Open PR: `feat/FEAT-004-attendance-checkin` → `main`
 |----------|-----|------|-------|
 | 🔴 | — | Error boundaries | Each route needs `error.tsx` |
 | 🔴 | — | Loading skeletons | CSS skeleton pattern, replace text loaders |
+| 🟠 | FEAT-006 | Pagination on Members & Payments tables | Members and Payments pages have no pagination — will break at scale. Use same 25-row pattern as attendance. |
 | 🟠 | CHORE-002b | `pending → overdue` auto-transition | pg_cron daily job; client-side dedup workaround in place |
 | 🔵 | CHORE-003 | Per-gym timezone | `gym_settings.timezone` column + dynamic offset in date helpers |
 | 🔵 | CHORE-001 | Atomic member creation | Supabase RPC/PostgreSQL transaction (replaces 2-step insert) |
@@ -160,7 +139,8 @@ lib/
                    formatDuration, formatShortDate
     date.ts     ← todayISO, todayRangeIST, yesterdayRangeIST, lastNDaysRangeIST,
                    monthStartISO, monthStartISTTimestamp, todayFormatted,
-                   currentMonthName, sevenDaysFromNow, addDays, todayRangeISO (deprecated)
+                   currentMonthName, sevenDaysFromNow, addDays
+                   todayRangeISO — ⚠️ FULLY DEPRECATED, do not use (UTC midnight boundary)
   constants/
     design.ts, status.ts
   members/
@@ -214,6 +194,7 @@ if (error) throw error; // always check before accessing data
 ## 🚩 Pending Production Items
 - Error boundaries: each route needs `error.tsx`
 - Loading skeletons: replace text loaders with CSS skeleton pattern
+- **FEAT-006**: Pagination on Members and Payments tables (use same 25-row pattern as attendance)
 - `CHORE-002b`: pg_cron daily `pending → overdue` auto-transition
 - `CHORE-003`: Per-gym timezone support
 - `CHORE-004`: Branch-level attendance tracking (schema change needed)

@@ -118,6 +118,12 @@
         - Pagination: 25 rows/page, resets on any filter/range change
         - CSV export: full filtered dataset, no new npm dependencies
     - Deferred as CHORE-004: branch-level attendance filter (needs `branch` col on `attendance` table)
+- [x] 6.11 **BUG-003 — IST date boundary fix** (branch `feat/FEAT-004-attendance-checkin`, commit `e44d2ab`)
+    - `todayRangeIST()` was calling `todayISO()` which returns the UTC date string — wrong IST day between 00:00–05:30 IST
+    - `useDashboardStats.ts` was using fully deprecated `todayRangeISO()` (UTC midnight boundary)
+    - Fix: `todayRangeIST()` now uses `toISTDateString(new Date())` — consistent with `yesterdayRangeIST()` and `lastNDaysRangeIST()`
+    - Fix: `useDashboardStats.ts` swapped to `todayRangeIST()` — dashboard attendance widget now shows correct IST-day check-ins
+    - `todayRangeISO()` is now fully deprecated with zero active callers
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
@@ -135,6 +141,10 @@
 - **`BUG-002` — Attendance UTC date boundary** — **✅ FIXED** (FEAT-004b, commit `36159a4`)
   - Was: `hooks/useAttendance.ts` used `todayRangeISO()` (UTC midnight), missing check-ins before 5:30 AM IST.
   - Fix: `todayRangeIST()` added to `lib/utils/date.ts`; `useAttendance` refactored to accept `AttendanceDateRange` param; hook no longer owns date logic.
+- **`BUG-003` — Attendance IST date boundary** — **✅ FIXED** (BUG-003, commit `e44d2ab`)
+  - Was: `todayRangeIST()` called `todayISO()` which returns UTC date; `useDashboardStats` used `todayRangeISO()` (UTC midnight). Both caused check-ins between 00:00–05:30 IST to fall outside the query window.
+  - Fix: `todayRangeIST()` now uses `toISTDateString(new Date())` (same pattern as other IST range helpers); `useDashboardStats` swapped to `todayRangeIST()`.
+  - `todayRangeISO()` is now fully deprecated — no active callers remain.
 - **`CHORE-004` — Branch-level attendance tracking** — **DEFERRED**
   - The `attendance` table has no `branch` column. Currently only `members.branch` (home branch) is available.
   - A member from Branch A visiting Branch B would show their home branch, not where they checked in.
@@ -144,6 +154,7 @@
 ## 🔧 Production Hardening (Pending)
 - [ ] Error boundaries: Each route needs a proper `error.tsx`
 - [ ] Loading skeletons: Replace text "Loading..." with CSS skeleton pattern
+- [ ] **FEAT-006 — Pagination**: Members and Payments tables have no pagination. Add the same 25-row pattern used in the attendance page. Will be needed before any serious user volume.
 
 ## 🚀 Phase 7: Domain & Deployment (Future)
 - [ ] 7.1 Configure wildcard subdomains
