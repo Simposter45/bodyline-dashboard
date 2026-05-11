@@ -137,6 +137,11 @@
         - Auto-select first trainer via pure derivation (no `useEffect`)
     - Step 4: `types/index.ts` verified — zero changes needed
     - TypeScript: `npx tsc --noEmit` — 0 errors
+- [x] 6.13 **CHORE-005 — Route-level error boundaries** (branch `chore/CHORE-005-error-boundaries`)
+    - `components/ui/ErrorFallback.tsx` — shared crash UI: red-dim card, `AlertTriangle` icon, dev-only `error.message`, "Try again" (`reset()`) + "Dashboard" link
+    - `app/globals.css` — extended `.error-screen` with sub-classes: `.error-card`, `.error-icon`, `.error-title`, `.error-message`, `.error-detail`, `.error-actions`, `.btn-retry`, `.btn-ghost-sm`
+    - Five thin `error.tsx` wrappers added: `dashboard/`, `members/`, `payments/`, `attendance/`, `trainers/`
+    - TypeScript: `npx tsc --noEmit` — 0 errors
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
@@ -165,7 +170,7 @@
   - Non-blocking — home-branch filtering is useful and available now; location accuracy deferred.
 
 ## 🔧 Production Hardening (Pending)
-- [ ] Error boundaries: Each route needs a proper `error.tsx`
+- [x] **CHORE-005 — Error boundaries**: `ErrorFallback` component + 5 route `error.tsx` files (branch `chore/CHORE-005-error-boundaries` — **pending PR**)
 - [ ] Loading skeletons: Replace text "Loading..." with CSS skeleton pattern
 - [ ] **FEAT-006 — Pagination**: Members and Payments tables have no pagination. Add the same 25-row pattern used in the attendance page. Will be needed before any serious user volume.
 - [ ] **FEAT-007 — Trainer actions**: "Add trainer", "Assign member", "Edit trainer" buttons are wired but modals are TBD (deferred from REFACT-007 scope).

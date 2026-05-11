@@ -2,16 +2,14 @@
 
 ## 🎯 Current Objective
 
-**`refactor/REFACT-007-trainers-page` branch is COMPLETE and ready to PR.**
+**`chore/CHORE-005-error-boundaries` branch is COMPLETE and ready to PR.**
 
-Three commits are on this branch (on top of main which already has FEAT-004):
-1. Steps 1+2 — `useTrainers.ts` hook + `trainers.css`
-2. Step 3 — `page.tsx` rewrite (861 → ~210 lines)
-3. Docs + merge commit (FEAT-004 attendance merged in from main)
+One commit on this branch:
+1. `feat(ui): CHORE-005 -- add ErrorFallback component + route-level error.tsx for all dashboard routes`
 
-**Immediate next action:** Open PR `refactor/REFACT-007-trainers-page` → `main`.
+**Immediate next action:** Open PR `chore/CHORE-005-error-boundaries` → `main`.
 
-After merge, next priority is **FEAT-006** (pagination on Members and Payments tables).
+After merge, next priority is **Loading Skeletons** (replace all text "Loading..." with CSS skeleton pattern), then **FEAT-006** (pagination on Members and Payments tables).
 
 ---
 
@@ -29,19 +27,16 @@ After merge, next priority is **FEAT-006** (pagination on Members and Payments t
 
 ## 📍 Current Branch State
 
-### Active branch: `refactor/REFACT-007-trainers-page`
+### Active branch: `chore/CHORE-005-error-boundaries`
 
 **Commits on this branch (pushed, not yet PRed):**
-1. `refactor(trainers): REFACT-007 steps 1+2 -- useTrainers hook + co-located trainers.css`
-2. `refactor(trainers): REFACT-007 step 3 -- rewrite page.tsx (861 -> ~210 lines, zero useEffect, Nav wired, lucide icons, shared utils)`
-3. `chore(docs): update MIGRATION_PROGRESS for REFACT-007 trainers page + FEAT-006/007 backlog`
-4. `chore(merge): merge origin/main into REFACT-007 -- bring in FEAT-004 attendance + resolve MIGRATION_PROGRESS conflict` ← latest
+1. `feat(ui): CHORE-005 -- add ErrorFallback component + route-level error.tsx for all dashboard routes` ← latest
 
 **Action needed:** Open PR to merge into `main`.
 
 ### Recently merged to main
+- `refactor/REFACT-007-trainers-page` — trainers page modularisation (PR #11)
 - `feat/FEAT-004-attendance-checkin` — attendance check-in/out page, historical view, pagination, CSV, BUG-002, BUG-003 (PR #10)
-- `refactor/REFACT-006-remaining-pages` — login + onboarding cleanup (PR #9)
 
 ---
 
@@ -57,6 +52,7 @@ After merge, next priority is **FEAT-006** (pagination on Members and Payments t
 8. **Login Page** — REFACT-006, live gym stats via `usePublicGymStats`
 9. **Onboarding Page** — REFACT-006, dynamic branches, shared utils
 10. **Attendance Page** — FEAT-004 + FEAT-004b: check-in/out, historical view, pagination, CSV export, IST-aware date queries
+11. **Trainers Page** — REFACT-007: `useTrainers` hook, co-located CSS, 861 → ~210 lines
 
 ---
 
@@ -115,8 +111,7 @@ After merge, next priority is **FEAT-006** (pagination on Members and Payments t
 
 | Priority | ID | Task | Notes |
 |----------|-----|------|-------|
-| 🔴 | — | **Merge REFACT-007 PR** | `refactor/REFACT-007-trainers-page` → `main` |
-| 🔴 | — | Error boundaries | Each route needs `error.tsx` |
+| 🔴 | — | **Merge CHORE-005 PR** | `chore/CHORE-005-error-boundaries` → `main` |
 | 🔴 | — | Loading skeletons | CSS skeleton pattern, replace text loaders |
 | 🟠 | FEAT-006 | Pagination on Members & Payments tables | Use same 25-row pattern as attendance page |
 | 🟠 | FEAT-007 | Trainer actions | "Add trainer", "Assign member", "Edit trainer" buttons wired but modals TBD |
@@ -236,7 +231,6 @@ if (error) throw error; // always check before accessing data
 ---
 
 ## 🚩 Pending Production Items
-- Error boundaries: each route needs `error.tsx`
 - Loading skeletons: replace text loaders with CSS skeleton pattern
 - **FEAT-006**: Pagination on Members and Payments tables (use same 25-row pattern as attendance)
 - **FEAT-007**: Trainer action modals (Add Trainer, Assign Member, Edit Trainer)
