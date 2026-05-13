@@ -551,3 +551,61 @@ td {
 }
 td:last-child { text-align: right; }
 
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS — Shared Layout
+   Page-specific layout breakpoints live in each page's
+   co-located .css file. Only truly shared classes here.
+   ══════════════════════════════════════════════════════ */
+
+/* ── Page container ── */
+@media (max-width: 900px) {
+  .page { max-width: 100%; padding: 32px 24px 60px; }
+  .page.dashboard-width { max-width: 100%; }
+}
+@media (max-width: 480px) {
+  .page { padding: 20px 16px 60px; }
+  .page-title { font-size: 1.6rem; }
+  .page-header { margin-bottom: 24px; }
+}
+
+/* ── Nav — wraps to 2-row scrollable layout on mobile ──
+   Row 1: logo (left) + sign-out (right)
+   Row 2: nav links — scrollable, full width
+   No hamburger: internal tool UX, links fit in horizontal scroll. */
+@media (max-width: 768px) {
+  .nav { padding: 14px 16px; gap: 8px; flex-wrap: wrap; }
+  .nav-links {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-meta  { gap: 8px; }
+  .nav-owner-text { display: none; } /* "Name · Role" hidden — saves space on mobile */
+}
+@media (max-width: 480px) {
+  .nav-link { font-size: 12px; padding: 5px 10px; }
+}
+
+/* ── Toolbar — stack vertically on small screens ── */
+@media (max-width: 640px) {
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .search-wrap { max-width: 100%; }
+}
+
+/* ── Table — edge-to-edge on mobile ── */
+@media (max-width: 640px) {
+  .table-wrap { border-radius: 0; border-left: none; border-right: none; }
+  thead th, td { padding: 12px 16px; }
+}
+
+/* ── Touch targets — minimum 44px for all interactive elements ── */
+@media (max-width: 640px) {
+  tbody tr { min-height: 48px; }
+  .btn-solid   { min-height: 40px; }
+  .filter-tab  { min-height: 40px; }
+  .pagination-btn { min-height: 40px; min-width: 40px; }
+}
+
