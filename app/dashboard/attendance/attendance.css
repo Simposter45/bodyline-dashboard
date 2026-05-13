@@ -221,9 +221,34 @@
 }
 
 /* ── Responsive ── */
+/* .page padding is owned by globals.css — do not redefine here. */
 @media (max-width: 768px) {
   .checkin-panel { padding: 16px; }
-  .att-stats     { gap: 8px; }
+  .att-stats     { gap: 6px; }
+  .att-stat-chip { padding: 5px 10px; font-size: 12px; }
+
+  /* Range row: allow preset tabs to wrap to a 2nd line */
+  .range-row { gap: 8px; }
+
+  /* Date range inputs: stack vertically on tablet/phone */
+  .date-range-inputs { flex-direction: column; align-items: stretch; }
+  .date-range-input  { width: 100%; }
+  .date-range-sep    { display: none; }
+}
+@media (max-width: 640px) {
+  /* Log table: hide Check-Out and Duration — Name + Check-In time always stay */
+  thead th:nth-child(3), td:nth-child(3) { display: none; } /* Check-Out */
+  thead th:nth-child(4), td:nth-child(4) { display: none; } /* Duration */
+
+  /* Pagination: stack info text above controls */
+  .pagination { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+@media (max-width: 480px) {
+  /* Hide Payment Status col — Name + Check-In time remain as minimum viable view */
+  thead th:nth-child(5), td:nth-child(5) { display: none; }
+
+  .checkin-btn { padding: 6px 10px; font-size: 12px; }
+  .checkout-btn { padding: 5px 10px; font-size: 11px; }
 }
 
 /* ── Range selector ── */
