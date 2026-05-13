@@ -2,14 +2,13 @@
 
 ## 🎯 Current Objective
 
-**`chore/CHORE-005-error-boundaries` branch is COMPLETE and ready to PR.**
+**Next Objective: Loading Skeletons**
 
-One commit on this branch:
-1. `feat(ui): CHORE-005 -- add ErrorFallback component + route-level error.tsx for all dashboard routes`
+Currently, the dashboard uses plain text "Loading..." states across its components. We need to implement a CSS skeleton shimmer pattern consistent with the UI.
 
-**Immediate next action:** Open PR `chore/CHORE-005-error-boundaries` → `main`.
+**Immediate next action:** Create a branch `feat/FEAT-008-loading-skeletons` and start implementing skeleton loaders for main dashboard tables and panels.
 
-After merge, next priority is **Loading Skeletons** (replace all text "Loading..." with CSS skeleton pattern), then **FEAT-006** (pagination on Members and Payments tables).
+After this is merged, next priority is **FEAT-006** (pagination on Members and Payments tables).
 
 ---
 
@@ -27,14 +26,12 @@ After merge, next priority is **Loading Skeletons** (replace all text "Loading..
 
 ## 📍 Current Branch State
 
-### Active branch: `chore/CHORE-005-error-boundaries`
+### Active branch: `main` (Pending new branch creation)
 
-**Commits on this branch (pushed, not yet PRed):**
-1. `feat(ui): CHORE-005 -- add ErrorFallback component + route-level error.tsx for all dashboard routes` ← latest
-
-**Action needed:** Open PR to merge into `main`.
+**Action needed:** Start working on Loading Skeletons.
 
 ### Recently merged to main
+- `chore/CHORE-005-error-boundaries` — route-level error handling (PR #12)
 - `refactor/REFACT-007-trainers-page` — trainers page modularisation (PR #11)
 - `feat/FEAT-004-attendance-checkin` — attendance check-in/out page, historical view, pagination, CSV, BUG-002, BUG-003 (PR #10)
 

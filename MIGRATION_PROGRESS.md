@@ -124,7 +124,7 @@
     - Fix: `todayRangeIST()` now uses `toISTDateString(new Date())` — consistent with `yesterdayRangeIST()` and `lastNDaysRangeIST()`
     - Fix: `useDashboardStats.ts` swapped to `todayRangeIST()` — dashboard attendance widget now shows correct IST-day check-ins
     - `todayRangeISO()` is now fully deprecated with zero active callers
-- [x] 6.12 `app/dashboard/trainers/page.tsx` cleanup (`refactor/REFACT-007-trainers-page`) — **branch pushed, pending PR**
+- [x] 6.12 `app/dashboard/trainers/page.tsx` cleanup (`refactor/REFACT-007-trainers-page`) — **merged to main (PR #11)**
     - Step 1: `hooks/useTrainers.ts` — TanStack Query hook, `queryKey: ["trainers"]`, `Promise.all` parallel fetch (trainers + assignments+members join), exports `TrainerWithAssignments` type
     - Step 2: `app/dashboard/trainers/trainers.css` — 450-line inline `<style>` extracted; global classes (nav, page, loading, error, btn-solid) removed; trainer-specific layout/card/panel classes kept
     - Step 3: `app/dashboard/trainers/page.tsx` full rewrite — 861 → ~210 lines, zero `useEffect`, zero `any`, zero inline styles, zero hardcoded strings
@@ -137,7 +137,7 @@
         - Auto-select first trainer via pure derivation (no `useEffect`)
     - Step 4: `types/index.ts` verified — zero changes needed
     - TypeScript: `npx tsc --noEmit` — 0 errors
-- [x] 6.13 **CHORE-005 — Route-level error boundaries** (branch `chore/CHORE-005-error-boundaries`)
+- [x] 6.13 **CHORE-005 — Route-level error boundaries** (branch `chore/CHORE-005-error-boundaries` — **merged to main (PR #12)**)
     - `components/ui/ErrorFallback.tsx` — shared crash UI: red-dim card, `AlertTriangle` icon, dev-only `error.message`, "Try again" (`reset()`) + "Dashboard" link
     - `app/globals.css` — extended `.error-screen` with sub-classes: `.error-card`, `.error-icon`, `.error-title`, `.error-message`, `.error-detail`, `.error-actions`, `.btn-retry`, `.btn-ghost-sm`
     - Five thin `error.tsx` wrappers added: `dashboard/`, `members/`, `payments/`, `attendance/`, `trainers/`
@@ -170,7 +170,7 @@
   - Non-blocking — home-branch filtering is useful and available now; location accuracy deferred.
 
 ## 🔧 Production Hardening (Pending)
-- [x] **CHORE-005 — Error boundaries**: `ErrorFallback` component + 5 route `error.tsx` files (branch `chore/CHORE-005-error-boundaries` — **pending PR**)
+- [x] **CHORE-005 — Error boundaries**: `ErrorFallback` component + 5 route `error.tsx` files (**merged to main, PR #12**)
 - [ ] Loading skeletons: Replace text "Loading..." with CSS skeleton pattern
 - [ ] **FEAT-006 — Pagination**: Members and Payments tables have no pagination. Add the same 25-row pattern used in the attendance page. Will be needed before any serious user volume.
 - [ ] **FEAT-007 — Trainer actions**: "Add trainer", "Assign member", "Edit trainer" buttons are wired but modals are TBD (deferred from REFACT-007 scope).
