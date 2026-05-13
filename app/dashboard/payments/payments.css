@@ -35,6 +35,12 @@
 }
 @media (max-width: 800px) {
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  /* Reset the flat edge-to-edge radius and apply 2×2 corner rounding */
+  .summary-card               { border-radius: 0; }
+  .summary-card:nth-child(1)  { border-radius: var(--radius) 0 0 0; }
+  .summary-card:nth-child(2)  { border-radius: 0 var(--radius) 0 0; }
+  .summary-card:nth-child(3)  { border-radius: 0 0 0 var(--radius); }
+  .summary-card:last-child    { border-radius: 0 0 var(--radius) 0; }
 }
 
 .summary-card {
@@ -80,8 +86,11 @@
   gap: 32px;
   align-items: center;
 }
-@media (max-width: 700px) {
-  .revenue-panel { grid-template-columns: 1fr; }
+@media (max-width: 640px) {
+  .revenue-panel        { grid-template-columns: 1fr; }
+  .revenue-panel-amount { font-size: 2.1rem; }
+  .rev-bar-chart        { gap: 8px; }
+  .rev-bar-track        { width: 28px; }
 }
 
 .revenue-panel-title {
@@ -371,10 +380,40 @@
 .drawer-btn-ghost     { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
 
 /* ── Responsive table column hiding ── */
+/* .page padding is owned by globals.css — do not redefine here. */
 @media (max-width: 900px) {
-  thead th:nth-child(4), td:nth-child(4) { display: none; }
+  thead th:nth-child(4), td:nth-child(4) { display: none; } /* Plan col */
 }
-@media (max-width: 700px) {
-  thead th:nth-child(3), td:nth-child(3) { display: none; }
-  .page { padding: 24px 16px 60px; }
+@media (max-width: 640px) {
+  thead th:nth-child(3), td:nth-child(3) { display: none; } /* Method col */
+}
+@media (max-width: 480px) {
+  thead th:nth-child(5), td:nth-child(5) { display: none; } /* Status col — Amount always stays */
+}
+
+/* ── Mobile: PaymentDrawer bottom sheet ──
+   Same pattern as MemberDrawer — right-side panel becomes
+   a full-width bottom sheet that slides up from the viewport bottom. */
+@media (max-width: 640px) {
+  .drawer {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 90vh;
+    border-left: none;
+    border-top: 1px solid var(--border-hi);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 20px 16px 32px;
+    animation: paymentDrawerSlideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes paymentDrawerSlideUp {
+    from { transform: translateY(100%); opacity: 0.7; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  /* Info grid: 2-col → 1-col on mobile */
+  .drawer-info-grid { grid-template-columns: 1fr; gap: 12px; }
 }
