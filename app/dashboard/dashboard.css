@@ -92,14 +92,19 @@
 }
 
 /* ── Responsive ── */
+/* .page padding is owned by globals.css — do not redefine here. */
 @media (max-width: 900px) {
   .stats-grid-members { grid-template-columns: repeat(2, 1fr); }
   .stats-grid-revenue { grid-template-columns: repeat(2, 1fr); }
   .bottom-grid        { grid-template-columns: 1fr; }
 }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .stats-grid-members { grid-template-columns: 1fr 1fr; }
   .stats-grid-revenue { grid-template-columns: 1fr 1fr; }
-  .greeting           { font-size: 1.9rem; }
-  .page               { padding: 24px 16px 60px; }
+  .greeting           { font-size: 1.7rem; }
+  .live-badge         { display: none; } /* declutter page header on phone */
+}
+@media (max-width: 480px) {
+  .greeting  { font-size: 1.45rem; }
+  .date-pill { font-size: 12px; }
 }
