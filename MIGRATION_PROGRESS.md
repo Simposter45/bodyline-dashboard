@@ -169,11 +169,49 @@
   - Fix: add `branch` column to `attendance` table; operator selects/confirms branch at check-in time; UI shows a branch filter tab on the attendance page.
   - Non-blocking — home-branch filtering is useful and available now; location accuracy deferred.
 
-## 🔧 Production Hardening (Pending)
+## 🔧 Production Hardening & Launch Readiness
+
+### 🔴 Launch Blockers
 - [x] **CHORE-005 — Error boundaries**: `ErrorFallback` component + 5 route `error.tsx` files (**merged to main, PR #12**)
-- [ ] Loading skeletons: Replace text "Loading..." with CSS skeleton pattern
-- [ ] **FEAT-006 — Pagination**: Members and Payments tables have no pagination. Add the same 25-row pattern used in the attendance page. Will be needed before any serious user volume.
-- [ ] **FEAT-007 — Trainer actions**: "Add trainer", "Assign member", "Edit trainer" buttons are wired but modals are TBD (deferred from REFACT-007 scope).
+- [ ] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **7 commits complete, PR pending CSS fixes**)
+    - ✅ Step 1: `globals.css` — shared breakpoints (`.page`, `.nav` 2-row scroll, `.toolbar`, `.table-wrap` edge-to-edge, touch targets)
+    - ✅ Step 2: `dashboard.css` — stats grid 2-col collapse, greeting font scale, live-badge hidden on mobile
+    - ✅ Step 3: `members.css` column hiding + `MemberDrawer.css` bottom-sheet slide-up
+    - ✅ Step 4: `payments.css` — summary card radius fix, bar chart shrink, column hiding, PaymentDrawer bottom-sheet
+    - ✅ Step 5: `attendance.css` — date range inputs stack, column hiding, pagination stack
+    - ✅ Step 6: `trainers.css` — card/panel padding, font scale, touch targets
+    - ✅ Step 7: `Nav.tsx` — `aria-label` on scrollable mobile nav row
+    - ❌ **BUG: Drawers** — should be full-page on mobile (`height: 100dvh`), not `max-height: 90vh` bottom sheets. Fix in `MemberDrawer.css` + `payments.css`
+    - ❌ **BUG: Tables** — column-hiding isn't enough; columns still cramp on phone. Replace with **card-stack row layout** (`data-label` CSS pattern) in `members.css`, `payments.css`, `attendance.css` + TSX `<td data-label>` attrs
+- [ ] **CHORE-006 — Multi-Tenancy Verification** (branch `chore/CHORE-006-multitenancy-verification`)
+    - Seed a second test gym in `gyms` + `gym_settings`
+    - Verify subdomain middleware resolves `[gym-slug].localhost` correctly
+    - RLS isolation audit: zero data leakage across all 7 tables between gyms
+    - `usePublicGymStats` + `usePlans` confirmed per-gym scoped
+- [ ] **FEAT-006 — Pagination**: Members and Payments tables (25-row pattern, same as attendance)
+- [ ] **FEAT-009 — Member Portal Rebuild** (branch `feat/FEAT-009-member-portal-rebuild`)
+    - 1,316-line monolith → TanStack hooks, co-located CSS, mobile-first, zero `useEffect`/`any`
+    - New: self-service renewal request, expiry alert banner, full attendance history
+- [ ] **FEAT-010 — Trainer Portal Rebuild** (branch `feat/FEAT-010-trainer-portal-rebuild`)
+    - 1,196-line monolith → TanStack hooks, co-located CSS, mobile-first
+    - New: assigned-member attendance view (who’s checked in today), member notes field
+- [ ] **FEAT-007 — Trainer Actions** (owner dashboard — buttons wired, modals TBD)
+    - `AddTrainerModal`, `AssignMemberModal`, `EditTrainerModal`
+
+### 🟡 Important (Pre-Scale)
+- [ ] **CHORE-004 — Branch-Level Attendance** — schema change: `branch` col on `attendance` table; multi-branch gym filter support
+
+### 🔵 Technical Debt (Non-Blocking)
+- [ ] Loading skeletons: Replace text "Loading..." with CSS skeleton shimmer pattern (cosmetic, deferred)
+- [ ] **CHORE-001**: Atomic member creation (Supabase RPC/PostgreSQL transaction)
+- [ ] **CHORE-002b**: pg_cron daily `pending → overdue` auto-transition
+- [ ] **CHORE-003**: Per-gym timezone support (`gym_settings.timezone` + dynamic offset)
+
+### ⬛ Post-Launch Backlog
+- [ ] **FEAT-011 — QR Check-In**: Member scans QR → auto check-in (`/checkin?member=uuid`)
+- [ ] **FEAT-012 — WhatsApp Notifications**: Expiry alerts + renewal confirmations via Twilio/WATI
+- [ ] **FEAT-013 — Reports Dashboard**: Revenue trends, attendance heatmap, member growth (Recharts)
+- [ ] **FEAT-014 — Excel Export**: `xlsx` library (deferred; CSV confirmed sufficient for now)
 
 ## 🚀 Phase 7: Domain & Deployment (Future)
 - [ ] 7.1 Configure wildcard subdomains

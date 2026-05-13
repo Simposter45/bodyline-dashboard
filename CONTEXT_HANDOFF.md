@@ -2,13 +2,27 @@
 
 ## 🎯 Current Objective
 
-**Next Objective: Loading Skeletons**
+**Next Objective: REFACT-008 CSS Polish (follow-up to mobile responsiveness)**
 
-Currently, the dashboard uses plain text "Loading..." states across its components. We need to implement a CSS skeleton shimmer pattern consistent with the UI.
+REFACT-008 (mobile responsiveness) is **complete on branch** `refactor/REFACT-008-mobile-responsive` (7 commits, PR pending). During testing, two CSS issues were found that need fixing **before the PR is merged**:
 
-**Immediate next action:** Create a branch `feat/FEAT-008-loading-skeletons` and start implementing skeleton loaders for main dashboard tables and panels.
+### 🐛 Issue 1 — Drawers: Should be full-page views on mobile
+- **Current:** MemberDrawer and PaymentDrawer use a bottom-sheet pattern (`max-height: 90vh`) on mobile
+- **Required:** On `≤640px`, both drawers should be **full-page overlays** (`height: 100vh`, `max-height: 100vh`, no rounded top corners)
+- **Files:** `app/dashboard/members/MemberDrawer.css`, `app/dashboard/payments/payments.css`
+- **Change:** In both `@media (max-width: 640px)` drawer blocks: `max-height: 100vh` → `height: 100dvh`, remove `border-radius` on top, keep the slide-up animation
 
-After this is merged, next priority is **FEAT-006** (pagination on Members and Payments tables).
+### 🐛 Issue 2 — Tables: Columns still overflow / get cut on mobile
+- **Current:** We hide columns progressively via `nth-child` but on phones the remaining columns still cramp and truncate
+- **Required:** Replace the column-hiding approach with a **card-stack row layout** on mobile — the industry-standard solution for responsive data tables
+- **Approach per page:**
+  - At `≤640px`: hide `<thead>`, switch `<tbody> <tr>` to `display: block`, switch each `<td>` to `display: flex; justify-content: space-between` with a `data-label` pseudo-element for the column name
+  - Each row becomes a stacked card; each cell shows `Label ........ Value`
+  - **Files:** `members.css`, `payments.css`, `attendance.css` (table pages only — trainers has no table)
+  - **globals.css:** Add the base `.responsive-table` helper classes
+  - **TSX:** Add `data-label="Column Name"` attributes to each `<td>` in the table pages
+
+**Immediate next action:** Fix both issues on the existing `refactor/REFACT-008-mobile-responsive` branch, then raise the PR.
 
 ---
 
@@ -24,11 +38,13 @@ After this is merged, next priority is **FEAT-006** (pagination on Members and P
 
 ---
 
-## 📍 Current Branch State
+## 🛣️ Current Branch State
 
-### Active branch: `main` (Pending new branch creation)
+### Active branch: `refactor/REFACT-008-mobile-responsive`
 
-**Action needed:** Start working on Loading Skeletons.
+**Status:** 7 steps complete (commits `5c4cb7c` → `ec775a1`). Two CSS issues found during testing — **fix these before raising the PR:**
+1. **Drawers** → full-page on mobile (not `90vh` bottom sheets) — `MemberDrawer.css`, `payments.css`
+2. **Tables** → card-stack row layout (not column-hiding) — `members.css`, `payments.css`, `attendance.css`, `globals.css`, plus `data-label` attrs on `<td>` elements in the TSX pages
 
 ### Recently merged to main
 - `chore/CHORE-005-error-boundaries` — route-level error handling (PR #12)
@@ -50,6 +66,11 @@ After this is merged, next priority is **FEAT-006** (pagination on Members and P
 9. **Onboarding Page** — REFACT-006, dynamic branches, shared utils
 10. **Attendance Page** — FEAT-004 + FEAT-004b: check-in/out, historical view, pagination, CSV export, IST-aware date queries
 11. **Trainers Page** — REFACT-007: `useTrainers` hook, co-located CSS, 861 → ~210 lines
+12. **Error Boundaries** — CHORE-005: `ErrorFallback` + 5 route `error.tsx` files
+
+## 🛠️ In Progress (Branch: `refactor/REFACT-008-mobile-responsive`)
+
+13. **Mobile Responsiveness** — REFACT-008: All 8 steps complete, 2 CSS issues to fix before PR
 
 ---
 
@@ -106,17 +127,22 @@ After this is merged, next priority is **FEAT-006** (pagination on Members and P
 
 ## 🔜 Next Tasks (Priority Order)
 
-| Priority | ID | Task | Notes |
-|----------|-----|------|-------|
-| 🔴 | — | **Merge CHORE-005 PR** | `chore/CHORE-005-error-boundaries` → `main` |
-| 🔴 | — | Loading skeletons | CSS skeleton pattern, replace text loaders |
-| 🟠 | FEAT-006 | Pagination on Members & Payments tables | Use same 25-row pattern as attendance page |
-| 🟠 | FEAT-007 | Trainer actions | "Add trainer", "Assign member", "Edit trainer" buttons wired but modals TBD |
-| 🟠 | CHORE-002b | `pending → overdue` auto-transition | pg_cron daily job; client-side dedup workaround in place |
-| 🔵 | CHORE-003 | Per-gym timezone | `gym_settings.timezone` column + dynamic offset in date helpers |
-| 🔵 | CHORE-001 | Atomic member creation | Supabase RPC/PostgreSQL transaction (replaces 2-step insert) |
-| 🔵 | CHORE-004 | Branch filter on attendance | Add `branch` col to `attendance` table; location selected at check-in |
-| 🔵 | FEAT-005 | Excel export | `xlsx` library; defer until CSV is confirmed insufficient |
+| Priority | ID | Task | Branch | Notes |
+|----------|-----|------|--------|-------|
+| 🔴 | REFACT-008 | **Mobile Responsiveness** | `refactor/REFACT-008-mobile-responsive` | All dashboard pages + both portals. Launch blocker. |
+| 🔴 | CHORE-006 | **Multi-Tenancy Verification** | `chore/CHORE-006-multitenancy-verification` | Subdomain routing + RLS isolation audit across all tables |
+| 🟠 | FEAT-006 | Pagination: Members \& Payments | `feat/FEAT-006-pagination` | Use same 25-row pattern as attendance page |
+| 🟠 | FEAT-009 | Member Portal Rebuild | `feat/FEAT-009-member-portal-rebuild` | Mobile-first, self-service renewal, TanStack hooks, co-located CSS |
+| 🟠 | FEAT-010 | Trainer Portal Rebuild | `feat/FEAT-010-trainer-portal-rebuild` | Mobile-first, attendance view for assigned members, TanStack hooks |
+| 🟠 | FEAT-007 | Trainer Actions (Owner Dashboard) | `feat/FEAT-007-trainer-actions` | Add/Assign/Edit trainer modals — buttons already wired |
+| 🟡 | CHORE-004 | Branch-Level Attendance | `feat/CHORE-004-branch-attendance` | Schema change: `branch` col on attendance table; multi-branch gyms |
+| 🔵 | CHORE-001 | Atomic Member Creation | — | Supabase RPC/PostgreSQL transaction (replaces 2-step insert) |
+| 🔵 | CHORE-002b | `pending → overdue` auto-transition | — | pg_cron daily job; client-side dedup workaround in place |
+| 🔵 | CHORE-003 | Per-gym timezone | — | `gym_settings.timezone` + dynamic offset in date helpers |
+| 🔵 | FEAT-008 | Loading Skeletons | `feat/FEAT-008-loading-skeletons` | CSS shimmer pattern — cosmetic, deferred |
+| ⬛ | FEAT-011 | QR Check-In | — | Post-launch |
+| ⬛ | FEAT-012 | WhatsApp Notifications | — | Post-launch |
+| ⬛ | FEAT-013 | Reports Dashboard | — | Post-launch |
 
 ---
 
@@ -228,9 +254,25 @@ if (error) throw error; // always check before accessing data
 ---
 
 ## 🚩 Pending Production Items
-- Loading skeletons: replace text loaders with CSS skeleton pattern
-- **FEAT-006**: Pagination on Members and Payments tables (use same 25-row pattern as attendance)
+
+### 🔴 Launch Blockers
+- **REFACT-008**: Mobile responsiveness — all dashboard pages + both portals (`62vw` max-width breaks on mobile)
+- **CHORE-006**: Multi-tenancy verification — subdomain routing + RLS isolation audit for second gym
+- **FEAT-006**: Pagination on Members and Payments (25-row pattern, same as attendance)
+- **FEAT-009**: Member portal rebuild — mobile-first, TanStack hooks, self-service renewal
+- **FEAT-010**: Trainer portal rebuild — mobile-first, TanStack hooks, assigned-member attendance view
 - **FEAT-007**: Trainer action modals (Add Trainer, Assign Member, Edit Trainer)
+
+### 🟡 Important (Pre-Scale)
+- **CHORE-004**: Branch-level attendance tracking (schema change: `branch` col on attendance table)
+
+### 🔵 Technical Debt (Non-Blocking)
+- `CHORE-001`: Atomic member creation (Supabase RPC)
 - `CHORE-002b`: pg_cron daily `pending → overdue` auto-transition
 - `CHORE-003`: Per-gym timezone support
-- `CHORE-004`: Branch-level attendance tracking (schema change needed)
+- `FEAT-008`: Loading skeletons (cosmetic, deferred)
+
+### ⬛ Post-Launch
+- `FEAT-011`: QR Check-In
+- `FEAT-012`: WhatsApp Notifications
+- `FEAT-013`: Reports Dashboard
