@@ -64,7 +64,7 @@ export function Nav({ role }: NavProps) {
         {settings?.gym_display_name ?? "Gym"}<span>.</span>
       </div>
 
-      <div className="nav-links">
+      <div className="nav-links" aria-label="Navigation">
         {links.map((link) => (
           <Link
             key={link.href}
