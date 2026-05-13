@@ -308,3 +308,22 @@
   color: var(--text-muted);
   font-size: 14px;
 }
+
+/* ── Responsive ── */
+/* .trainers-layout collapses to 1-col at ≤960px (above).
+   .page padding is owned by globals.css — do not redefine here. */
+@media (max-width: 640px) {
+  .trainer-card         { padding: 16px; }
+  .trainer-card-stats   { gap: 12px; flex-wrap: wrap; }
+
+  .assignment-panel     { padding: 20px 16px; }
+  .ap-header            { gap: 12px; }
+
+  /* Full-width touch targets for action buttons */
+  .ap-btn               { padding: 13px; font-size: 14px; }
+}
+@media (max-width: 480px) {
+  .trainer-card-name    { font-size: 1.05rem; }
+  .ap-name              { font-size: 1.1rem; }
+  .panel-empty          { padding: 40px 16px; }
+}
