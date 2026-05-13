@@ -138,8 +138,113 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--bg);
+  padding: 32px;
+}
+
+.error-card {
+  background: var(--bg2);
+  border: 1px solid rgba(248,113,113,0.18);
+  border-radius: var(--radius);
+  padding: 48px 40px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.error-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent-red-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--accent-red);
+  flex-shrink: 0;
+}
+
+.error-title {
   font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.error-message {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 300;
+  line-height: 1.7;
+  max-width: 340px;
+}
+
+.error-detail {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--accent-red);
+  background: var(--accent-red-dim);
+  border: 1px solid rgba(248,113,113,0.14);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  width: 100%;
+  text-align: left;
+  word-break: break-all;
+  opacity: 0.85;
+}
+
+.error-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn-retry {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--accent-red-dim);
+  color: var(--accent-red);
+  border: 1px solid rgba(248,113,113,0.22);
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  letter-spacing: 0.01em;
+}
+.btn-retry:hover {
+  background: rgba(248,113,113,0.2);
+  border-color: rgba(248,113,113,0.35);
+}
+
+.btn-ghost-sm {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+.btn-ghost-sm:hover {
+  border-color: var(--border-hi);
+  color: var(--text-secondary);
 }
 
 /* Global Row Item */
