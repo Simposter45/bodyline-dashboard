@@ -2,27 +2,24 @@
 
 ## 🎯 Current Objective
 
-**Next Objective: REFACT-008 CSS Polish (follow-up to mobile responsiveness)**
+**Next Objective: REFACT-008 — Remaining 2 CSS bugs (table card-stack + stat card font scaling)**
 
-REFACT-008 (mobile responsiveness) is **complete on branch** `refactor/REFACT-008-mobile-responsive` (7 commits, PR pending). During testing, two CSS issues were found that need fixing **before the PR is merged**:
+REFACT-008 is on branch `refactor/REFACT-008-mobile-responsive`. Drawers and payments card layout are now fixed. Two bugs remain before the PR can be raised:
 
-### 🐛 Issue 1 — Drawers: Should be full-page views on mobile
-- **Current:** MemberDrawer and PaymentDrawer use a bottom-sheet pattern (`max-height: 90vh`) on mobile
-- **Required:** On `≤640px`, both drawers should be **full-page overlays** (`height: 100vh`, `max-height: 100vh`, no rounded top corners)
-- **Files:** `app/dashboard/members/MemberDrawer.css`, `app/dashboard/payments/payments.css`
-- **Change:** In both `@media (max-width: 640px)` drawer blocks: `max-height: 100vh` → `height: 100dvh`, remove `border-radius` on top, keep the slide-up animation
+### 🐛 Bug 1 OPEN — Tables: card-stack row layout
+- **Current:** Progressive column hiding via `nth-child` — remaining columns still cramp/overflow on phone
+- **Required:** Replace with industry-standard **card-stack row layout** at `≤640px`
+- **Approach:**
+  - `globals.css`: Add `.responsive-table` helper block (`@media ≤640px`: hide `<thead>`, `tbody tr → display:block`, `td → display:flex; justify-content:space-between`, `td::before { content: attr(data-label) }` for label column)
+  - `members.css`, `payments.css`, `attendance.css`: Remove old `nth-child` column-hiding; add `.responsive-table` opt-in class rules
+  - `members/page.tsx`, `payments/page.tsx`, `attendance/page.tsx`: Add `className="responsive-table"` to `.table-wrap` div + `data-label="Column Name"` attr on every `<td>`
 
-### 🐛 Issue 2 — Tables: Columns still overflow / get cut on mobile
-- **Current:** We hide columns progressively via `nth-child` but on phones the remaining columns still cramp and truncate
-- **Required:** Replace the column-hiding approach with a **card-stack row layout** on mobile — the industry-standard solution for responsive data tables
-- **Approach per page:**
-  - At `≤640px`: hide `<thead>`, switch `<tbody> <tr>` to `display: block`, switch each `<td>` to `display: flex; justify-content: space-between` with a `data-label` pseudo-element for the column name
-  - Each row becomes a stacked card; each cell shows `Label ........ Value`
-  - **Files:** `members.css`, `payments.css`, `attendance.css` (table pages only — trainers has no table)
-  - **globals.css:** Add the base `.responsive-table` helper classes
-  - **TSX:** Add `data-label="Column Name"` attributes to each `<td>` in the table pages
+### 🐛 Bug 2 OPEN — Stat card font scaling (dashboard)
+- **Current:** `dashboard.css` `.stat-value` uses a fixed `rem` size — big numbers overflow on mobile
+- **Required:** Apply same `clamp(1rem, 4.5vw, 1.8rem)` fluid font pattern used in `payments.css` `.summary-value`
+- **File:** `app/dashboard/dashboard.css` — find `.stat-value` and replace `font-size` with `clamp()`
 
-**Immediate next action:** Fix both issues on the existing `refactor/REFACT-008-mobile-responsive` branch, then raise the PR.
+**Immediate next action:** Fix Bug 2 (single-file, 1-line change) first, then tackle Bug 1 (table card-stack across 6 files).
 
 ---
 
@@ -42,9 +39,15 @@ REFACT-008 (mobile responsiveness) is **complete on branch** `refactor/REFACT-00
 
 ### Active branch: `refactor/REFACT-008-mobile-responsive`
 
-**Status:** 7 steps complete (commits `5c4cb7c` → `ec775a1`). Two CSS issues found during testing — **fix these before raising the PR:**
-1. **Drawers** → full-page on mobile (not `90vh` bottom sheets) — `MemberDrawer.css`, `payments.css`
-2. **Tables** → card-stack row layout (not column-hiding) — `members.css`, `payments.css`, `attendance.css`, `globals.css`, plus `data-label` attrs on `<td>` elements in the TSX pages
+**Status:** All 7 original steps + drawer bug fixes complete. Two bugs remain:
+1. **Tables** → card-stack row layout — `globals.css`, `members.css`, `payments.css`, `attendance.css` + `data-label` attrs in 3 TSX files
+2. **Stat card font scaling** → `dashboard.css` `.stat-value` — `clamp()` font-size
+
+### What was fixed this session (since last handoff)
+- `MemberDrawer.css`: `max-height: 90vh` bottom sheet → `height: 100dvh` full-page overlay; top border-radius removed; info grid stays 2-col on mobile (no unnecessary 1-col collapse)
+- `PaymentDrawer.css`: Added missing `@media (≤640px)` block targeting `.payment-drawer` (the correct class) — `height: 100dvh`, no rounded corners, slide-up animation
+- `payments.css`: Removed ~150 lines of dead `.drawer*` / `.drawer-overlay` code left over from pre-REFACT-005 monolith (not used by any component — `PaymentDrawer.tsx` uses `.payment-drawer-*` from `PaymentDrawer.css`)
+- `payments.css`: Summary cards 2×2 grid — added `min-width: 0` (CSS grid `min-width: auto` overflow bug fix); `.summary-value` changed to `clamp(1rem, 4.5vw, 1.8rem)` fluid font (no ellipsis, no clipping at any viewport width); tighter padding at `≤640px`
 
 ### Recently merged to main
 - `chore/CHORE-005-error-boundaries` — route-level error handling (PR #12)
@@ -70,7 +73,12 @@ REFACT-008 (mobile responsiveness) is **complete on branch** `refactor/REFACT-00
 
 ## 🛠️ In Progress (Branch: `refactor/REFACT-008-mobile-responsive`)
 
-13. **Mobile Responsiveness** — REFACT-008: All 8 steps complete, 2 CSS issues to fix before PR
+13. **Mobile Responsiveness** — REFACT-008
+    - ✅ 7 original steps complete (globals, dashboard, members, payments, attendance, trainers, Nav)
+    - ✅ Drawer bug fixed: `MemberDrawer.css` + `PaymentDrawer.css` — `height: 100dvh` full-page on `≤640px`
+    - ✅ Payments card bug fixed: `payments.css` — 2×2 grid with `min-width:0`, `clamp()` fluid font, dead code removed
+    - ❌ **OPEN: Table card-stack layout** — 6 files (`globals.css`, 3 × `.css`, 3 × `.tsx`)
+    - ❌ **OPEN: Dashboard stat card `clamp()` font** — `dashboard.css` `.stat-value`
 
 ---
 

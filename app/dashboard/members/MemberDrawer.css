@@ -158,10 +158,12 @@
   color: var(--text-primary);
 }
 
-/* ── Mobile: bottom sheet ──
+/* ── Mobile: full-page overlay ──
    On ≤640px the drawer transforms from a right-side panel into
-   a bottom sheet that slides up from the bottom of the viewport.
-   Zero TSX changes — pure CSS animation/position swap. */
+   a full-height overlay that slides up from the bottom.
+   height: 100dvh ensures it covers the entire screen (including
+   the iOS Safari address-bar area) with no content cut-off.
+   Zero TSX changes — pure CSS position/dimension swap. */
 @media (max-width: 640px) {
   .drawer {
     top: auto;
@@ -170,11 +172,12 @@
     right: 0;
     width: 100%;
     max-width: 100%;
-    height: auto;
-    max-height: 90vh;
+    height: 100dvh;
+    max-height: 100dvh;
     border-left: none;
     border-top: 1px solid var(--border-hi);
-    border-radius: var(--radius) var(--radius) 0 0;
+    border-radius: 0;
+    padding: 20px 16px 32px;
     animation: drawerSlideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
   }
   @keyframes drawerSlideUp {
@@ -182,9 +185,5 @@
     to   { transform: translateY(0);    opacity: 1; }
   }
 
-  /* Info grid: 2-col → 1-col so fields don't cramp */
-  .drawer-info-grid { grid-template-columns: 1fr; gap: 12px; }
-
-  /* Tighter padding inside the sheet */
-  .drawer { padding: 20px 16px 32px; }
+  /* Info grid stays 2-col — full-screen has ample width on any phone */
 }

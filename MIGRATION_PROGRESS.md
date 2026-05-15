@@ -173,16 +173,17 @@
 
 ### 🔴 Launch Blockers
 - [x] **CHORE-005 — Error boundaries**: `ErrorFallback` component + 5 route `error.tsx` files (**merged to main, PR #12**)
-- [ ] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **7 commits complete, PR pending CSS fixes**)
+- [ ] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **CSS fixes in progress, PR pending table fix**)
     - ✅ Step 1: `globals.css` — shared breakpoints (`.page`, `.nav` 2-row scroll, `.toolbar`, `.table-wrap` edge-to-edge, touch targets)
     - ✅ Step 2: `dashboard.css` — stats grid 2-col collapse, greeting font scale, live-badge hidden on mobile
-    - ✅ Step 3: `members.css` column hiding + `MemberDrawer.css` bottom-sheet slide-up
-    - ✅ Step 4: `payments.css` — summary card radius fix, bar chart shrink, column hiding, PaymentDrawer bottom-sheet
+    - ✅ Step 3: `members.css` + `MemberDrawer.css` — column hiding added (superseded by card-stack TODO below)
+    - ✅ Step 4: `payments.css` — summary card 2×2 grid (min-width:0 grid fix), `clamp(1rem,4.5vw,1.8rem)` fluid font on `.summary-value`, dead `.drawer*` monolith code removed (~150 lines), bar chart shrink, column hiding
     - ✅ Step 5: `attendance.css` — date range inputs stack, column hiding, pagination stack
     - ✅ Step 6: `trainers.css` — card/panel padding, font scale, touch targets
     - ✅ Step 7: `Nav.tsx` — `aria-label` on scrollable mobile nav row
-    - ❌ **BUG: Drawers** — should be full-page on mobile (`height: 100dvh`), not `max-height: 90vh` bottom sheets. Fix in `MemberDrawer.css` + `payments.css`
-    - ❌ **BUG: Tables** — column-hiding isn't enough; columns still cramp on phone. Replace with **card-stack row layout** (`data-label` CSS pattern) in `members.css`, `payments.css`, `attendance.css` + TSX `<td data-label>` attrs
+    - ✅ **BUG FIX: Drawers** — `MemberDrawer.css` + `PaymentDrawer.css` now use `height: 100dvh` full-page overlay on `≤640px`; rounded top corners removed; `ios Safari` address-bar safe via `dvh`
+    - ❌ **BUG OPEN: Tables** — column-hiding isn't enough; columns still cramp/overflow on phone. Replace with **card-stack row layout** (`data-label` CSS pattern) across `members.css`, `payments.css`, `attendance.css` + add `data-label` attrs to every `<td>` in the 3 TSX pages; add `.responsive-table` base helper to `globals.css`
+    - ❌ **BUG OPEN: Stat card font scaling** — `dashboard.css` `.stat-value` still uses a fixed `rem` size; apply same `clamp()` pattern as `payments.css` `.summary-value`
 - [ ] **CHORE-006 — Multi-Tenancy Verification** (branch `chore/CHORE-006-multitenancy-verification`)
     - Seed a second test gym in `gyms` + `gym_settings`
     - Verify subdomain middleware resolves `[gym-slug].localhost` correctly
