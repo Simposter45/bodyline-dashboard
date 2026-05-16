@@ -173,17 +173,20 @@
 
 ### 🔴 Launch Blockers
 - [x] **CHORE-005 — Error boundaries**: `ErrorFallback` component + 5 route `error.tsx` files (**merged to main, PR #12**)
-- [ ] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **CSS fixes in progress, PR pending table fix**)
+- [ ] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **dashboard complete, Phase A+B pending**)
     - ✅ Step 1: `globals.css` — shared breakpoints (`.page`, `.nav` 2-row scroll, `.toolbar`, `.table-wrap` edge-to-edge, touch targets)
     - ✅ Step 2: `dashboard.css` — stats grid 2-col collapse, greeting font scale, live-badge hidden on mobile
-    - ✅ Step 3: `members.css` + `MemberDrawer.css` — column hiding added (superseded by card-stack TODO below)
-    - ✅ Step 4: `payments.css` — summary card 2×2 grid (min-width:0 grid fix), `clamp(1rem,4.5vw,1.8rem)` fluid font on `.summary-value`, dead `.drawer*` monolith code removed (~150 lines), bar chart shrink, column hiding
+    - ✅ Step 3: `members.css` + `MemberDrawer.css` — column hiding added; `MemberDrawer.css` → `height: 100dvh` full-page overlay
+    - ✅ Step 4: `payments.css` — summary card 2×2 grid (min-width:0), `clamp()` fluid font, dead `.drawer*` code removed, `PaymentDrawer.css` → `height: 100dvh`
     - ✅ Step 5: `attendance.css` — date range inputs stack, column hiding, pagination stack
     - ✅ Step 6: `trainers.css` — card/panel padding, font scale, touch targets
     - ✅ Step 7: `Nav.tsx` — `aria-label` on scrollable mobile nav row
-    - ✅ **BUG FIX: Drawers** — `MemberDrawer.css` + `PaymentDrawer.css` now use `height: 100dvh` full-page overlay on `≤640px`; rounded top corners removed; `ios Safari` address-bar safe via `dvh`
-    - ❌ **BUG OPEN: Tables** — column-hiding isn't enough; columns still cramp/overflow on phone. Replace with **card-stack row layout** (`data-label` CSS pattern) across `members.css`, `payments.css`, `attendance.css` + add `data-label` attrs to every `<td>` in the 3 TSX pages; add `.responsive-table` base helper to `globals.css`
-    - ❌ **BUG OPEN: Stat card font scaling** — `dashboard.css` `.stat-value` still uses a fixed `rem` size; apply same `clamp()` pattern as `payments.css` `.summary-value`
+    - ✅ **Dashboard mobile redesign** (`commit 8582ea1`):
+        - `StatCard.tsx` — `.summary-value` font: `clamp(1rem, 4.5vw, 1.8rem)` (Bug 2 fixed ✅)
+        - `dashboard.css` — Members section: unified single panel, 1-col list rows (label+sub left / value right via CSS grid). Revenue section: unified single panel, hero (Total Collected full-width) + 2-col subordinates (Pending/Overdue) with internal dividers. Desktop `border: 10px transparent / margin: -10px` trick reset on mobile. `.view-all-link` CSS class added.
+        - `page.tsx` — inline `<a>` styles + `onMouseEnter/Leave` JS handlers → `className="view-all-link"` (cleanup)
+    - ❌ **Phase A OPEN: Bottom tab bar** — `Nav.tsx` + `globals.css`: fixed bottom nav with 5 Lucide-icon tabs for `≤640px`; top nav links row hidden; `usePathname()` active detection; page bottom padding for iOS safe area
+    - ❌ **Phase B OPEN: Table card-stack** — `data-label` pattern across `globals.css` + `members.css/tsx` + `payments.css/tsx` + `attendance.css/tsx`
 - [ ] **CHORE-006 — Multi-Tenancy Verification** (branch `chore/CHORE-006-multitenancy-verification`)
     - Seed a second test gym in `gyms` + `gym_settings`
     - Verify subdomain middleware resolves `[gym-slug].localhost` correctly

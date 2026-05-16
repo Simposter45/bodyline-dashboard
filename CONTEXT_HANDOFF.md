@@ -2,24 +2,31 @@
 
 ## 🎯 Current Objective
 
-**Next Objective: REFACT-008 — Remaining 2 CSS bugs (table card-stack + stat card font scaling)**
+**Next Objective: REFACT-008 — Mobile UX Master Plan (Phase A: Bottom Tab Bar + Phase B: Table Card-Stack)**
 
-REFACT-008 is on branch `refactor/REFACT-008-mobile-responsive`. Drawers and payments card layout are now fixed. Two bugs remain before the PR can be raised:
+REFACT-008 is on branch `refactor/REFACT-008-mobile-responsive`. Dashboard page mobile redesign is **complete**. Two workstreams remain before the PR can be raised:
 
-### 🐛 Bug 1 OPEN — Tables: card-stack row layout
+### 🆕 Phase A OPEN — Bottom Tab Bar navigation
+- **Required:** On `≤640px`, replace the horizontal nav-links row with a **fixed bottom tab bar**
+- **Approach:**
+  - `components/ui/Nav.tsx`: Add `<nav className="mobile-tab-bar">` after the existing top bar. 5 tabs with Lucide icons + active detection via `usePathname()`. Tabs: Dashboard (`LayoutDashboard`), Members (`Users`), Payments (`CreditCard`), Attendance (`CalendarCheck`), Trainers (`Dumbbell`).
+  - `app/globals.css`: At `≤640px` — hide `.nav-links`, show `.mobile-tab-bar` (fixed bottom, 60px height, `var(--bg2)` bg, `border-top`). Add `padding-bottom: calc(60px + env(safe-area-inset-bottom))` to `.page`.
+  - Top bar on mobile becomes: Logo (left) + sign-out icon only (right).
+- **Pending user decisions (confirm at session start):**
+  1. Sign-out: icon button (`LogOut`) or keep text?
+  2. Tab labels: always show, or icon-only + label on active tab only?
+  3. Role scope: owner-only for now?
+
+### 🐛 Phase B OPEN — Tables: card-stack row layout
 - **Current:** Progressive column hiding via `nth-child` — remaining columns still cramp/overflow on phone
 - **Required:** Replace with industry-standard **card-stack row layout** at `≤640px`
 - **Approach:**
-  - `globals.css`: Add `.responsive-table` helper block (`@media ≤640px`: hide `<thead>`, `tbody tr → display:block`, `td → display:flex; justify-content:space-between`, `td::before { content: attr(data-label) }` for label column)
-  - `members.css`, `payments.css`, `attendance.css`: Remove old `nth-child` column-hiding; add `.responsive-table` opt-in class rules
-  - `members/page.tsx`, `payments/page.tsx`, `attendance/page.tsx`: Add `className="responsive-table"` to `.table-wrap` div + `data-label="Column Name"` attr on every `<td>`
+  - `globals.css`: Add `.responsive-table` helper block (`@media ≤640px`: hide `<thead>`, `tbody tr → display:block`, `td → display:flex; justify-content:space-between`, `td::before { content: attr(data-label) }`)
+  - `members.css`, `payments.css`, `attendance.css`: Remove old `nth-child` column-hiding; add `.responsive-table` opt-in
+  - `members/page.tsx`, `payments/page.tsx`, `attendance/page.tsx`: `className="responsive-table"` on table + `data-label="Column Name"` on every `<td>`
 
-### 🐛 Bug 2 OPEN — Stat card font scaling (dashboard)
-- **Current:** `dashboard.css` `.stat-value` uses a fixed `rem` size — big numbers overflow on mobile
-- **Required:** Apply same `clamp(1rem, 4.5vw, 1.8rem)` fluid font pattern used in `payments.css` `.summary-value`
-- **File:** `app/dashboard/dashboard.css` — find `.stat-value` and replace `font-size` with `clamp()`
+**Immediate next action:** Phase A (bottom tab bar) first — single component, high visual impact — then Phase B (table card-stack across 6 files).
 
-**Immediate next action:** Fix Bug 2 (single-file, 1-line change) first, then tackle Bug 1 (table card-stack across 6 files).
 
 ---
 
@@ -39,15 +46,13 @@ REFACT-008 is on branch `refactor/REFACT-008-mobile-responsive`. Drawers and pay
 
 ### Active branch: `refactor/REFACT-008-mobile-responsive`
 
-**Status:** All 7 original steps + drawer bug fixes complete. Two bugs remain:
-1. **Tables** → card-stack row layout — `globals.css`, `members.css`, `payments.css`, `attendance.css` + `data-label` attrs in 3 TSX files
-2. **Stat card font scaling** → `dashboard.css` `.stat-value` — `clamp()` font-size
+**Status:** All 7 original steps + drawer bug fixes + **dashboard mobile redesign** complete. Two open items:
+1. **Phase A: Bottom tab bar** → `Nav.tsx` + `globals.css` — see Current Objective above
+2. **Phase B: Tables** → card-stack row layout — `globals.css`, `members.css`, `payments.css`, `attendance.css` + `data-label` attrs in 3 TSX files
 
-### What was fixed this session (since last handoff)
-- `MemberDrawer.css`: `max-height: 90vh` bottom sheet → `height: 100dvh` full-page overlay; top border-radius removed; info grid stays 2-col on mobile (no unnecessary 1-col collapse)
-- `PaymentDrawer.css`: Added missing `@media (≤640px)` block targeting `.payment-drawer` (the correct class) — `height: 100dvh`, no rounded corners, slide-up animation
-- `payments.css`: Removed ~150 lines of dead `.drawer*` / `.drawer-overlay` code left over from pre-REFACT-005 monolith (not used by any component — `PaymentDrawer.tsx` uses `.payment-drawer-*` from `PaymentDrawer.css`)
-- `payments.css`: Summary cards 2×2 grid — added `min-width: 0` (CSS grid `min-width: auto` overflow bug fix); `.summary-value` changed to `clamp(1rem, 4.5vw, 1.8rem)` fluid font (no ellipsis, no clipping at any viewport width); tighter padding at `≤640px`
+### Session commits (this session)
+- `ca27b13` — drawers (100dvh) + payments card (2×2 grid, clamp font, dead code removed)
+- `8582ea1` — dashboard mobile redesign (unified panels, StatCard clamp, view-all link cleanup)
 
 ### Recently merged to main
 - `chore/CHORE-005-error-boundaries` — route-level error handling (PR #12)
