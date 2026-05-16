@@ -41,7 +41,7 @@ export function StatCard({ label, value, sub, accent, large }: StatCardProps) {
         }
         .summary-value {
           font-family: var(--font-display);
-          font-size: 1.8rem;
+          font-size: clamp(1rem, 4.5vw, 1.8rem);
           font-weight: 700;
           letter-spacing: -0.03em;
           line-height: 1;

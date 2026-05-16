@@ -125,25 +125,7 @@ export default function DashboardPage() {
                     </div>
                   ))}
                   {stats.today.attendance.length > 5 && (
-                    <a
-                      href="/dashboard/attendance"
-                      style={{
-                        display: "block",
-                        textAlign: "center",
-                        padding: "13px 24px",
-                        fontSize: 13,
-                        color: "var(--text-secondary)",
-                        borderTop: "1px solid var(--border)",
-                        textDecoration: "none",
-                        transition: "color 0.15s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "var(--accent-green)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = "var(--text-secondary)")
-                      }
-                    >
+                    <a href="/dashboard/attendance" className="view-all-link">
                       View all {stats.today.todayCheckins} check-ins →
                     </a>
                   )}
