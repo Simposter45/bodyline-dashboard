@@ -2,16 +2,21 @@
 
 ## 🎯 Current Objective
 
-**REFACT-008 is COMPLETE — branch `refactor/REFACT-008-mobile-responsive` is PR-ready.**
+**REFACT-008 is still active — branch `refactor/REFACT-008-mobile-responsive`.**
 
-**Next Objective: CHORE-006 — Multi-Tenancy Verification** (new branch `chore/CHORE-006-multitenancy-verification`)
-- Seed a second test gym in `gyms` + `gym_settings` tables
-- Verify subdomain middleware correctly resolves `[gym-slug].localhost`
-- RLS isolation audit: zero data leakage across all 7 tables between the two gyms
-- Confirm `usePublicGymStats` + `usePlans` are correctly per-gym scoped
+**Current focus: Mobile UX polish — page by page**
+Members page ✅ complete (commit `8014dd5`). Next: Payments page, then Attendance, then Trainers.
 
-**Pending user decision before starting CHORE-006:**
-- Do you want to raise the REFACT-008 PR first, or start CHORE-006 directly on the new branch?
+**Roadmap agreed with owner:**
+1. ✅ Members page mobile UX (this session)
+2. 🔜 Payments page mobile UX (next)
+3. 🔜 Attendance page mobile UX
+4. 🔜 Trainers page — full mobile makeover (separate effort)
+5. 🔜 Owner Profile / Support area (big feature, after all pages done)
+
+**Pending before merging REFACT-008:**
+- Complete Payments + Attendance + Trainers mobile UX
+- Then raise PR and merge, then start CHORE-006
 
 ---
 
@@ -29,15 +34,18 @@
 
 ## 🛣️ Current Branch State
 
-### Active branch: `refactor/REFACT-008-mobile-responsive` — **PR ready**
+### Active branch: `refactor/REFACT-008-mobile-responsive` — **in progress (Members done)**
 
-**Status:** REFACT-008 fully complete. All original steps + dashboard redesign + Phase A + Phase B + bug fixes done.
+**Status:** REFACT-008 Phase A + B complete. Now doing page-by-page mobile UX polish.
 
-### Session commits (this session)
-- `(pending commit)` — Phase A: bottom tab bar (`Nav.tsx`, `globals.css`)
-- `(pending commit)` — Phase B: table card-stack (`globals.css`, 3×`.css`, 3×`.tsx`)
-- `(pending commit)` — CSS bleed bug fix (`attendance.css` att-table scoping)
-- `(pending commit)` — Card elevation polish (`globals.css` responsive-table)
+### Session commits (latest session — Members mobile UX)
+- `8014dd5` — Members mobile UX: FAB, filter sheet, card view-details btn, layout fix
+
+### Previous session commits (still on same branch)
+- Phase A: bottom tab bar (`Nav.tsx`, `globals.css`)
+- Phase B: table card-stack (`globals.css`, 3×`.css`, 3×`.tsx`)
+- CSS bleed bug fix (`attendance.css` att-table scoping)
+- Card elevation polish (`globals.css` responsive-table)
 
 ### Recently merged to main
 - `chore/CHORE-005-error-boundaries` — route-level error handling (PR #12)
@@ -61,9 +69,9 @@
 11. **Trainers Page** — REFACT-007: `useTrainers` hook, co-located CSS, 861 → ~210 lines
 12. **Error Boundaries** — CHORE-005: `ErrorFallback` + 5 route `error.tsx` files
 
-## ✅ In Progress → NOW COMPLETE (Branch: `refactor/REFACT-008-mobile-responsive`)
+## ✅ In Progress (Branch: `refactor/REFACT-008-mobile-responsive`)
 
-13. **Mobile Responsiveness — REFACT-008** — **ALL COMPLETE, PR ready**
+13. **Mobile Responsiveness — REFACT-008** — **Phase A + B done; UX polish in progress**
     - ✅ 7 original steps (globals, dashboard, members, payments, attendance, trainers, Nav)
     - ✅ Drawer bug fixed: `MemberDrawer.css` + `PaymentDrawer.css` — `height: 100dvh`
     - ✅ Payments card bug fixed: `payments.css` — 2×2 grid, `clamp()` font
@@ -78,6 +86,12 @@
         - `attendance.css`: `td[data-label="Date"]:first-child` compound selector handles conditional Date column correctly in both Today and historical modes
     - ✅ **CSS bleed bug fix**: attendance overrides scoped to `.att-table`; `display:revert` → `display:block`
     - ✅ **Card elevation**: each `tbody tr` is `var(--bg3)` + border + `border-radius` + `8px` gap
+    - ✅ **Members page mobile UX** (`commit 8014dd5`):
+        - **FAB**: `.fab` shared class in `globals.css`; green fixed `+` button above tab bar; `members-add-btn` hides header button on mobile
+        - **Filter sheet**: pill chip + slide-up bottom sheet; data-driven `filterSections[]` config — add new filter params by appending one object; shared CSS in `globals.css` (`.filter-chip`, `.filter-sheet*`, `.filter-sheet-reset`); Apply + Reset buttons
+        - **State refactor**: `filter`+`branch` → single `activeFilters: FilterValues` record; `pendingFilters` for sheet pending state; `filtered` useMemo reads `activeFilters.*`
+        - **Card View Details button**: `card-action-cell` + `card-action-btn` in `members.css`; hidden on desktop (≥641px); ghost button at bottom of each mobile card; `<tr>` onClick gated to `window.innerWidth > 640` so only button triggers drawer on mobile
+        - **Layout fix**: `.page { margin: 0 }` at `≤900px` — prevents `margin: 0 auto` from squeezing content on mobile
 
 ---
 

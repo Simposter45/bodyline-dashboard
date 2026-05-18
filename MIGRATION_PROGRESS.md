@@ -173,7 +173,7 @@
 
 ### 🔴 Launch Blockers
 - [x] **CHORE-005 — Error boundaries**: `ErrorFallback` component + 5 route `error.tsx` files (**merged to main, PR #12**)
-- [x] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **COMPLETE — PR ready**)
+- [-] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **IN PROGRESS — Members done, Payments/Attendance/Trainers pending**)
     - ✅ Step 1: `globals.css` — shared breakpoints (`.page`, `.nav` 2-row scroll, `.toolbar`, `.table-wrap` edge-to-edge, touch targets)
     - ✅ Step 2: `dashboard.css` — stats grid 2-col collapse, greeting font scale, live-badge hidden on mobile
     - ✅ Step 3: `members.css` + `MemberDrawer.css` — column hiding added; `MemberDrawer.css` → `height: 100dvh` full-page overlay
@@ -195,6 +195,15 @@
         - `attendance.css`: att-table-scoped overrides for conditional Date column (historical mode) using `td[data-label="Date"]:first-child` compound selector (specificity 0,3,2 beats globals 0,2,2)
     - ✅ **BUG — CSS bleed fix**: `attendance.css` overrides were targeting `table.responsive-table` globally, causing Members/Payments card headers to render right-aligned. Fixed by scoping all att-table overrides to `.att-table` class and replacing `display:revert` with `display:block`.
     - ✅ **Polish — Card elevation**: `globals.css` responsive-table `tbody tr` → `background:var(--bg3)`, `border`, `border-radius:var(--radius-sm)`, `margin:0 8px 8px` gap between cards. `table-wrap table { padding-top:8px }` for first-card breathing room.
+    - ✅ **Members page mobile UX** (`commit 8014dd5`):
+        - **Layout fix**: `.page { margin: 0 }` at `≤900px` breakpoint — prevents `margin: 0 auto` squeezing on mobile
+        - **FAB**: shared `.fab` class added to `globals.css`; green 56×56px fixed `+` button positioned above tab bar; `members-add-btn` class hides header btn at `≤640px`
+        - **Filter sheet**: pill `.filter-chip` replaces haphazard filter tabs on mobile; slide-up `.filter-sheet` bottom sheet; data-driven `filterSections[]` config in `page.tsx` — append one object to add a new filter param (zero JSX changes); shared CSS (`.filter-chip`, `.filter-sheet*`, `.filter-sheet-reset`) in `globals.css`; Apply + Reset buttons in footer
+        - **State refactor**: `filter` + `branch` states collapsed into single `activeFilters: FilterValues` record; `pendingFilters` for uncommitted sheet state; `filtered` useMemo reads `activeFilters.*`
+        - **Card View Details button**: `card-action-cell` + `card-action-btn` in `members.css`; hidden on desktop (≥641px); ghost full-width button at bottom of each mobile card; `<tr>` onClick gated to `window.innerWidth > 640` — mobile drawer only opens via the button
+    - 🔜 **Payments page mobile UX** — next
+    - 🔜 **Attendance page mobile UX** — pending
+    - 🔜 **Trainers page mobile makeover** — separate effort (full redesign)
 - [ ] **CHORE-006 — Multi-Tenancy Verification** (branch `chore/CHORE-006-multitenancy-verification`)
     - Seed a second test gym in `gyms` + `gym_settings`
     - Verify subdomain middleware resolves `[gym-slug].localhost` correctly
