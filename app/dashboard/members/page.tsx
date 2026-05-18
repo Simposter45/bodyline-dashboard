@@ -176,7 +176,7 @@ export default function MembersPage() {
                 {search && ` matching "${search}"`}
               </div>
             ) : (
-              <table>
+              <table className="responsive-table">
                 <thead>
                   <tr>
                     <th>Member</th>
@@ -197,7 +197,7 @@ export default function MembersPage() {
 
                     return (
                       <tr key={m.id} onClick={() => setSelected(m)}>
-                        {/* Member */}
+                        {/* Member — no data-label: first-child renders full-width as card header */}
                         <td>
                           <div className="row-cell">
                             <Avatar
@@ -213,7 +213,7 @@ export default function MembersPage() {
                         </td>
 
                         {/* Status */}
-                        <td>
+                        <td data-label="Status">
                           <span
                             className="status-pill"
                             style={{
@@ -228,7 +228,7 @@ export default function MembersPage() {
                         </td>
 
                         {/* Branch */}
-                        <td>
+                        <td data-label="Branch">
                           <span
                             style={{
                               fontSize: 13,
@@ -240,7 +240,7 @@ export default function MembersPage() {
                         </td>
 
                         {/* Plan */}
-                        <td>
+                        <td data-label="Plan">
                           {plan ? (
                             <span className="tag">{plan.name}</span>
                           ) : (
@@ -256,7 +256,7 @@ export default function MembersPage() {
                         </td>
 
                         {/* Expires */}
-                        <td>
+                        <td data-label="Expires">
                           {ms ? (
                             <span
                               className={`expiry-text ${
@@ -287,7 +287,7 @@ export default function MembersPage() {
                         </td>
 
                         {/* Amount */}
-                        <td>
+                        <td data-label="Amount paid">
                           <span className="amount-text">
                             {ms ? formatINR(ms.amount_paid ?? 0) : "—"}
                           </span>

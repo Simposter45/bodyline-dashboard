@@ -2,31 +2,16 @@
 
 ## 🎯 Current Objective
 
-**Next Objective: REFACT-008 — Mobile UX Master Plan (Phase A: Bottom Tab Bar + Phase B: Table Card-Stack)**
+**REFACT-008 is COMPLETE — branch `refactor/REFACT-008-mobile-responsive` is PR-ready.**
 
-REFACT-008 is on branch `refactor/REFACT-008-mobile-responsive`. Dashboard page mobile redesign is **complete**. Two workstreams remain before the PR can be raised:
+**Next Objective: CHORE-006 — Multi-Tenancy Verification** (new branch `chore/CHORE-006-multitenancy-verification`)
+- Seed a second test gym in `gyms` + `gym_settings` tables
+- Verify subdomain middleware correctly resolves `[gym-slug].localhost`
+- RLS isolation audit: zero data leakage across all 7 tables between the two gyms
+- Confirm `usePublicGymStats` + `usePlans` are correctly per-gym scoped
 
-### 🆕 Phase A OPEN — Bottom Tab Bar navigation
-- **Required:** On `≤640px`, replace the horizontal nav-links row with a **fixed bottom tab bar**
-- **Approach:**
-  - `components/ui/Nav.tsx`: Add `<nav className="mobile-tab-bar">` after the existing top bar. 5 tabs with Lucide icons + active detection via `usePathname()`. Tabs: Dashboard (`LayoutDashboard`), Members (`Users`), Payments (`CreditCard`), Attendance (`CalendarCheck`), Trainers (`Dumbbell`).
-  - `app/globals.css`: At `≤640px` — hide `.nav-links`, show `.mobile-tab-bar` (fixed bottom, 60px height, `var(--bg2)` bg, `border-top`). Add `padding-bottom: calc(60px + env(safe-area-inset-bottom))` to `.page`.
-  - Top bar on mobile becomes: Logo (left) + sign-out icon only (right).
-- **Pending user decisions (confirm at session start):**
-  1. Sign-out: icon button (`LogOut`) or keep text?
-  2. Tab labels: always show, or icon-only + label on active tab only?
-  3. Role scope: owner-only for now?
-
-### 🐛 Phase B OPEN — Tables: card-stack row layout
-- **Current:** Progressive column hiding via `nth-child` — remaining columns still cramp/overflow on phone
-- **Required:** Replace with industry-standard **card-stack row layout** at `≤640px`
-- **Approach:**
-  - `globals.css`: Add `.responsive-table` helper block (`@media ≤640px`: hide `<thead>`, `tbody tr → display:block`, `td → display:flex; justify-content:space-between`, `td::before { content: attr(data-label) }`)
-  - `members.css`, `payments.css`, `attendance.css`: Remove old `nth-child` column-hiding; add `.responsive-table` opt-in
-  - `members/page.tsx`, `payments/page.tsx`, `attendance/page.tsx`: `className="responsive-table"` on table + `data-label="Column Name"` on every `<td>`
-
-**Immediate next action:** Phase A (bottom tab bar) first — single component, high visual impact — then Phase B (table card-stack across 6 files).
-
+**Pending user decision before starting CHORE-006:**
+- Do you want to raise the REFACT-008 PR first, or start CHORE-006 directly on the new branch?
 
 ---
 
@@ -44,15 +29,15 @@ REFACT-008 is on branch `refactor/REFACT-008-mobile-responsive`. Dashboard page 
 
 ## 🛣️ Current Branch State
 
-### Active branch: `refactor/REFACT-008-mobile-responsive`
+### Active branch: `refactor/REFACT-008-mobile-responsive` — **PR ready**
 
-**Status:** All 7 original steps + drawer bug fixes + **dashboard mobile redesign** complete. Two open items:
-1. **Phase A: Bottom tab bar** → `Nav.tsx` + `globals.css` — see Current Objective above
-2. **Phase B: Tables** → card-stack row layout — `globals.css`, `members.css`, `payments.css`, `attendance.css` + `data-label` attrs in 3 TSX files
+**Status:** REFACT-008 fully complete. All original steps + dashboard redesign + Phase A + Phase B + bug fixes done.
 
 ### Session commits (this session)
-- `ca27b13` — drawers (100dvh) + payments card (2×2 grid, clamp font, dead code removed)
-- `8582ea1` — dashboard mobile redesign (unified panels, StatCard clamp, view-all link cleanup)
+- `(pending commit)` — Phase A: bottom tab bar (`Nav.tsx`, `globals.css`)
+- `(pending commit)` — Phase B: table card-stack (`globals.css`, 3×`.css`, 3×`.tsx`)
+- `(pending commit)` — CSS bleed bug fix (`attendance.css` att-table scoping)
+- `(pending commit)` — Card elevation polish (`globals.css` responsive-table)
 
 ### Recently merged to main
 - `chore/CHORE-005-error-boundaries` — route-level error handling (PR #12)
@@ -76,14 +61,23 @@ REFACT-008 is on branch `refactor/REFACT-008-mobile-responsive`. Dashboard page 
 11. **Trainers Page** — REFACT-007: `useTrainers` hook, co-located CSS, 861 → ~210 lines
 12. **Error Boundaries** — CHORE-005: `ErrorFallback` + 5 route `error.tsx` files
 
-## 🛠️ In Progress (Branch: `refactor/REFACT-008-mobile-responsive`)
+## ✅ In Progress → NOW COMPLETE (Branch: `refactor/REFACT-008-mobile-responsive`)
 
-13. **Mobile Responsiveness** — REFACT-008
-    - ✅ 7 original steps complete (globals, dashboard, members, payments, attendance, trainers, Nav)
-    - ✅ Drawer bug fixed: `MemberDrawer.css` + `PaymentDrawer.css` — `height: 100dvh` full-page on `≤640px`
-    - ✅ Payments card bug fixed: `payments.css` — 2×2 grid with `min-width:0`, `clamp()` fluid font, dead code removed
-    - ❌ **OPEN: Table card-stack layout** — 6 files (`globals.css`, 3 × `.css`, 3 × `.tsx`)
-    - ❌ **OPEN: Dashboard stat card `clamp()` font** — `dashboard.css` `.stat-value`
+13. **Mobile Responsiveness — REFACT-008** — **ALL COMPLETE, PR ready**
+    - ✅ 7 original steps (globals, dashboard, members, payments, attendance, trainers, Nav)
+    - ✅ Drawer bug fixed: `MemberDrawer.css` + `PaymentDrawer.css` — `height: 100dvh`
+    - ✅ Payments card bug fixed: `payments.css` — 2×2 grid, `clamp()` font
+    - ✅ Dashboard mobile redesign: unified panels, StatCard `clamp()`, `.view-all-link`
+    - ✅ **Phase A — Bottom tab bar**: `Nav.tsx` + `globals.css`
+        - 5-icon fixed bottom bar (owner only, `≤640px`); active tab shows icon + label
+        - Top bar: logo + `LogOut` icon only; `.sign-out-text` hidden, `.sign-out-icon-btn` shown
+        - iOS safe-area padding on `.page`
+    - ✅ **Phase B — Table card-stack**: `globals.css` + 3×`.css` + 3×`.tsx`
+        - `.responsive-table` opt-in class; `data-label` on every `<td>`
+        - `attendance/page.tsx` uses `att-table` extra class for scoped overrides
+        - `attendance.css`: `td[data-label="Date"]:first-child` compound selector handles conditional Date column correctly in both Today and historical modes
+    - ✅ **CSS bleed bug fix**: attendance overrides scoped to `.att-table`; `display:revert` → `display:block`
+    - ✅ **Card elevation**: each `tbody tr` is `var(--bg3)` + border + `border-radius` + `8px` gap
 
 ---
 

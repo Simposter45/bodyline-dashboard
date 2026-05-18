@@ -173,20 +173,28 @@
 
 ### 🔴 Launch Blockers
 - [x] **CHORE-005 — Error boundaries**: `ErrorFallback` component + 5 route `error.tsx` files (**merged to main, PR #12**)
-- [ ] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **dashboard complete, Phase A+B pending**)
+- [x] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **COMPLETE — PR ready**)
     - ✅ Step 1: `globals.css` — shared breakpoints (`.page`, `.nav` 2-row scroll, `.toolbar`, `.table-wrap` edge-to-edge, touch targets)
     - ✅ Step 2: `dashboard.css` — stats grid 2-col collapse, greeting font scale, live-badge hidden on mobile
     - ✅ Step 3: `members.css` + `MemberDrawer.css` — column hiding added; `MemberDrawer.css` → `height: 100dvh` full-page overlay
     - ✅ Step 4: `payments.css` — summary card 2×2 grid (min-width:0), `clamp()` fluid font, dead `.drawer*` code removed, `PaymentDrawer.css` → `height: 100dvh`
-    - ✅ Step 5: `attendance.css` — date range inputs stack, column hiding, pagination stack
+    - ✅ Step 5: `attendance.css` — date range inputs stack, pagination stack
     - ✅ Step 6: `trainers.css` — card/panel padding, font scale, touch targets
     - ✅ Step 7: `Nav.tsx` — `aria-label` on scrollable mobile nav row
-    - ✅ **Dashboard mobile redesign** (`commit 8582ea1`):
-        - `StatCard.tsx` — `.summary-value` font: `clamp(1rem, 4.5vw, 1.8rem)` (Bug 2 fixed ✅)
-        - `dashboard.css` — Members section: unified single panel, 1-col list rows (label+sub left / value right via CSS grid). Revenue section: unified single panel, hero (Total Collected full-width) + 2-col subordinates (Pending/Overdue) with internal dividers. Desktop `border: 10px transparent / margin: -10px` trick reset on mobile. `.view-all-link` CSS class added.
-        - `page.tsx` — inline `<a>` styles + `onMouseEnter/Leave` JS handlers → `className="view-all-link"` (cleanup)
-    - ❌ **Phase A OPEN: Bottom tab bar** — `Nav.tsx` + `globals.css`: fixed bottom nav with 5 Lucide-icon tabs for `≤640px`; top nav links row hidden; `usePathname()` active detection; page bottom padding for iOS safe area
-    - ❌ **Phase B OPEN: Table card-stack** — `data-label` pattern across `globals.css` + `members.css/tsx` + `payments.css/tsx` + `attendance.css/tsx`
+    - ✅ **Dashboard mobile redesign** (`commit 8582ea1`): StatCard `clamp()` font, unified Members + Revenue panels, `.view-all-link` class
+    - ✅ **Phase A — Bottom tab bar** (`Nav.tsx` + `globals.css`):
+        - 5-tab fixed bottom bar for owner role at `≤640px`; Lucide icons: `LayoutDashboard`, `Users`, `CreditCard`, `CalendarCheck`, `Dumbbell`
+        - Active tab: icon + label. Inactive tabs: icon only. Active detection via `usePathname()` exact match.
+        - Top bar collapses to logo + `LogOut` icon sign-out only (`.sign-out-text` hidden, `.sign-out-icon-btn` shown)
+        - `.page { padding-bottom: calc(60px + env(safe-area-inset-bottom) + 20px) }` for iOS safe area
+    - ✅ **Phase B — Table card-stack** (`globals.css` + 3×`.css` + 3×`.tsx`):
+        - `globals.css`: `.responsive-table` opt-in block — hides `<thead>`, `tbody tr → display:block`, `td → flex label→value`, `td::before { content: attr(data-label) }`
+        - `members.css` / `payments.css` / `attendance.css`: removed old `nth-child` column-hiding breakpoints
+        - `members/page.tsx` + `payments/page.tsx` + `attendance/page.tsx`: `className="responsive-table"` on `<table>` + `data-label` on every `<td>`
+        - `attendance/page.tsx`: `className="responsive-table att-table"` for scoped overrides
+        - `attendance.css`: att-table-scoped overrides for conditional Date column (historical mode) using `td[data-label="Date"]:first-child` compound selector (specificity 0,3,2 beats globals 0,2,2)
+    - ✅ **BUG — CSS bleed fix**: `attendance.css` overrides were targeting `table.responsive-table` globally, causing Members/Payments card headers to render right-aligned. Fixed by scoping all att-table overrides to `.att-table` class and replacing `display:revert` with `display:block`.
+    - ✅ **Polish — Card elevation**: `globals.css` responsive-table `tbody tr` → `background:var(--bg3)`, `border`, `border-radius:var(--radius-sm)`, `margin:0 8px 8px` gap between cards. `table-wrap table { padding-top:8px }` for first-card breathing room.
 - [ ] **CHORE-006 — Multi-Tenancy Verification** (branch `chore/CHORE-006-multitenancy-verification`)
     - Seed a second test gym in `gyms` + `gym_settings`
     - Verify subdomain middleware resolves `[gym-slug].localhost` correctly

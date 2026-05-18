@@ -369,7 +369,7 @@ export default function AttendancePage() {
               <div className="empty-state">No check-ins match your current filters.</div>
             ) : (
               <>
-                <table>
+                <table className="responsive-table att-table">
                   <thead>
                     <tr>
                       {!isToday && <th>Date</th>}
@@ -390,10 +390,10 @@ export default function AttendancePage() {
                         <tr key={a.id} onClick={() => setSelectedMemberId(a.member_id)}>
 
                           {!isToday && (
-                            <td><span className="log-time">{formatShortDate(a.check_in)}</span></td>
+                            <td data-label="Date"><span className="log-time">{formatShortDate(a.check_in)}</span></td>
                           )}
 
-                          <td>
+                          <td data-label="Member">
                             <div className="log-member-cell">
                               <Avatar name={a.member.full_name} src={a.member.profile_photo_url ?? undefined} size={34} />
                               <div className="log-member-info">
@@ -403,9 +403,9 @@ export default function AttendancePage() {
                             </div>
                           </td>
 
-                          <td><span className="log-time">{formatTime(a.check_in)}</span></td>
+                          <td data-label="Checked In"><span className="log-time">{formatTime(a.check_in)}</span></td>
 
-                          <td onClick={(e) => e.stopPropagation()}>
+                          <td data-label="Checked Out" onClick={(e) => e.stopPropagation()}>
                             {a.check_out ? (
                               <span className="log-time-muted">{formatTime(a.check_out)}</span>
                             ) : isOpenToday ? (
@@ -421,15 +421,15 @@ export default function AttendancePage() {
                             )}
                           </td>
 
-                          <td>
+                          <td data-label="Duration">
                             <span className={isOpenToday ? "log-time-live" : "log-time-muted"}>
                               {formatDuration(a.check_in, a.check_out)}
                             </span>
                           </td>
 
-                          <td><StatusPill label={pill.label} type={pill.type} /></td>
+                          <td data-label="Payment"><StatusPill label={pill.label} type={pill.type} /></td>
 
-                          <td>
+                          <td data-label="Status">
                             <StatusPill
                               label={a.check_out ? "Left" : "In gym"}
                               type={a.check_out ? "neutral" : "success"}

@@ -14,17 +14,6 @@
 .expiry-warning { color: var(--accent-amber); }
 .expiry-overdue { color: var(--accent-red); }
 
-/* ── Responsive (table column breakpoints) ── */
-/* .page and .nav padding are owned by globals.css — do not redefine here. */
-@media (max-width: 900px) {
-  thead th:nth-child(4),
-  td:nth-child(4) { display: none; } /* Expiry col hidden on tablet */
-}
-@media (max-width: 640px) {
-  thead th:nth-child(3),
-  td:nth-child(3) { display: none; } /* Branch col hidden on phone */
-}
-@media (max-width: 480px) {
-  thead th:nth-child(5),
-  td:nth-child(5) { display: none; } /* Status col hidden on small phone — Name + Plan always stay */
-}
+/* ── Responsive ── */
+/* Table column hiding replaced by .responsive-table card-stack in globals.css.
+   Add className="responsive-table" to <table> + data-label attrs on every <td>. */

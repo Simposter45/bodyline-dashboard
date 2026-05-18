@@ -236,20 +236,54 @@
   .date-range-sep    { display: none; }
 }
 @media (max-width: 640px) {
-  /* Log table: hide Check-Out and Duration — Name + Check-In time always stay */
-  thead th:nth-child(3), td:nth-child(3) { display: none; } /* Check-Out */
-  thead th:nth-child(4), td:nth-child(4) { display: none; } /* Duration */
+  /* Table column hiding replaced by .responsive-table card-stack in globals.css. */
 
   /* Pagination: stack info text above controls */
   .pagination { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 @media (max-width: 480px) {
-  /* Hide Payment Status col — Name + Check-In time remain as minimum viable view */
-  thead th:nth-child(5), td:nth-child(5) { display: none; }
-
-  .checkin-btn { padding: 6px 10px; font-size: 12px; }
+  .checkin-btn  { padding: 6px 10px; font-size: 12px; }
   .checkout-btn { padding: 5px 10px; font-size: 11px; }
 }
+
+/* ── Attendance card-stack overrides ─────────────────────────────────────────
+   Today mode:      Member <td> is :first-child → globals card-header applies ✓
+   Historical mode: Date <td> is :first-child, Member is :nth-child(2)
+   Strategy: use [data-label] attribute selectors so rules fire only on the
+   correct cell in each mode — no blanket :first-child override needed.
+   All selectors scoped to .att-table to prevent bleeding into other tables.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Member cell — card header in BOTH modes (left-aligned, full-width, no label).
+     In Today mode:      Member is :first-child → globals handles it + this reinforces.
+     In historical mode: Member is :nth-child(2) → this rule is the only one acting. */
+  table.att-table td[data-label="Member"] {
+    justify-content: flex-start;
+    text-align: left;
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.att-table td[data-label="Member"]::before { display: none; }
+
+  /* Date cell in historical mode — it IS :first-child then.
+     The globals td:first-child rule would card-header it; we un-do that here.
+     The [data-label="Date"]:first-child compound selector has higher specificity
+     (0,3,2) than the globals table.responsive-table td:first-child (0,2,2),
+     so it always wins when the Date td is present. */
+  table.att-table td[data-label="Date"]:first-child {
+    justify-content: space-between;
+    text-align: right;
+    padding-bottom: 6px;
+    margin-bottom: 0;
+    border-bottom: none;
+  }
+  /* Restore ::before label for Date (globals hides first-child::before) */
+  table.att-table td[data-label="Date"]:first-child::before { display: block; }
+}
+
+
+
 
 /* ── Range selector ── */
 

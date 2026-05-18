@@ -286,7 +286,7 @@ export default function PaymentsPage() {
             {filtered.length === 0 ? (
               <div className="empty-state">No payment records found.</div>
             ) : (
-              <table>
+              <table className="responsive-table">
                 <thead>
                   <tr>
                     <th>Member</th>
@@ -307,7 +307,7 @@ export default function PaymentsPage() {
 
                     return (
                       <tr key={r.id} onClick={() => setSelected(r)}>
-                        {/* Member */}
+                        {/* Member — no data-label: first-child renders full-width as card header */}
                         <td>
                           <div className="member-cell">
                             <Avatar
@@ -323,7 +323,7 @@ export default function PaymentsPage() {
                         </td>
 
                         {/* Status */}
-                        <td>
+                        <td data-label="Status">
                           <span
                             className="status-pill"
                             style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}
@@ -334,24 +334,24 @@ export default function PaymentsPage() {
                         </td>
 
                         {/* Plan */}
-                        <td>
+                        <td data-label="Plan">
                           <span className="plan-tag">{r.plan?.name ?? "—"}</span>
                         </td>
 
                         {/* Method */}
-                        <td>
+                        <td data-label="Method">
                           <span className="method-tag">
                             {METHOD_LABEL[r.payment_method ?? ""] ?? r.payment_method ?? "—"}
                           </span>
                         </td>
 
                         {/* Date */}
-                        <td style={{ color: "var(--text-secondary)", fontSize: 13 }}>
+                        <td data-label="Date" style={{ color: "var(--text-secondary)", fontSize: 13 }}>
                           {formatDate(r.created_at)}
                         </td>
 
                         {/* Amount */}
-                        <td>
+                        <td data-label="Amount">
                           <div className="amount-cell">
                             <span className="amount-paid">{formatINR(r.amount_paid ?? 0)}</span>
                             {due > 0 && (
