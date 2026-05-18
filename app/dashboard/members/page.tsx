@@ -2,6 +2,7 @@
 
 import "./members.css";
 import { useState, useMemo } from "react";
+import { Plus, SlidersHorizontal, Check, ChevronRight } from "lucide-react";
 import type { Member } from "@/types";
 import { formatINR, formatDate } from "@/lib/utils/format";
 import { daysUntil } from "@/lib/utils/date";
@@ -30,11 +31,17 @@ type BranchFilter = "all" | string; // dynamic from gym_settings.branches
 export default function MembersPage() {
   const { data: members = [], isLoading: loading, error: fetchError } = useMembers();
   const { data: gymSettings } = useGymSettings();
-  const [filter, setFilter] = useState<MemberFilterStatus>("all");
+  // Active filters — single record; add new keys to FilterValues + filterSections to extend
+  type FilterValues = { status: MemberFilterStatus; branch: BranchFilter };
+  const DEFAULT_FILTERS: FilterValues = { status: "all", branch: "all" };
+  const [activeFilters, setActiveFilters] = useState<FilterValues>(DEFAULT_FILTERS);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<MemberWithMembership | null>(null);
-  const [branch, setBranch] = useState<BranchFilter>("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // Filter sheet state (mobile)
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [pendingFilters, setPendingFilters] = useState<FilterValues>(DEFAULT_FILTERS);
 
   const counts = useMemo(() => {
     const c: Record<MemberFilterStatus, number> = {
@@ -53,10 +60,10 @@ export default function MembersPage() {
 
   const filtered = useMemo(() => {
     return members.filter((m) => {
-      const matchesFilter = filter === "all" || getMemberStatus(m) === filter;
+      const matchesFilter = activeFilters.status === "all" || getMemberStatus(m) === activeFilters.status;
       const matchesBranch =
-        branch === "all" ||
-        (m as Member & { branch: string }).branch === branch;
+        activeFilters.branch === "all" ||
+        (m as Member & { branch: string }).branch === activeFilters.branch;
       const q = search.toLowerCase();
       const matchesSearch =
         !q ||
@@ -65,9 +72,50 @@ export default function MembersPage() {
         (m.email ?? "").toLowerCase().includes(q);
       return matchesFilter && matchesSearch && matchesBranch;
     });
-  }, [members, filter, search, branch]);
+  }, [members, activeFilters, search]);
 
 
+
+  // Filter sections config — add a new object here to add a new filter parameter.
+  // The sheet UI renders entirely from this array; no JSX changes needed.
+  const filterSections = useMemo(
+    () => [
+      {
+        key: "status" as keyof FilterValues,
+        label: "Status",
+        options: MEMBER_FILTERS.map((f) => ({
+          value: f.key,
+          label: f.label,
+          count: counts[f.key] as number | undefined,
+        })),
+      },
+      {
+        key: "branch" as keyof FilterValues,
+        label: "Branch",
+        options: (["all", ...(gymSettings?.branches ?? [])] as string[]).map((b) => ({
+          value: b,
+          label: b === "all" ? "All branches" : b,
+          count: undefined as number | undefined,
+        })),
+      },
+      // → Future: { key: "plan", label: "Plan", options: [...] }
+    ],
+    [counts, gymSettings?.branches]
+  );
+
+  const hasActiveFilters = Object.values(activeFilters).some((v) => v !== "all");
+  const activeFilterCount = Object.values(activeFilters).filter((v) => v !== "all").length;
+  const chipLabel = (() => {
+    const parts: string[] = [];
+    if (activeFilters.status !== "all")
+      parts.push(MEMBER_FILTERS.find((f) => f.key === activeFilters.status)?.label ?? activeFilters.status);
+    if (activeFilters.branch !== "all") parts.push(activeFilters.branch);
+    return parts.length > 0 ? parts.join(" · ") : "All members";
+  })();
+
+  const openFilterSheet = () => { setPendingFilters(activeFilters); setIsFilterSheetOpen(true); };
+  const applyFilters   = () => { setActiveFilters(pendingFilters); setIsFilterSheetOpen(false); };
+  const resetFilters   = () => setPendingFilters(DEFAULT_FILTERS);
 
   return (
     <>
@@ -83,7 +131,8 @@ export default function MembersPage() {
       {fetchError && <div className="error-screen">Failed to load: {fetchError.message}</div>}
 
       {!loading && !fetchError && (
-        <div className="page">
+        <>
+          <div className="page">
           {/* Header */}
           <div className="page-header">
             <div>
@@ -93,17 +142,12 @@ export default function MembersPage() {
                 overdue
               </p>
             </div>
-            <button className="btn-solid" onClick={() => setIsAddModalOpen(true)}>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
+            {/* Desktop only — hidden on mobile (FAB takes over) */}
+            <button
+              className="btn-solid members-add-btn"
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              <Plus size={14} />
               Add member
             </button>
           </div>
@@ -131,32 +175,49 @@ export default function MembersPage() {
               />
             </div>
 
-            <div className="filter-tabs">
-              {MEMBER_FILTERS.map((f) => (
-                <button
-                  key={f.key}
-                  className={`filter-tab ${filter === f.key ? "active" : ""}`}
-                  onClick={() => setFilter(f.key)}
-                >
-                  {f.label}
-                  <span className="filter-count">{counts[f.key]}</span>
-                </button>
-              ))}
-            </div>
+            {/* Mobile: pill chip that opens bottom sheet */}
+            <button
+              id="members-filter-chip"
+              className={`filter-chip${hasActiveFilters ? " has-filters" : ""}`}
+              onClick={openFilterSheet}
+              aria-label="Open filter options"
+            >
+              <SlidersHorizontal size={14} />
+              {chipLabel}
+              {hasActiveFilters && (
+                <span className="filter-chip-badge">{activeFilterCount}</span>
+              )}
+            </button>
 
-            {/* Branch filter */}
-            <div className="filter-tabs" style={{ marginLeft: "auto" }}>
-              {(
-                ["all", ...(gymSettings?.branches || [])] as BranchFilter[]
-              ).map((b) => (
-                <button
-                  key={b}
-                  className={`filter-tab ${branch === b ? "active" : ""}`}
-                  onClick={() => setBranch(b)}
-                >
-                  {b === "all" ? "All branches" : b}
-                </button>
-              ))}
+            {/* Desktop: inline tab rows (hidden on mobile via members.css) */}
+            <div className="members-filter-tabs-group">
+              <div className="filter-tabs">
+                {MEMBER_FILTERS.map((f) => (
+                  <button
+                    key={f.key}
+                    className={`filter-tab ${activeFilters.status === f.key ? "active" : ""}`}
+                    onClick={() => setActiveFilters((prev) => ({ ...prev, status: f.key }))}
+                  >
+                    {f.label}
+                    <span className="filter-count">{counts[f.key]}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Branch filter */}
+              <div className="filter-tabs" style={{ marginLeft: "auto" }}>
+                {(
+                  ["all", ...(gymSettings?.branches || [])] as BranchFilter[]
+                ).map((b) => (
+                  <button
+                    key={b}
+                    className={`filter-tab ${activeFilters.branch === b ? "active" : ""}`}
+                    onClick={() => setActiveFilters((prev) => ({ ...prev, branch: b }))}
+                  >
+                    {b === "all" ? "All branches" : b}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -185,6 +246,8 @@ export default function MembersPage() {
                     <th>Plan</th>
                     <th>Expires</th>
                     <th>Amount paid</th>
+                    {/* card-action-th: hidden on desktop; keeps column count consistent */}
+                    <th className="card-action-th" aria-hidden="true" />
                   </tr>
                 </thead>
                 <tbody>
@@ -196,7 +259,10 @@ export default function MembersPage() {
                     const days = ms ? daysUntil(ms.end_date) : null;
 
                     return (
-                      <tr key={m.id} onClick={() => setSelected(m)}>
+                      <tr
+                        key={m.id}
+                        onClick={() => { if (window.innerWidth > 640) setSelected(m); }}
+                      >
                         {/* Member — no data-label: first-child renders full-width as card header */}
                         <td>
                           <div className="row-cell">
@@ -292,6 +358,18 @@ export default function MembersPage() {
                             {ms ? formatINR(ms.amount_paid ?? 0) : "—"}
                           </span>
                         </td>
+
+                        {/* View details — mobile card only; hidden on desktop */}
+                        <td className="card-action-cell" aria-hidden="true">
+                          <button
+                            className="card-action-btn"
+                            onClick={() => setSelected(m)}
+                            tabIndex={-1}
+                          >
+                            View details
+                            <ChevronRight size={14} />
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
@@ -299,7 +377,66 @@ export default function MembersPage() {
               </table>
             )}
           </div>
-        </div>
+          </div>
+
+          {/* FAB — mobile only; sits above the bottom tab bar */}
+          <button
+            id="members-fab"
+            className="fab"
+            onClick={() => setIsAddModalOpen(true)}
+            aria-label="Add member"
+          >
+            <Plus size={24} />
+          </button>
+
+          {/* Mobile filter sheet — data-driven: add to filterSections to extend */}
+          {isFilterSheetOpen && (
+            <>
+              <div className="filter-sheet-overlay" onClick={() => setIsFilterSheetOpen(false)} />
+              <div className="filter-sheet" role="dialog" aria-label="Filter members">
+                <div className="filter-sheet-handle" />
+                <div className="filter-sheet-title">Filter Members</div>
+
+                {filterSections.map((section, sIdx) => (
+                  <div key={section.key}>
+                    {sIdx > 0 && <div className="filter-sheet-divider" />}
+                    <div className="filter-sheet-section-label">{section.label}</div>
+                    {section.options.map((opt) => {
+                      const isSelected = pendingFilters[section.key] === opt.value;
+                      return (
+                        <div
+                          key={opt.value}
+                          id={`filter-${section.key}-${opt.value}`}
+                          className={`filter-sheet-row${isSelected ? " selected" : ""}`}
+                          onClick={() =>
+                            setPendingFilters((prev) => ({ ...prev, [section.key]: opt.value }))
+                          }
+                          role="radio"
+                          aria-checked={isSelected}
+                        >
+                          <span className="filter-sheet-row-label">{opt.label}</span>
+                          {opt.count !== undefined && (
+                            <span className="filter-sheet-row-count">{opt.count}</span>
+                          )}
+                          {isSelected && <Check size={16} className="filter-sheet-check" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+
+                <div className="filter-sheet-footer">
+                  <button className="filter-sheet-reset" onClick={resetFilters}>
+                    Reset
+                  </button>
+                  <button className="filter-sheet-apply" onClick={applyFilters}>
+                    Apply Filters
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </>
       )}
 
       {/* Member detail drawer */}
