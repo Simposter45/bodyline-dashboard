@@ -309,6 +309,107 @@
   font-size: 14px;
 }
 
+/* ── Spec tag + duty badge row in panel header ── */
+.ap-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+/* ── Branch chip below panel header ── */
+.ap-branch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.ap-branch svg { color: var(--text-muted); flex-shrink: 0; }
+
+/* ── Tappable contact links (tel: / mailto:) ── */
+.ap-contact-link {
+  text-decoration: none;
+  color: var(--text-secondary);
+  transition: color 0.15s;
+}
+.ap-contact-link:hover { color: var(--accent-green); }
+
+/* ── "Since" muted label in the contact row ── */
+.ap-since-label {
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+/* ── Workload capacity progress bar ── */
+.trainer-capacity-bar {
+  height: 5px;
+  background: var(--bg3);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin-bottom: 4px;
+  border: 1px solid var(--border);
+}
+.trainer-capacity-fill {
+  height: 100%;
+  background: var(--accent-green);
+  border-radius: var(--radius-pill);
+  opacity: 0.65;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Two action buttons inside each trainer card ── */
+.trainer-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.trainer-card-btn {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  white-space: nowrap;
+}
+.trainer-card-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border-hi);
+  color: var(--text-secondary);
+}
+.trainer-card-btn-ghost:hover {
+  background: var(--bg3);
+  color: var(--text-primary);
+}
+.trainer-card-btn-outline {
+  background: rgba(74,222,128,0.08);
+  border: 1px solid rgba(74,222,128,0.25);
+  color: var(--accent-green);
+}
+.trainer-card-btn-outline:hover {
+  background: rgba(74,222,128,0.15);
+}
+.trainer-card-btn-badge {
+  background: rgba(74,222,128,0.2);
+  color: var(--accent-green);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 99px;
+  min-width: 18px;
+  text-align: center;
+}
+
 /* ── Responsive ── */
 /* .trainers-layout collapses to 1-col at ≤960px (above).
    .page padding is owned by globals.css — do not redefine here. */
@@ -321,6 +422,16 @@
 
   /* Full-width touch targets for action buttons */
   .ap-btn               { padding: 13px; font-size: 14px; }
+
+  /* Desktop filter tabs hidden on mobile — filter chip + sheet takes over */
+  .trainers-filter-tabs-group { display: none; }
+
+  /* Desktop add-trainer button hidden — FAB takes over */
+  .trainers-add-btn     { display: none; }
+
+  /* Assignment panel hidden — TrainerDrawer takes over */
+  .assignment-panel     { display: none; }
+  .panel-empty          { display: none; }
 }
 @media (max-width: 480px) {
   .trainer-card-name    { font-size: 1.05rem; }
