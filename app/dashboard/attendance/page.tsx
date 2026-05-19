@@ -5,7 +5,7 @@ import "../dashboard.css";
 import { useState, useMemo, useEffect } from "react";
 import {
   LogIn, LogOut, Search, UserRound, Download,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, SlidersHorizontal, Check, Bell,
 } from "lucide-react";
 import { Nav }        from "@/components/ui/Nav";
 import { Avatar }     from "@/components/ui/Avatar";
@@ -37,6 +37,9 @@ const RANGE_LABELS: Record<RangePreset, string> = {
   custom:    "Custom",
 };
 
+type AttFilterValues = { range: RangePreset; status: "all" | "paid" | "pending" | "overdue" };
+const DEFAULT_ATT_FILTERS: AttFilterValues = { range: "today", status: "all" };
+
 // ------------------------------------------------------------------
 // Page
 // ------------------------------------------------------------------
@@ -52,6 +55,8 @@ export default function AttendancePage() {
   const [customFrom,       setCustomFrom]       = useState("");
   const [customTo,         setCustomTo]         = useState("");
   const [page,             setPage]             = useState(1);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [pendingFilters,    setPendingFilters]    = useState<AttFilterValues>(DEFAULT_ATT_FILTERS);
 
   const isToday = rangePreset === "today";
 
@@ -131,6 +136,35 @@ export default function AttendancePage() {
     }
     return c;
   }, [searchFiltered, paymentStatusMap]);
+
+  // ── Filter sheet ──────────────────────────────────────────────────
+  const activeFilterCount = (rangePreset !== "today" ? 1 : 0) + (pmtFilter !== "all" ? 1 : 0);
+
+  const filterSections = useMemo(() => [
+    {
+      key: "range" as keyof AttFilterValues,
+      label: "Date Range",
+      options: (Object.keys(RANGE_LABELS) as RangePreset[]).map((p) => ({
+        value: p,
+        label: RANGE_LABELS[p],
+        count: undefined as number | undefined,
+      })),
+    },
+    {
+      key: "status" as keyof AttFilterValues,
+      label: "Payment Status",
+      options: [
+        { value: "all",     label: "All",     count: pmtCounts.all     as number | undefined },
+        { value: "paid",    label: "Paid",    count: pmtCounts.paid    as number | undefined },
+        { value: "pending", label: "Pending", count: pmtCounts.pending as number | undefined },
+        { value: "overdue", label: "Overdue", count: pmtCounts.overdue as number | undefined },
+      ],
+    },
+  ], [pmtCounts]);
+
+  const openFilterSheet = () => { setPendingFilters({ range: rangePreset, status: pmtFilter }); setIsFilterSheetOpen(true); };
+  const applyFilters    = () => { setRangePreset(pendingFilters.range); setPmtFilter(pendingFilters.status); setIsFilterSheetOpen(false); };
+  const resetFilters    = () => setPendingFilters(DEFAULT_ATT_FILTERS);
 
   const filteredLog = useMemo(() => {
     if (pmtFilter === "all") return searchFiltered;
@@ -329,26 +363,52 @@ export default function AttendancePage() {
                 autoComplete="off"
               />
             </div>
-            <div className="filter-tabs">
-              {(["all", "paid", "pending", "overdue"] as const).map((f) => (
-                <button
-                  key={f}
-                  className={`filter-tab ${pmtFilter === f ? "active" : ""}`}
-                  onClick={() => setPmtFilter(f)}
-                >
-                  {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
-                  <span className="filter-count">{pmtCounts[f]}</span>
-                </button>
-              ))}
-            </div>
-            {(logSearch.trim() || pmtFilter !== "all") && filteredLog.length !== attendance.length && (
-              <span className="log-count">{filteredLog.length} of {attendance.length} shown</span>
-            )}
-            {filteredLog.length > 0 && (
-              <button className="checkin-btn" style={{ marginLeft: "auto" }} onClick={handleExportCSV}>
-                <Download size={13} /> Export CSV
+
+            {/* Controls row — filter chip (mobile) + status tabs (desktop) + export */}
+            <div className="att-controls-row">
+
+              {/* Mobile: pill chip → opens combined Date Range + Payment Status sheet */}
+              <button
+                id="attendance-filter-chip"
+                className={`filter-chip${activeFilterCount > 0 ? " has-filters" : ""}`}
+                onClick={openFilterSheet}
+                aria-label="Open filter options"
+              >
+                <SlidersHorizontal size={14} />
+                {activeFilterCount > 0 ? "Filtered" : "Filter"}
+                {activeFilterCount > 0 && (
+                  <span className="filter-chip-badge">{activeFilterCount}</span>
+                )}
               </button>
-            )}
+
+              {/* Desktop: inline payment status filter tabs */}
+              <div className="att-filter-tabs-group">
+                <div className="filter-tabs">
+                  {(["all", "paid", "pending", "overdue"] as const).map((f) => (
+                    <button
+                      key={f}
+                      className={`filter-tab ${pmtFilter === f ? "active" : ""}`}
+                      onClick={() => setPmtFilter(f)}
+                    >
+                      {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+                      <span className="filter-count">{pmtCounts[f]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {(logSearch.trim() || pmtFilter !== "all") && filteredLog.length !== attendance.length && (
+                <span className="log-count">{filteredLog.length} of {attendance.length} shown</span>
+              )}
+
+              {filteredLog.length > 0 && (
+                <button className="checkin-btn att-export-btn" onClick={handleExportCSV} aria-label="Export CSV">
+                  <Download size={13} />
+                  <span className="att-export-label">Export CSV</span>
+                </button>
+              )}
+
+            </div>
           </div>
 
           {/* ── Table ── */}
@@ -379,7 +439,7 @@ export default function AttendancePage() {
                       <th>Duration</th>
                       <th>Payment</th>
                       <th>Status</th>
-                      <th style={{ width: 32 }} />
+                      <th className="att-card-action-th" aria-hidden="true" />
                     </tr>
                   </thead>
                   <tbody>
@@ -387,19 +447,36 @@ export default function AttendancePage() {
                       const pill        = pmtPillProps(a.member_id);
                       const isOpenToday = isToday && !a.check_out;
                       return (
-                        <tr key={a.id} onClick={() => setSelectedMemberId(a.member_id)}>
+                        <tr
+                          key={a.id}
+                          onClick={() => { if (window.innerWidth > 640) setSelectedMemberId(a.member_id); }}
+                        >
 
                           {!isToday && (
                             <td data-label="Date"><span className="log-time">{formatShortDate(a.check_in)}</span></td>
                           )}
 
                           <td data-label="Member">
-                            <div className="log-member-cell">
-                              <Avatar name={a.member.full_name} src={a.member.profile_photo_url ?? undefined} size={34} />
-                              <div className="log-member-info">
-                                <div className="log-member-name">{a.member.full_name}</div>
-                                <div className="log-member-phone">{a.member.phone}</div>
+                            <div className="log-card-header">
+                              <div className="log-member-cell">
+                                <Avatar name={a.member.full_name} src={a.member.profile_photo_url ?? undefined} size={34} />
+                                <div className="log-member-info">
+                                  <div className="log-member-name">{a.member.full_name}</div>
+                                  <div className="log-member-phone">{a.member.phone}</div>
+                                </div>
                               </div>
+                              {/* Bell — pending/overdue only; stub until FEAT-012 (WhatsApp backend) */}
+                              {(pill.type === "warning" || pill.type === "error") && (
+                                <button
+                                  className="att-card-bell"
+                                  onClick={(e) => { e.stopPropagation(); /* TODO: wire notification — FEAT-012 */ }}
+                                  tabIndex={-1}
+                                  aria-label="Send payment reminder"
+                                  title="Send payment reminder"
+                                >
+                                  <Bell size={15} />
+                                </button>
+                              )}
                             </div>
                           </td>
 
@@ -436,8 +513,14 @@ export default function AttendancePage() {
                             />
                           </td>
 
-                          <td style={{ width: 32, textAlign: "center" }}>
-                            <UserRound size={14} style={{ color: "var(--text-muted)" }} />
+                          {/* Card action cell — View Details button (mobile only) */}
+                          <td className="att-card-action-cell" aria-hidden="true" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              className="att-card-action-btn"
+                              onClick={() => setSelectedMemberId(a.member_id)}
+                            >
+                              <UserRound size={13} /> View details
+                            </button>
                           </td>
 
                         </tr>
@@ -477,6 +560,53 @@ export default function AttendancePage() {
           </div>
 
         </div>
+      )}
+
+      {/* ── Mobile filter sheet — Date Range + Payment Status ── */}
+      {isFilterSheetOpen && (
+        <>
+          <div className="filter-sheet-overlay" onClick={() => setIsFilterSheetOpen(false)} />
+          <div className="filter-sheet" role="dialog" aria-label="Filter attendance log">
+            <div className="filter-sheet-handle" />
+            <div className="filter-sheet-title">Filter Attendance</div>
+
+            {filterSections.map((section, sIdx) => (
+              <div key={section.key}>
+                {sIdx > 0 && <div className="filter-sheet-divider" />}
+                <div className="filter-sheet-section-label">{section.label}</div>
+                {section.options.map((opt) => {
+                  const isSelected = pendingFilters[section.key] === opt.value;
+                  return (
+                    <div
+                      key={opt.value}
+                      id={`att-filter-${section.key}-${opt.value}`}
+                      className={`filter-sheet-row${isSelected ? " selected" : ""}`}
+                      onClick={() =>
+                        setPendingFilters((prev) => ({
+                          ...prev,
+                          [section.key]: opt.value,
+                        }) as AttFilterValues)
+                      }
+                      role="radio"
+                      aria-checked={isSelected}
+                    >
+                      <span className="filter-sheet-row-label">{opt.label}</span>
+                      {opt.count !== undefined && (
+                        <span className="filter-sheet-row-count">{opt.count}</span>
+                      )}
+                      {isSelected && <Check size={16} className="filter-sheet-check" />}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+
+            <div className="filter-sheet-footer">
+              <button className="filter-sheet-reset" onClick={resetFilters}>Reset</button>
+              <button className="filter-sheet-apply" onClick={applyFilters}>Apply Filters</button>
+            </div>
+          </div>
+        </>
       )}
 
       {/* ── Member Drawer ── */}
