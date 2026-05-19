@@ -201,8 +201,15 @@
         - **Filter sheet**: pill `.filter-chip` replaces haphazard filter tabs on mobile; slide-up `.filter-sheet` bottom sheet; data-driven `filterSections[]` config in `page.tsx` — append one object to add a new filter param (zero JSX changes); shared CSS (`.filter-chip`, `.filter-sheet*`, `.filter-sheet-reset`) in `globals.css`; Apply + Reset buttons in footer
         - **State refactor**: `filter` + `branch` states collapsed into single `activeFilters: FilterValues` record; `pendingFilters` for uncommitted sheet state; `filtered` useMemo reads `activeFilters.*`
         - **Card View Details button**: `card-action-cell` + `card-action-btn` in `members.css`; hidden on desktop (≥641px); ghost full-width button at bottom of each mobile card; `<tr>` onClick gated to `window.innerWidth > 640` — mobile drawer only opens via the button
-    - 🔜 **Payments page mobile UX** — next
-    - 🔜 **Attendance page mobile UX** — pending
+    - ✅ **Payments page mobile UX** (`commit f9d15ce`):
+        - **Revenue Health panel**: collection rate % badge + horizontal progress bars (Collected/Pending/Overdue), green left-accent border + ambient glow, method chips
+        - **SortDropdown + Filter chip/sheet**: same shared pattern as Members; data-driven `filterSections[]`
+        - **CardActionBar**: `CardAction[]` array built per-record by `getCardActions(r)` (`variant: primary | ghost | icon`); pending→Record Payment+Bell; overdue→Renew icon+Record+Bell; paid→View Details only
+        - **Modals**: `RenewMembershipModal` + `RecordPaymentModal` wired directly from payment cards (no new hooks)
+        - **Bell position**: top-right of card header (inline with avatar); `member-card-header` flex wrapper; desktop hidden
+        - **Card overflow fix**: `.table-wrap { overflow-x: hidden }` at ≤640px
+        - ⚠️ **Send Reminder stub**: `Bell` onClick empty — pending FEAT-012 (WhatsApp/notification backend)
+    - 🔜 **Attendance page mobile UX** — next
     - 🔜 **Trainers page mobile makeover** — separate effort (full redesign)
 - [ ] **CHORE-006 — Multi-Tenancy Verification** (branch `chore/CHORE-006-multitenancy-verification`)
     - Seed a second test gym in `gyms` + `gym_settings`

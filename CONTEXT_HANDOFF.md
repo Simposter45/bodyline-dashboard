@@ -5,17 +5,17 @@
 **REFACT-008 is still active — branch `refactor/REFACT-008-mobile-responsive`.**
 
 **Current focus: Mobile UX polish — page by page**
-Members page ✅ complete (commit `8014dd5`). Next: Payments page, then Attendance, then Trainers.
+Members page ✅ complete (`commit 8014dd5`). Payments page ✅ complete (`commit f9d15ce`). Next: Attendance page, then Trainers.
 
 **Roadmap agreed with owner:**
-1. ✅ Members page mobile UX (this session)
-2. 🔜 Payments page mobile UX (next)
+1. ✅ Members page mobile UX (`commit 8014dd5`)
+2. ✅ Payments page mobile UX (`commit f9d15ce`)
 3. 🔜 Attendance page mobile UX
 4. 🔜 Trainers page — full mobile makeover (separate effort)
 5. 🔜 Owner Profile / Support area (big feature, after all pages done)
 
 **Pending before merging REFACT-008:**
-- Complete Payments + Attendance + Trainers mobile UX
+- Complete Attendance + Trainers mobile UX
 - Then raise PR and merge, then start CHORE-006
 
 ---
@@ -34,14 +34,15 @@ Members page ✅ complete (commit `8014dd5`). Next: Payments page, then Attendan
 
 ## 🛣️ Current Branch State
 
-### Active branch: `refactor/REFACT-008-mobile-responsive` — **in progress (Members done)**
+### Active branch: `refactor/REFACT-008-mobile-responsive` — **in progress (Members + Payments done)**
 
-**Status:** REFACT-008 Phase A + B complete. Now doing page-by-page mobile UX polish.
+**Status:** REFACT-008 Phase A + B complete. Payments UX done. Attendance + Trainers remaining.
 
-### Session commits (latest session — Members mobile UX)
-- `8014dd5` — Members mobile UX: FAB, filter sheet, card view-details btn, layout fix
+### Session commits (this session — Payments mobile UX)
+- `f9d15ce` — Payments mobile UX: Revenue Health panel, filter sheet, SortDropdown, CardActionBar, modal wiring
 
 ### Previous session commits (still on same branch)
+- `8014dd5` — Members mobile UX: FAB, filter sheet, card view-details btn, layout fix
 - Phase A: bottom tab bar (`Nav.tsx`, `globals.css`)
 - Phase B: table card-stack (`globals.css`, 3×`.css`, 3×`.tsx`)
 - CSS bleed bug fix (`attendance.css` att-table scoping)
@@ -92,8 +93,24 @@ Members page ✅ complete (commit `8014dd5`). Next: Payments page, then Attendan
         - **State refactor**: `filter`+`branch` → single `activeFilters: FilterValues` record; `pendingFilters` for sheet pending state; `filtered` useMemo reads `activeFilters.*`
         - **Card View Details button**: `card-action-cell` + `card-action-btn` in `members.css`; hidden on desktop (≥641px); ghost button at bottom of each mobile card; `<tr>` onClick gated to `window.innerWidth > 640` so only button triggers drawer on mobile
         - **Layout fix**: `.page { margin: 0 }` at `≤900px` — prevents `margin: 0 auto` from squeezing content on mobile
+    - ✅ **Payments page mobile UX** (`commit f9d15ce`):
+        - **Revenue Health panel**: redesigned — green left-accent border, ambient glow, `collection rate %` badge (green dim, top-right), three horizontal proportional progress bars (Collected / Pending / Overdue), method chips at bottom. `clamp()` fluid font on amount.
+        - **SortDropdown**: custom design-system dropdown (shared `globals.css` styles) in `.payments-controls-row`, side-by-side with filter chip
+        - **Filter chip + sheet**: same pattern as Members (data-driven `filterSections[]`, status filter only)
+        - **CardActionBar**: data-driven `CardAction[]` (`variant: primary | ghost | icon`) per record. Built by `getCardActions(r)` — computed once per row:
+          - `pending` → Record Payment (primary) + View details (ghost) + 🔔 Bell (amber icon, top-right card header)
+          - `overdue` → Renew (icon-only primary, `RefreshCw`) + Record Payment (ghost) + View details (ghost) + 🔔 Bell
+          - `paid` / `superseded` → View details (ghost) only
+        - **Modals wired**: `RenewMembershipModal` (memberId) + `RecordPaymentModal` (membershipId, remainingBalance, planPrice, currentAmountPaid) — reused from Members, no new hooks
+        - **Bell icon position**: top-right of card header row (inline with avatar + name); `member-card-header` flex wrapper; `member-card-bell` hidden on desktop
+        - **Card overflow fix**: `.table-wrap { overflow-x: hidden }` at ≤640px
+        - **`CardAction.label` is optional** — Renew action is icon-only (no label) to save space in a 3-button row
+        - ⚠️ **Send Reminder is a TODO stub** — `Bell` onClick is empty (`/* TODO: wire notification */`). Wire when FEAT-012 (WhatsApp/notification backend) is implemented.
+    - 🔜 **Attendance page mobile UX** — next
+    - 🔜 **Trainers page mobile makeover** — separate effort (full redesign)
 
 ---
+
 
 ## ✅ REFACT-007 — What Was Done Last Session
 
