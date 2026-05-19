@@ -28,6 +28,28 @@
   .members-filter-tabs-group { display: none; }
 }
 
+/* ── Controls row — wraps filter chip/tabs + sort dropdown, always side by side ── */
+.members-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .members-controls-row {
+    margin-left: 0;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  /* Filter chip fills left side */
+  .members-controls-row .filter-chip {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
 /* ── Card action cell — "View details" button inside each mobile card ──
    Desktop: cell + th hidden (table keeps normal column layout).
    Mobile: cell overrides responsive-table flex to a full-width block,

@@ -2,7 +2,7 @@
 
 import "./members.css";
 import { useState, useMemo } from "react";
-import { Plus, SlidersHorizontal, Check, ChevronRight } from "lucide-react";
+import { Plus, SlidersHorizontal, Check, ChevronRight, ArrowUpDown, ChevronDown } from "lucide-react";
 import type { Member } from "@/types";
 import { formatINR, formatDate } from "@/lib/utils/format";
 import { daysUntil } from "@/lib/utils/date";
@@ -23,6 +23,58 @@ import { AddMemberModal } from "@/components/members/AddMemberModal";
 // MemberWithMembership is exported from @/hooks/useMembers (single source)
 
 type BranchFilter = "all" | string; // dynamic from gym_settings.branches
+type MemberSortKey = "name" | "expiry" | "joined";
+
+const MEMBER_SORT_OPTIONS: { key: MemberSortKey; label: string }[] = [
+  { key: "joined", label: "Joined (newest)" },
+  { key: "name",   label: "Name (A–Z)" },
+  { key: "expiry", label: "Expiry (soonest)" },
+];
+
+// ------------------------------------------------------------------
+// SortDropdown — custom sort picker (globals.css styles)
+// ------------------------------------------------------------------
+
+function SortDropdown({
+  options,
+  value,
+  onChange,
+}: {
+  options: { key: string; label: string }[];
+  value: string;
+  onChange: (key: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = options.find((o) => o.key === value)?.label ?? value;
+  return (
+    <div className="sort-dropdown-wrap">
+      {open && <div className="sort-dd-overlay" onClick={() => setOpen(false)} />}
+      <button
+        className={`sort-dropdown-btn${open ? " open" : ""}`}
+        onClick={() => setOpen((p) => !p)}
+        aria-label={`Sort by: ${current}`}
+      >
+        <ArrowUpDown size={13} />
+        {current}
+        <ChevronDown size={13} />
+      </button>
+      {open && (
+        <div className="sort-dropdown-menu">
+          {options.map((o) => (
+            <div
+              key={o.key}
+              className={`sort-dropdown-item${value === o.key ? " active" : ""}`}
+              onClick={() => { onChange(o.key); setOpen(false); }}
+            >
+              {o.label}
+              {value === o.key && <Check size={13} />}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ------------------------------------------------------------------
 // Page
@@ -38,6 +90,7 @@ export default function MembersPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<MemberWithMembership | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [sort, setSort] = useState<MemberSortKey>("joined");
 
   // Filter sheet state (mobile)
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
@@ -59,7 +112,7 @@ export default function MembersPage() {
   }, [members]);
 
   const filtered = useMemo(() => {
-    return members.filter((m) => {
+    const list = members.filter((m) => {
       const matchesFilter = activeFilters.status === "all" || getMemberStatus(m) === activeFilters.status;
       const matchesBranch =
         activeFilters.branch === "all" ||
@@ -72,7 +125,18 @@ export default function MembersPage() {
         (m.email ?? "").toLowerCase().includes(q);
       return matchesFilter && matchesSearch && matchesBranch;
     });
-  }, [members, activeFilters, search]);
+
+    return [...list].sort((a, b) => {
+      if (sort === "name") return a.full_name.localeCompare(b.full_name);
+      if (sort === "expiry") {
+        const aEnd = a.membership?.end_date ?? "9999-99-99";
+        const bEnd = b.membership?.end_date ?? "9999-99-99";
+        return aEnd.localeCompare(bEnd);
+      }
+      // "joined" — preserve server order (newest first from hook)
+      return 0;
+    });
+  }, [members, activeFilters, search, sort]);
 
 
 
@@ -175,49 +239,61 @@ export default function MembersPage() {
               />
             </div>
 
-            {/* Mobile: pill chip that opens bottom sheet */}
-            <button
-              id="members-filter-chip"
-              className={`filter-chip${hasActiveFilters ? " has-filters" : ""}`}
-              onClick={openFilterSheet}
-              aria-label="Open filter options"
-            >
-              <SlidersHorizontal size={14} />
-              {chipLabel}
-              {hasActiveFilters && (
-                <span className="filter-chip-badge">{activeFilterCount}</span>
-              )}
-            </button>
+            {/* Controls row — filter chip/tabs + sort, always side by side */}
+            <div className="members-controls-row">
 
-            {/* Desktop: inline tab rows (hidden on mobile via members.css) */}
-            <div className="members-filter-tabs-group">
-              <div className="filter-tabs">
-                {MEMBER_FILTERS.map((f) => (
-                  <button
-                    key={f.key}
-                    className={`filter-tab ${activeFilters.status === f.key ? "active" : ""}`}
-                    onClick={() => setActiveFilters((prev) => ({ ...prev, status: f.key }))}
-                  >
-                    {f.label}
-                    <span className="filter-count">{counts[f.key]}</span>
-                  </button>
-                ))}
+              {/* Mobile: pill chip that opens bottom sheet */}
+              <button
+                id="members-filter-chip"
+                className={`filter-chip${hasActiveFilters ? " has-filters" : ""}`}
+                onClick={openFilterSheet}
+                aria-label="Open filter options"
+              >
+                <SlidersHorizontal size={14} />
+                {chipLabel}
+                {hasActiveFilters && (
+                  <span className="filter-chip-badge">{activeFilterCount}</span>
+                )}
+              </button>
+
+              {/* Desktop: inline tab rows (hidden on mobile via members.css) */}
+              <div className="members-filter-tabs-group">
+                <div className="filter-tabs">
+                  {MEMBER_FILTERS.map((f) => (
+                    <button
+                      key={f.key}
+                      className={`filter-tab ${activeFilters.status === f.key ? "active" : ""}`}
+                      onClick={() => setActiveFilters((prev) => ({ ...prev, status: f.key }))}
+                    >
+                      {f.label}
+                      <span className="filter-count">{counts[f.key]}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Branch filter */}
+                <div className="filter-tabs">
+                  {(
+                    ["all", ...(gymSettings?.branches || [])] as BranchFilter[]
+                  ).map((b) => (
+                    <button
+                      key={b}
+                      className={`filter-tab ${activeFilters.branch === b ? "active" : ""}`}
+                      onClick={() => setActiveFilters((prev) => ({ ...prev, branch: b }))}
+                    >
+                      {b === "all" ? "All branches" : b}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Branch filter */}
-              <div className="filter-tabs" style={{ marginLeft: "auto" }}>
-                {(
-                  ["all", ...(gymSettings?.branches || [])] as BranchFilter[]
-                ).map((b) => (
-                  <button
-                    key={b}
-                    className={`filter-tab ${activeFilters.branch === b ? "active" : ""}`}
-                    onClick={() => setActiveFilters((prev) => ({ ...prev, branch: b }))}
-                  >
-                    {b === "all" ? "All branches" : b}
-                  </button>
-                ))}
-              </div>
+              {/* Sort dropdown — always visible */}
+              <SortDropdown
+                options={MEMBER_SORT_OPTIONS}
+                value={sort}
+                onChange={(k) => setSort(k as MemberSortKey)}
+              />
+
             </div>
           </div>
 
