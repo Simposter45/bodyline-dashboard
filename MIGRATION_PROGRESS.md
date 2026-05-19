@@ -209,8 +209,14 @@
         - **Bell position**: top-right of card header (inline with avatar); `member-card-header` flex wrapper; desktop hidden
         - **Card overflow fix**: `.table-wrap { overflow-x: hidden }` at ≤640px
         - ⚠️ **Send Reminder stub**: `Bell` onClick empty — pending FEAT-012 (WhatsApp/notification backend)
-    - 🔜 **Attendance page mobile UX** — next
-    - 🔜 **Trainers page mobile makeover** — separate effort (full redesign)
+    - ✅ **Attendance page mobile UX** (`commit 01f97bc`):
+        - **Filter sheet**: combined Date Range (5 presets) + Payment Status (4 options) bottom sheet; `AttFilterValues` type + `DEFAULT_ATT_FILTERS`; data-driven `filterSections[]`; `isFilterSheetOpen` + `pendingFilters` state; Apply + Reset; range tabs + status tabs hidden at ≤640px; filter chip with active-count badge
+        - **Card View Details button**: `att-card-action-th` + `att-card-action-cell` + `att-card-action-btn` in `attendance.css`; desktop col hidden (min-width 641px); full-width ghost button at card bottom on mobile
+        - **`tr` onClick gated**: `window.innerWidth > 640` — mobile drawer only via explicit View Details button, not full-card tap
+        - **Bell reminder**: `att-card-bell` amber button top-right of Member card header; shown for `pending` + `overdue` on ALL cards (today + historical); `log-card-header` flex wrapper added; stub `/* TODO: FEAT-012 */`
+        - **Overflow fix**: `.table-wrap { overflow-x: hidden }` at ≤640px
+        - **Export CSV**: `.att-export-label { display: none }` on mobile — icon only
+    - 🔜 **Trainers page mobile makeover** — next (separate effort, full redesign)
 - [ ] **CHORE-006 — Multi-Tenancy Verification** (branch `chore/CHORE-006-multitenancy-verification`)
     - Seed a second test gym in `gyms` + `gym_settings`
     - Verify subdomain middleware resolves `[gym-slug].localhost` correctly
