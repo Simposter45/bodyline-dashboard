@@ -142,6 +142,16 @@
     - `app/globals.css` — extended `.error-screen` with sub-classes: `.error-card`, `.error-icon`, `.error-title`, `.error-message`, `.error-detail`, `.error-actions`, `.btn-retry`, `.btn-ghost-sm`
     - Five thin `error.tsx` wrappers added: `dashboard/`, `members/`, `payments/`, `attendance/`, `trainers/`
     - TypeScript: `npx tsc --noEmit` — 0 errors
+- [x] 6.14 **REFACT-008 Phase D — Trainers page mobile UX** (branch `refactor/REFACT-008-mobile-responsive`, commit `3c5871a`)
+    - **TrainerCard compact redesign**: removed div onClick (not clickable); removed divider + phone stat; two side-by-side explicit buttons — `Profile` (ghost border) + `Members (N)` (green tint, member count badge)
+    - **AssignmentPanel enriched** (desktop right panel): `MapPin` branch chip, tappable `tel:` phone link, `mailto:` email link, `CalendarDays` "Since" date row, spec tag + duty badge in `.ap-tags` flex row
+    - **TrainerDrawer** (new `TrainerDrawer.tsx` + `TrainerDrawer.css`): mobile bottom-sheet slide-up; Profile/Members **tab switcher** (`defaultTab` prop routes to correct tab on open); `drawerSlideUp` from `globals.css`; 44px touch targets on contact links; Assign/Edit action stubs in Members tab
+    - **Search + status filter**: `.toolbar` search input (name/spec/phone); desktop `.filter-tabs` (All / On duty / Off duty); mobile `.filter-chip` → `.filter-sheet` (data-driven `filterSections[]`); `filtered` useMemo applies both query + statusFilter
+    - **FAB**: `id="trainers-fab"` fixed green `+` button; `trainers-add-btn` class hides header button at `≤640px` — FAB takes over
+    - **Mobile layout**: `.assignment-panel { display:none }` + `.panel-empty { display:none }` at `≤640px`; `TrainerDrawer` takes over
+    - **Workload bar removed**: `MAX_TRAINER_CAPACITY` constant was arbitrary — removed from `AssignmentPanel` and `TrainerDrawer`
+    - TypeScript: `npx tsc --noEmit` — 0 errors
+    - **REFACT-008 is now fully complete — PR ready to raise**
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
@@ -173,7 +183,7 @@
 
 ### 🔴 Launch Blockers
 - [x] **CHORE-005 — Error boundaries**: `ErrorFallback` component + 5 route `error.tsx` files (**merged to main, PR #12**)
-- [-] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **IN PROGRESS — Members done, Payments/Attendance/Trainers pending**)
+- [x] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **FULLY COMPLETE — PR READY**)
     - ✅ Step 1: `globals.css` — shared breakpoints (`.page`, `.nav` 2-row scroll, `.toolbar`, `.table-wrap` edge-to-edge, touch targets)
     - ✅ Step 2: `dashboard.css` — stats grid 2-col collapse, greeting font scale, live-badge hidden on mobile
     - ✅ Step 3: `members.css` + `MemberDrawer.css` — column hiding added; `MemberDrawer.css` → `height: 100dvh` full-page overlay
@@ -216,7 +226,8 @@
         - **Bell reminder**: `att-card-bell` amber button top-right of Member card header; shown for `pending` + `overdue` on ALL cards (today + historical); `log-card-header` flex wrapper added; stub `/* TODO: FEAT-012 */`
         - **Overflow fix**: `.table-wrap { overflow-x: hidden }` at ≤640px
         - **Export CSV**: `.att-export-label { display: none }` on mobile — icon only
-    - 🔜 **Trainers page mobile makeover** — next (separate effort, full redesign)
+    - ✅ **Trainers page mobile UX** (`commit 3c5871a`) — **COMPLETE** — see 6.14 above
+- [x] **REFACT-008 FULLY COMPLETE** — Raise PR from `refactor/REFACT-008-mobile-responsive` → `main`
 - [ ] **CHORE-006 — Multi-Tenancy Verification** (branch `chore/CHORE-006-multitenancy-verification`)
     - Seed a second test gym in `gyms` + `gym_settings`
     - Verify subdomain middleware resolves `[gym-slug].localhost` correctly

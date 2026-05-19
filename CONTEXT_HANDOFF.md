@@ -2,21 +2,24 @@
 
 ## 🎯 Current Objective
 
-**REFACT-008 is still active — branch `refactor/REFACT-008-mobile-responsive`.**
+**REFACT-008 is COMPLETE — branch `refactor/REFACT-008-mobile-responsive`.**
 
-**Current focus: Mobile UX polish — page by page**
-Members ✅ (`commit 8014dd5`). Payments ✅ (`commit f9d15ce`). Attendance ✅ (`commit 01f97bc`). Next: Trainers page.
+**Current focus: Raise PR, merge REFACT-008 to main, then start CHORE-006 (Multi-Tenancy Verification).**
+
+All 4 dashboard pages mobile UX done:
+Members ✅ (`8014dd5`). Payments ✅ (`f9d15ce`). Attendance ✅ (`01f97bc`). Trainers ✅ (`3c5871a`).
 
 **Roadmap agreed with owner:**
 1. ✅ Members page mobile UX (`commit 8014dd5`)
 2. ✅ Payments page mobile UX (`commit f9d15ce`)
 3. ✅ Attendance page mobile UX (`commit 01f97bc`)
-4. 🔜 Trainers page — full mobile makeover (separate effort)
-5. 🔜 Owner Profile / Support area (big feature, after all pages done)
+4. ✅ Trainers page mobile UX (`commit 3c5871a`) — **JUST COMPLETED**
+5. 🔜 Raise PR + merge REFACT-008 to main, then CHORE-006
+6. 🔜 Owner Profile / Support area (big feature, after all pages done)
 
 **Pending before merging REFACT-008:**
-- Complete Trainers mobile UX
-- Then raise PR and merge, then start CHORE-006
+- Raise PR from `refactor/REFACT-008-mobile-responsive` → `main`
+- Review + merge
 
 ---
 
@@ -34,14 +37,15 @@ Members ✅ (`commit 8014dd5`). Payments ✅ (`commit f9d15ce`). Attendance ✅ 
 
 ## 🛣️ Current Branch State
 
-### Active branch: `refactor/REFACT-008-mobile-responsive` — **in progress (Members + Payments + Attendance done)**
+### Active branch: `refactor/REFACT-008-mobile-responsive` — **COMPLETE — all 4 pages done**
 
-**Status:** REFACT-008 Phase A + B complete. Members, Payments, Attendance UX done. Trainers remaining.
+**Status:** REFACT-008 Phase A + B + C + D all complete. PR ready to raise.
 
-### Session commits (this session — Attendance mobile UX)
+### Session commits (this session — Trainers mobile UX)
+- `3c5871a` — Trainers page: profile section, two-button cards, mobile drawer+tabs, search, filter, FAB
+
+### Previous session commits (same branch)
 - `01f97bc` — Attendance mobile UX: filter sheet, card View Details btn, bell reminder, gated tr onClick
-
-### Previous session commits (still on same branch)
 - `f9d15ce` — Payments mobile UX: Revenue Health panel, filter sheet, SortDropdown, CardActionBar, modal wiring
 - `8014dd5` — Members mobile UX: FAB, filter sheet, card view-details btn, layout fix
 - Phase A: bottom tab bar (`Nav.tsx`, `globals.css`)
@@ -114,7 +118,14 @@ Members ✅ (`commit 8014dd5`). Payments ✅ (`commit f9d15ce`). Attendance ✅ 
         - **Bell reminder**: `att-card-bell` amber icon button (top-right of Member card header) shown for `pending` + `overdue` on ALL cards (today + historical); stub `/* TODO: FEAT-012 */`; `log-card-header` flex wrapper added to Member td
         - **Overflow fix**: `.table-wrap { overflow-x: hidden }` at ≤640px
         - **Export CSV**: label hidden on mobile (icon only via `.att-export-label { display: none }`)
-    - 🔜 **Trainers page mobile makeover** — next (separate effort, full redesign)
+    - ✅ **Trainers page mobile UX** (`commit 3c5871a`) — **COMPLETE**:
+        - **AssignmentPanel enriched** (desktop): tappable `tel:` / `mailto:` links, branch chip (`MapPin`), "Since" date (`CalendarDays`), spec tag + duty badge side by side in `.ap-tags` row
+        - **TrainerCard compact**: removed div onClick; removed divider + phone stat; two explicit side-by-side buttons — `Profile` (ghost border) and `Members (N)` (green tint with count badge)
+        - **TrainerDrawer** (new — `TrainerDrawer.tsx` + `TrainerDrawer.css`): mobile bottom-sheet; **Profile/Members tab switcher**; `defaultTab` prop routes to correct tab on open; `drawerSlideUp` from `globals.css`; 44px touch targets on contact links; actions in Members tab
+        - **Search bar + status filter**: `.toolbar` search input + desktop `.filter-tabs` (All / On duty / Off duty) + mobile `.filter-chip` → `.filter-sheet`; data-driven `filterSections[]`; `filtered` useMemo on query + statusFilter
+        - **FAB**: `id="trainers-fab"` green fixed `+` button; `trainers-add-btn` class hides header button at `≤640px`
+        - **Assignment panel hidden at ≤640px**: `TrainerDrawer` takes over; `.panel-empty` also hidden on mobile
+        - **Workload bar removed**: `MAX_TRAINER_CAPACITY` was arbitrary — removed from both `AssignmentPanel` and `TrainerDrawer`
 
 ---
 
@@ -217,8 +228,8 @@ app/
       PaymentDrawer.tsx
       PaymentDrawer.css
     trainers/
-      page.tsx                   ✅ REFACT-007 rewrite (~210 lines, zero useEffect)
-      trainers.css               ✅ REFACT-007 co-located styles
+      TrainerDrawer.tsx           ✅ REFACT-008 Phase D — mobile bottom-sheet, Profile/Members tabs
+      TrainerDrawer.css
   onboarding/
     page.tsx                     ✅ Cleaned up (REFACT-006)
     onboarding.css
