@@ -99,7 +99,22 @@ ON CONFLICT (id) DO NOTHING;
 
 
 -- =============================================================================
--- SECTION 4: Seed Trainer for Iron Temple
+-- SECTION 4: Drop Hardcoded Branch CHECK Constraint (multi-tenancy fix)
+-- =============================================================================
+-- The `trainers` (and possibly `members`) table was created with a CHECK
+-- constraint that only allows Bodyline's hardcoded branch names
+-- (e.g. 'Sector 14', 'DLF Phase 1', 'Sohna Road').
+-- This is a single-gym artefact — branches are now dynamic per gym via
+-- gym_settings.branches and must NOT be enforced at the DB column level.
+-- Safe to run multiple times (IF EXISTS).
+-- =============================================================================
+
+ALTER TABLE trainers DROP CONSTRAINT IF EXISTS trainers_branch_check;
+ALTER TABLE members  DROP CONSTRAINT IF EXISTS members_branch_check;
+
+
+-- =============================================================================
+-- SECTION 5: Seed Trainer for Iron Temple
 -- =============================================================================
 
 INSERT INTO trainers (id, gym_id, full_name, phone, email, specialization, branch, is_active)
@@ -117,7 +132,7 @@ ON CONFLICT (id) DO NOTHING;
 
 
 -- =============================================================================
--- SECTION 5: Seed Members for Iron Temple
+-- SECTION 6: Seed Members for Iron Temple
 -- =============================================================================
 
 INSERT INTO members (id, gym_id, full_name, phone, email, branch, joined_date, is_active)
@@ -156,7 +171,7 @@ ON CONFLICT (id) DO NOTHING;
 
 
 -- =============================================================================
--- SECTION 6: Seed Memberships for Iron Temple Members
+-- SECTION 7: Seed Memberships for Iron Temple Members
 -- =============================================================================
 
 INSERT INTO member_memberships (id, gym_id, member_id, plan_id, start_date, end_date, amount_paid, payment_status, payment_method)
@@ -201,7 +216,7 @@ ON CONFLICT (id) DO NOTHING;
 
 
 -- =============================================================================
--- SECTION 7: Seed Attendance for Iron Temple
+-- SECTION 8: Seed Attendance for Iron Temple
 -- =============================================================================
 
 INSERT INTO attendance (id, gym_id, member_id, check_in, check_out)
@@ -224,7 +239,7 @@ ON CONFLICT (id) DO NOTHING;
 
 
 -- =============================================================================
--- SECTION 8: Trainer Assignment
+-- SECTION 9: Trainer Assignment
 -- =============================================================================
 
 INSERT INTO trainer_assignments (id, gym_id, trainer_id, member_id, assigned_date, is_current)
@@ -240,7 +255,7 @@ ON CONFLICT (id) DO NOTHING;
 
 
 -- =============================================================================
--- SECTION 9: Verification Queries — Run these to confirm seeding was successful
+-- SECTION 10: Verification Queries — Run these to confirm seeding was successful
 -- =============================================================================
 
 -- 1. Both gyms present
