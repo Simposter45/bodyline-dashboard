@@ -35,7 +35,21 @@
 }
 @media (max-width: 800px) {
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  /* Reset the flat edge-to-edge radius and apply 2×2 corner rounding */
+  .summary-card               { border-radius: 0; }
+  .summary-card:nth-child(1)  { border-radius: var(--radius) 0 0 0; }
+  .summary-card:nth-child(2)  { border-radius: 0 var(--radius) 0 0; }
+  .summary-card:nth-child(3)  { border-radius: 0 0 0 var(--radius); }
+  .summary-card:last-child    { border-radius: 0 0 var(--radius) 0; }
 }
+@media (max-width: 640px) {
+  /* min-width: 0 forces grid cells to respect their column track width.
+     clamp() on .summary-value handles the font scaling — no overflow rules needed. */
+  .summary-card  { min-width: 0; padding: 16px 12px; }
+  .summary-label { font-size: 10px; }
+  .summary-sub   { font-size: 11px; }
+}
+
 
 .summary-card {
   background: var(--bg2);
@@ -57,7 +71,9 @@
 }
 .summary-value {
   font-family: var(--font-display);
-  font-size: 1.8rem;
+  /* clamp() gives fluid scaling: full 1.8rem on desktop → ~1rem on a 390px phone.
+     No ellipsis needed — the value always renders at a size that fits its column. */
+  font-size: clamp(1rem, 4.5vw, 1.8rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -68,43 +84,119 @@
   color: var(--text-secondary);
 }
 
-/* ── Revenue overview panel ── */
+/* ── Revenue Health panel ── */
 .revenue-panel {
   background: var(--bg2);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-green);
   border-radius: var(--radius);
   padding: 24px;
   margin-bottom: 32px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 32px;
-  align-items: center;
+  position: relative;
+  overflow: hidden;
 }
-@media (max-width: 700px) {
-  .revenue-panel { grid-template-columns: 1fr; }
+.revenue-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(74,222,128,0.5) 0%, transparent 65%);
+}
+
+.revenue-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .revenue-panel-title {
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 4px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
 }
 .revenue-panel-amount {
   font-family: var(--font-display);
-  font-size: 2.8rem;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
   font-weight: 800;
   letter-spacing: -0.04em;
   color: var(--accent-green);
   line-height: 1;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .revenue-panel-sub {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-muted);
+}
+
+/* ── Collection rate badge ── */
+.collection-rate-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--accent-green-dim);
+  border: 1px solid rgba(74,222,128,0.22);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  flex-shrink: 0;
+}
+.collection-rate-value {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent-green);
+  line-height: 1;
+}
+.collection-rate-label {
+  font-size: 10px;
+  color: var(--accent-green);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 5px;
+}
+
+/* ── Horizontal revenue rows ── */
+.rev-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.rev-row-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.rev-row-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+}
+.rev-row-amount {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+}
+.rev-row-track {
+  width: 100%;
+  height: 5px;
+  background: var(--bg3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.rev-row-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  min-width: 3px;
 }
 
 /* ── Payment method chips ── */
@@ -130,58 +222,14 @@
   color: var(--accent-blue);
 }
 
-/* ── Revenue bar sparkline ── */
-.rev-bar-chart {
+
+/* ── Controls row — wraps filter chip/tabs + sort select, always side by side ── */
+.payments-controls-row {
   display: flex;
-  align-items: flex-end;
-  gap: 16px;
-  height: 100px;
-}
-.rev-bar-item {
-  display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 8px;
-  height: 100%;
-}
-.rev-bar-track {
-  flex: 1;
-  width: 40px;
-  background: var(--bg3);
-  border-radius: 6px;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-}
-.rev-bar-fill {
-  width: 100%;
-  border-radius: 6px;
-  transition: height 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-  min-height: 2px;
-}
-.rev-bar-label {
-  font-size: 10px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-/* ── Sort dropdown ── */
-.sort-select {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 9px 14px;
-  color: var(--text-secondary);
-  font-family: var(--font-body);
-  font-size: 13px;
-  cursor: pointer;
-  outline: none;
   margin-left: auto;
 }
-.sort-select:focus { border-color: var(--border-hi); }
 
 /* ── Member cell in table rows ── */
 .member-cell { display: flex; align-items: center; gap: 12px; }
@@ -222,159 +270,137 @@
   color: var(--accent-red);
 }
 
-/* ── Payment detail drawer ── */
-@keyframes drawerFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes drawerSlideIn {
-  from { transform: translateX(100%); opacity: 0.6; }
-  to   { transform: translateX(0);    opacity: 1; }
+/* NOTE: PaymentDrawer styles live in PaymentDrawer.css (uses .payment-drawer-* classes).
+   The .drawer-* classes below were leftover from the pre-REFACT-005 monolith and are
+   not referenced by any component — removed to keep this file clean. */
+
+/* ── Responsive table ── */
+/* Column hiding replaced by .responsive-table card-stack in globals.css.
+   <table className="responsive-table"> + data-label on every <td>. */
+
+/* ── Mobile: controls row — filter chip + sort select sit side by side on one row ── */
+@media (max-width: 640px) {
+  /* Fix card overflow — prevent responsive-table cards from exceeding viewport width */
+  .table-wrap { overflow-x: hidden; }
+  /* Override toolbar column-stacking for this row — keep it horizontal */
+  .payments-controls-row {
+    margin-left: 0;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  /* Hide desktop status tabs — filter chip takes over */
+  .payments-filter-tabs-group { display: none; }
+  /* Filter chip fills left side */
+  .payments-controls-row .filter-chip {
+    flex: 1;
+    justify-content: center;
+  }
+  /* Sort button stays compact — no overflow risk */
+  .sort-btn {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
 }
 
-.drawer-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 40;
-  animation: drawerFadeIn 0.2s ease;
+/* ── Mobile: hide the revenue bar chart — summary cards show the same numbers ── */
+@media (max-width: 640px) {
+  .rev-bar-chart { display: none; }
 }
-.drawer {
-  position: fixed;
-  top: 0; right: 0;
-  width: 400px;
-  max-width: 100vw;
-  height: 100vh;
-  background: var(--bg2);
-  border-left: 1px solid var(--border-hi);
-  z-index: 50;
-  overflow-y: auto;
-  padding: 28px;
-  animation: drawerSlideIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.drawer-header { display: flex; justify-content: flex-end; margin-bottom: 24px; }
-.drawer-close {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  width: 32px; height: 32px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.drawer-close:hover { color: var(--text-primary); border-color: var(--border-hi); }
 
-.drawer-identity {
+/* ── Member card header — avatar+info on left, bell icon on right ── */
+.member-card-header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-.drawer-avatar {
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  background: var(--bg3);
-  border: 1px solid var(--border-hi);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-  overflow: hidden;
-}
-.drawer-name {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-}
-.drawer-sub { font-size: 13px; color: var(--text-secondary); }
-
-.drawer-status {
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 12px;
-  border-radius: 99px;
-  margin-bottom: 20px;
-}
-.drawer-divider { height: 1px; background: var(--border); margin: 20px 0; }
-
-.drawer-section { margin-bottom: 4px; }
-.drawer-section-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 14px;
-}
-
-/* ── Amount breakdown block in drawer ── */
-.amount-breakdown {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-.amount-row {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-}
-.amount-row:last-child { border-bottom: none; }
-.amount-row-due { background: rgba(248, 113, 113, 0.04); }
-.amount-key { font-size: 13px; color: var(--text-secondary); }
-.amount-val {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-/* ── Drawer info grid ── */
-.drawer-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.drawer-info-item { display: flex; flex-direction: column; gap: 3px; }
-.drawer-info-key {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 500;
-}
-.drawer-info-val { font-size: 14px; color: var(--text-primary); font-weight: 500; }
-
-/* ── Drawer action buttons ── */
-.drawer-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 28px; }
-.drawer-btn {
+  gap: 8px;
   width: 100%;
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  border: none;
-  letter-spacing: 0.01em;
 }
-.drawer-btn:hover { opacity: 0.85; }
-.drawer-btn-primary   { background: var(--accent-green); color: #0d0d0f; }
-.drawer-btn-secondary { background: var(--bg3); border: 1px solid var(--border-hi); color: var(--text-primary); }
-.drawer-btn-ghost     { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
 
-/* ── Responsive table column hiding ── */
-@media (max-width: 900px) {
-  thead th:nth-child(4), td:nth-child(4) { display: none; }
+/* Bell reminder button — top-right of card, mobile only */
+.member-card-bell {
+  display: none; /* hidden on desktop */
 }
-@media (max-width: 700px) {
-  thead th:nth-child(3), td:nth-child(3) { display: none; }
-  .page { padding: 24px 16px 60px; }
+@media (max-width: 640px) {
+  .member-card-bell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--accent-amber);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .member-card-bell:hover {
+    background: rgba(251,191,36,0.08);
+    border-color: var(--accent-amber);
+  }
+}
+
+/* ── Card action cell — CardActionBar inside each mobile card ──
+   Desktop: cell + th hidden. Mobile: full-width block below the data rows. */
+@media (min-width: 641px) {
+  .card-action-th,
+  .card-action-cell { display: none; }
+}
+
+@media (max-width: 640px) {
+  .card-action-cell {
+    display: block !important;
+    padding: 12px 0 0 !important;
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .card-action-cell::before { display: none !important; }
+
+  /* ── CardActionBar layout ── */
+  .card-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Shared base for primary + ghost buttons */
+  .card-action-bar-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 9px 13px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    min-height: 38px;
+    transition: background 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s;
+    flex-shrink: 0;
+  }
+
+  /* Primary — green filled (Renew / Record Payment when pending) */
+  .card-action-bar-btn-primary {
+    background: var(--accent-green);
+    border: 1px solid var(--accent-green);
+    color: #0d0d0f;
+  }
+  .card-action-bar-btn-primary:hover { opacity: 0.88; }
+
+  /* Ghost — border only (Record Payment when overdue, View details) */
+  .card-action-bar-btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    flex: 1; /* fills remaining space */
+    justify-content: center;
+  }
+  .card-action-bar-btn-ghost:hover {
+    background: var(--bg3);
+    border-color: var(--border-hi);
+    color: var(--text-primary);
+  }
 }

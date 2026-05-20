@@ -142,6 +142,16 @@
     - `app/globals.css` — extended `.error-screen` with sub-classes: `.error-card`, `.error-icon`, `.error-title`, `.error-message`, `.error-detail`, `.error-actions`, `.btn-retry`, `.btn-ghost-sm`
     - Five thin `error.tsx` wrappers added: `dashboard/`, `members/`, `payments/`, `attendance/`, `trainers/`
     - TypeScript: `npx tsc --noEmit` — 0 errors
+- [x] 6.14 **REFACT-008 Phase D — Trainers page mobile UX** (branch `refactor/REFACT-008-mobile-responsive`, commit `3c5871a`)
+    - **TrainerCard compact redesign**: removed div onClick (not clickable); removed divider + phone stat; two side-by-side explicit buttons — `Profile` (ghost border) + `Members (N)` (green tint, member count badge)
+    - **AssignmentPanel enriched** (desktop right panel): `MapPin` branch chip, tappable `tel:` phone link, `mailto:` email link, `CalendarDays` "Since" date row, spec tag + duty badge in `.ap-tags` flex row
+    - **TrainerDrawer** (new `TrainerDrawer.tsx` + `TrainerDrawer.css`): mobile bottom-sheet slide-up; Profile/Members **tab switcher** (`defaultTab` prop routes to correct tab on open); `drawerSlideUp` from `globals.css`; 44px touch targets on contact links; Assign/Edit action stubs in Members tab
+    - **Search + status filter**: `.toolbar` search input (name/spec/phone); desktop `.filter-tabs` (All / On duty / Off duty); mobile `.filter-chip` → `.filter-sheet` (data-driven `filterSections[]`); `filtered` useMemo applies both query + statusFilter
+    - **FAB**: `id="trainers-fab"` fixed green `+` button; `trainers-add-btn` class hides header button at `≤640px` — FAB takes over
+    - **Mobile layout**: `.assignment-panel { display:none }` + `.panel-empty { display:none }` at `≤640px`; `TrainerDrawer` takes over
+    - **Workload bar removed**: `MAX_TRAINER_CAPACITY` constant was arbitrary — removed from `AssignmentPanel` and `TrainerDrawer`
+    - TypeScript: `npx tsc --noEmit` — 0 errors
+    - **REFACT-008 is now fully complete — PR ready to raise**
 
 ## ⚠️ Known Technical Debt
 - `useCreateMember.ts`: Two-step DB insert (members → member_memberships) is NOT atomic. If the second insert fails, an orphaned member record is created. **Future: Refactor into a Supabase RPC/PostgreSQL transaction function.** Track as `CHORE-001`.
@@ -169,11 +179,84 @@
   - Fix: add `branch` column to `attendance` table; operator selects/confirms branch at check-in time; UI shows a branch filter tab on the attendance page.
   - Non-blocking — home-branch filtering is useful and available now; location accuracy deferred.
 
-## 🔧 Production Hardening (Pending)
+## 🔧 Production Hardening & Launch Readiness
+
+### 🔴 Launch Blockers
 - [x] **CHORE-005 — Error boundaries**: `ErrorFallback` component + 5 route `error.tsx` files (**merged to main, PR #12**)
-- [ ] Loading skeletons: Replace text "Loading..." with CSS skeleton pattern
-- [ ] **FEAT-006 — Pagination**: Members and Payments tables have no pagination. Add the same 25-row pattern used in the attendance page. Will be needed before any serious user volume.
-- [ ] **FEAT-007 — Trainer actions**: "Add trainer", "Assign member", "Edit trainer" buttons are wired but modals are TBD (deferred from REFACT-007 scope).
+- [x] **REFACT-008 — Mobile Responsiveness** (branch `refactor/REFACT-008-mobile-responsive` — **FULLY COMPLETE — PR READY**)
+    - ✅ Step 1: `globals.css` — shared breakpoints (`.page`, `.nav` 2-row scroll, `.toolbar`, `.table-wrap` edge-to-edge, touch targets)
+    - ✅ Step 2: `dashboard.css` — stats grid 2-col collapse, greeting font scale, live-badge hidden on mobile
+    - ✅ Step 3: `members.css` + `MemberDrawer.css` — column hiding added; `MemberDrawer.css` → `height: 100dvh` full-page overlay
+    - ✅ Step 4: `payments.css` — summary card 2×2 grid (min-width:0), `clamp()` fluid font, dead `.drawer*` code removed, `PaymentDrawer.css` → `height: 100dvh`
+    - ✅ Step 5: `attendance.css` — date range inputs stack, pagination stack
+    - ✅ Step 6: `trainers.css` — card/panel padding, font scale, touch targets
+    - ✅ Step 7: `Nav.tsx` — `aria-label` on scrollable mobile nav row
+    - ✅ **Dashboard mobile redesign** (`commit 8582ea1`): StatCard `clamp()` font, unified Members + Revenue panels, `.view-all-link` class
+    - ✅ **Phase A — Bottom tab bar** (`Nav.tsx` + `globals.css`):
+        - 5-tab fixed bottom bar for owner role at `≤640px`; Lucide icons: `LayoutDashboard`, `Users`, `CreditCard`, `CalendarCheck`, `Dumbbell`
+        - Active tab: icon + label. Inactive tabs: icon only. Active detection via `usePathname()` exact match.
+        - Top bar collapses to logo + `LogOut` icon sign-out only (`.sign-out-text` hidden, `.sign-out-icon-btn` shown)
+        - `.page { padding-bottom: calc(60px + env(safe-area-inset-bottom) + 20px) }` for iOS safe area
+    - ✅ **Phase B — Table card-stack** (`globals.css` + 3×`.css` + 3×`.tsx`):
+        - `globals.css`: `.responsive-table` opt-in block — hides `<thead>`, `tbody tr → display:block`, `td → flex label→value`, `td::before { content: attr(data-label) }`
+        - `members.css` / `payments.css` / `attendance.css`: removed old `nth-child` column-hiding breakpoints
+        - `members/page.tsx` + `payments/page.tsx` + `attendance/page.tsx`: `className="responsive-table"` on `<table>` + `data-label` on every `<td>`
+        - `attendance/page.tsx`: `className="responsive-table att-table"` for scoped overrides
+        - `attendance.css`: att-table-scoped overrides for conditional Date column (historical mode) using `td[data-label="Date"]:first-child` compound selector (specificity 0,3,2 beats globals 0,2,2)
+    - ✅ **BUG — CSS bleed fix**: `attendance.css` overrides were targeting `table.responsive-table` globally, causing Members/Payments card headers to render right-aligned. Fixed by scoping all att-table overrides to `.att-table` class and replacing `display:revert` with `display:block`.
+    - ✅ **Polish — Card elevation**: `globals.css` responsive-table `tbody tr` → `background:var(--bg3)`, `border`, `border-radius:var(--radius-sm)`, `margin:0 8px 8px` gap between cards. `table-wrap table { padding-top:8px }` for first-card breathing room.
+    - ✅ **Members page mobile UX** (`commit 8014dd5`):
+        - **Layout fix**: `.page { margin: 0 }` at `≤900px` breakpoint — prevents `margin: 0 auto` squeezing on mobile
+        - **FAB**: shared `.fab` class added to `globals.css`; green 56×56px fixed `+` button positioned above tab bar; `members-add-btn` class hides header btn at `≤640px`
+        - **Filter sheet**: pill `.filter-chip` replaces haphazard filter tabs on mobile; slide-up `.filter-sheet` bottom sheet; data-driven `filterSections[]` config in `page.tsx` — append one object to add a new filter param (zero JSX changes); shared CSS (`.filter-chip`, `.filter-sheet*`, `.filter-sheet-reset`) in `globals.css`; Apply + Reset buttons in footer
+        - **State refactor**: `filter` + `branch` states collapsed into single `activeFilters: FilterValues` record; `pendingFilters` for uncommitted sheet state; `filtered` useMemo reads `activeFilters.*`
+        - **Card View Details button**: `card-action-cell` + `card-action-btn` in `members.css`; hidden on desktop (≥641px); ghost full-width button at bottom of each mobile card; `<tr>` onClick gated to `window.innerWidth > 640` — mobile drawer only opens via the button
+    - ✅ **Payments page mobile UX** (`commit f9d15ce`):
+        - **Revenue Health panel**: collection rate % badge + horizontal progress bars (Collected/Pending/Overdue), green left-accent border + ambient glow, method chips
+        - **SortDropdown + Filter chip/sheet**: same shared pattern as Members; data-driven `filterSections[]`
+        - **CardActionBar**: `CardAction[]` array built per-record by `getCardActions(r)` (`variant: primary | ghost | icon`); pending→Record Payment+Bell; overdue→Renew icon+Record+Bell; paid→View Details only
+        - **Modals**: `RenewMembershipModal` + `RecordPaymentModal` wired directly from payment cards (no new hooks)
+        - **Bell position**: top-right of card header (inline with avatar); `member-card-header` flex wrapper; desktop hidden
+        - **Card overflow fix**: `.table-wrap { overflow-x: hidden }` at ≤640px
+        - ⚠️ **Send Reminder stub**: `Bell` onClick empty — pending FEAT-012 (WhatsApp/notification backend)
+    - ✅ **Attendance page mobile UX** (`commit 01f97bc`):
+        - **Filter sheet**: combined Date Range (5 presets) + Payment Status (4 options) bottom sheet; `AttFilterValues` type + `DEFAULT_ATT_FILTERS`; data-driven `filterSections[]`; `isFilterSheetOpen` + `pendingFilters` state; Apply + Reset; range tabs + status tabs hidden at ≤640px; filter chip with active-count badge
+        - **Card View Details button**: `att-card-action-th` + `att-card-action-cell` + `att-card-action-btn` in `attendance.css`; desktop col hidden (min-width 641px); full-width ghost button at card bottom on mobile
+        - **`tr` onClick gated**: `window.innerWidth > 640` — mobile drawer only via explicit View Details button, not full-card tap
+        - **Bell reminder**: `att-card-bell` amber button top-right of Member card header; shown for `pending` + `overdue` on ALL cards (today + historical); `log-card-header` flex wrapper added; stub `/* TODO: FEAT-012 */`
+        - **Overflow fix**: `.table-wrap { overflow-x: hidden }` at ≤640px
+        - **Export CSV**: `.att-export-label { display: none }` on mobile — icon only
+    - ✅ **Trainers page mobile UX** (`commit 3c5871a`) — **COMPLETE** — see 6.14 above
+- [x] **REFACT-008 FULLY COMPLETE** — Raise PR from `refactor/REFACT-008-mobile-responsive` → `main`
+- [ ] **CHORE-006 — Multi-Tenancy Verification** (branch `chore/CHORE-006-multitenancy-verification`)
+    - Seed a second test gym in `gyms` + `gym_settings`
+    - Verify subdomain middleware resolves `[gym-slug].localhost` correctly
+    - RLS isolation audit: zero data leakage across all 7 tables between gyms
+    - `usePublicGymStats` + `usePlans` confirmed per-gym scoped
+- [ ] **FEAT-006 — Pagination**: Members and Payments tables (25-row pattern, same as attendance)
+- [ ] **FEAT-009 — Member Portal Rebuild** (branch `feat/FEAT-009-member-portal-rebuild`)
+    - 1,316-line monolith → TanStack hooks, co-located CSS, mobile-first, zero `useEffect`/`any`
+    - New: self-service renewal request, expiry alert banner, full attendance history
+- [ ] **FEAT-010 — Trainer Portal Rebuild** (branch `feat/FEAT-010-trainer-portal-rebuild`)
+    - 1,196-line monolith → TanStack hooks, co-located CSS, mobile-first
+    - New: assigned-member attendance view (who’s checked in today), member notes field
+- [ ] **FEAT-007 — Trainer Actions** (owner dashboard — buttons wired, modals TBD)
+    - `AddTrainerModal`, `AssignMemberModal`, `EditTrainerModal`
+
+### 🟡 Important (Pre-Scale)
+- [ ] **CHORE-004 — Branch-Level Attendance** — schema change: `branch` col on `attendance` table; multi-branch gym filter support
+
+### 🔵 Technical Debt (Non-Blocking)
+- [ ] Loading skeletons: Replace text "Loading..." with CSS skeleton shimmer pattern (cosmetic, deferred)
+- [ ] **CHORE-001**: Atomic member creation (Supabase RPC/PostgreSQL transaction)
+- [ ] **CHORE-002b**: pg_cron daily `pending → overdue` auto-transition
+- [ ] **CHORE-003**: Per-gym timezone support (`gym_settings.timezone` + dynamic offset)
+
+### ⬛ Post-Launch Backlog
+- [ ] **FEAT-011 — QR Check-In**: Member scans QR → auto check-in (`/checkin?member=uuid`)
+- [ ] **FEAT-012 — WhatsApp Notifications**: Expiry alerts + renewal confirmations via Twilio/WATI
+- [ ] **FEAT-013 — Reports Dashboard**: Revenue trends, attendance heatmap, member growth (Recharts)
+- [ ] **FEAT-014 — Excel Export**: `xlsx` library (deferred; CSV confirmed sufficient for now)
 
 ## 🚀 Phase 7: Domain & Deployment (Future)
 - [ ] 7.1 Configure wildcard subdomains

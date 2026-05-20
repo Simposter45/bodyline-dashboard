@@ -14,7 +14,8 @@
 // ============================================================
 
 import { useState, useMemo } from "react";
-import { Phone, Mail, Plus } from "lucide-react";
+import { Phone, Mail, Plus, MapPin, CalendarDays, Search, SlidersHorizontal, Check } from "lucide-react";
+import { TrainerDrawer } from "./TrainerDrawer";
 import { Nav } from "@/components/ui/Nav";
 import { useTrainers, type TrainerWithAssignments } from "@/hooks/useTrainers";
 import { getInitials, formatDate } from "@/lib/utils/format";
@@ -63,19 +64,19 @@ function getSpecColor(spec: string | null) {
 function TrainerCard({
   trainer,
   isSelected,
-  onClick,
+  onProfile,
+  onMembers,
 }: {
   trainer: TrainerWithAssignments;
   isSelected: boolean;
-  onClick: () => void;
+  onProfile: () => void;
+  onMembers: () => void;
 }) {
   const specColor = getSpecColor(trainer.specialization);
 
   return (
-    <div
-      className={`trainer-card${isSelected ? " trainer-card--selected" : ""}`}
-      onClick={onClick}
-    >
+    <div className={`trainer-card${isSelected ? " trainer-card--selected" : ""}`}>
+      {/* Top row: avatar + duty badge */}
       <div className="trainer-card-top">
         <div className="trainer-card-avatar">{getInitials(trainer.full_name)}</div>
         <div
@@ -90,8 +91,8 @@ function TrainerCard({
         </div>
       </div>
 
+      {/* Name + spec tag */}
       <h3 className="trainer-card-name">{trainer.full_name}</h3>
-
       {trainer.specialization && (
         <span
           className="trainer-spec-tag"
@@ -105,22 +106,23 @@ function TrainerCard({
         </span>
       )}
 
-      <div className="trainer-card-divider" />
-
-      <div className="trainer-card-stats">
-        <div className="trainer-stat">
-          <span className="trainer-stat-value">{trainer.assignments.length}</span>
-          <span className="trainer-stat-label">Members</span>
-        </div>
-        {trainer.phone && (
-          <>
-            <div className="trainer-stat-sep" />
-            <div className="trainer-stat">
-              <span className="trainer-stat-value">{trainer.phone}</span>
-              <span className="trainer-stat-label">Phone</span>
-            </div>
-          </>
-        )}
+      {/* Two action buttons — always visible; open drawer on mobile, update panel on desktop */}
+      <div className="trainer-card-actions">
+        <button
+          className="trainer-card-btn trainer-card-btn-ghost"
+          onClick={onProfile}
+          aria-label={`View profile for ${trainer.full_name}`}
+        >
+          Profile
+        </button>
+        <button
+          className="trainer-card-btn trainer-card-btn-outline"
+          onClick={onMembers}
+          aria-label={`View members for ${trainer.full_name}`}
+        >
+          Members
+          <span className="trainer-card-btn-badge">{trainer.assignments.length}</span>
+        </button>
       </div>
     </div>
   );
@@ -135,45 +137,76 @@ function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
 
   return (
     <div className="assignment-panel">
-      {/* Trainer identity */}
+
+      {/* ── Section A: Profile ── */}
       <div className="ap-header">
         <div className="ap-avatar">{getInitials(trainer.full_name)}</div>
         <div className="ap-info">
           <h2 className="ap-name">{trainer.full_name}</h2>
-          {trainer.specialization && (
-            <span
-              className="ap-spec"
-              style={{
-                background: specColor.bg,
-                color: specColor.color,
-                border: `1px solid ${specColor.border}`,
-              }}
+          <div className="ap-tags">
+            {trainer.specialization && (
+              <span
+                className="ap-spec"
+                style={{
+                  background: specColor.bg,
+                  color: specColor.color,
+                  border: `1px solid ${specColor.border}`,
+                }}
+              >
+                {trainer.specialization}
+              </span>
+            )}
+            <div
+              className="trainer-active-badge"
+              style={{ opacity: trainer.is_active ? 1 : 0.55 }}
             >
-              {trainer.specialization}
-            </span>
-          )}
+              <span
+                className="trainer-active-dot"
+                style={{ background: trainer.is_active ? "#4ade80" : "#555450" }}
+              />
+              {trainer.is_active ? "On duty" : "Off duty"}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Contact */}
+      {trainer.branch && (
+        <div className="ap-branch">
+          <MapPin size={12} />
+          {trainer.branch}
+        </div>
+      )}
+
+      {/* Contact — tappable tel: / mailto: links */}
       <div className="ap-contact">
         {trainer.phone && (
-          <div className="ap-contact-item">
+          <a
+            href={`tel:${trainer.phone}`}
+            className="ap-contact-item ap-contact-link"
+          >
             <Phone size={13} />
             {trainer.phone}
-          </div>
+          </a>
         )}
         {trainer.email && (
-          <div className="ap-contact-item">
+          <a
+            href={`mailto:${trainer.email}`}
+            className="ap-contact-item ap-contact-link"
+          >
             <Mail size={13} />
             {trainer.email}
-          </div>
+          </a>
         )}
+        <div className="ap-contact-item">
+          <CalendarDays size={13} />
+          <span className="ap-since-label">Since</span>
+          {formatDate(trainer.created_at)}
+        </div>
       </div>
 
       <div className="ap-divider" />
 
-      {/* Assigned members */}
+      {/* ── Section B: Assigned Members ── */}
       <div className="ap-section-label">
         Assigned members
         <span className="ap-count">{trainer.assignments.length}</span>
@@ -204,7 +237,7 @@ function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
 
       <div className="ap-divider" />
 
-      {/* Actions — FEAT-007: modals TBD */}
+      {/* ── Section D: Actions — FEAT-007 stubs ── */}
       <div className="ap-actions">
         <button className="ap-btn ap-btn-primary">Assign member</button>
         <button className="ap-btn ap-btn-secondary">Edit trainer</button>
@@ -219,7 +252,9 @@ function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
 
 export default function TrainersPage() {
   const { data: trainers = [], isLoading, error } = useTrainers();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId,    setSelectedId]    = useState<string | null>(null);
+  const [isDrawerOpen,  setIsDrawerOpen]  = useState(false);
+  const [drawerTab,     setDrawerTab]     = useState<"profile" | "members">("profile");
 
   // Auto-select first trainer once data loads
   const effectiveSelectedId =
@@ -230,8 +265,60 @@ export default function TrainersPage() {
     [trainers, effectiveSelectedId],
   );
 
-  const activeCount  = trainers.filter((t) => t.is_active).length;
+  const activeCount   = trainers.filter((t) => t.is_active).length;
   const totalAssigned = trainers.reduce((s, t) => s + t.assignments.length, 0);
+
+  // ── Search + filter state ──
+  type StatusFilter = "all" | "active" | "inactive";
+  const DEFAULT_STATUS: StatusFilter = "all";
+
+  const [query,              setQuery]              = useState("");
+  const [statusFilter,       setStatusFilter]       = useState<StatusFilter>(DEFAULT_STATUS);
+  const [isFilterSheetOpen,  setIsFilterSheetOpen]  = useState(false);
+  const [pendingStatus,      setPendingStatus]      = useState<StatusFilter>(DEFAULT_STATUS);
+
+  // Counts per status bucket (for filter-tab badges)
+  const counts = useMemo(() => ({
+    all:      trainers.length,
+    active:   trainers.filter((t) => t.is_active).length,
+    inactive: trainers.filter((t) => !t.is_active).length,
+  }), [trainers]);
+
+  // Filtered list: applies query + statusFilter together
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    return trainers.filter((t) => {
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" ? t.is_active : !t.is_active);
+      const matchesQuery =
+        !q ||
+        t.full_name.toLowerCase().includes(q) ||
+        (t.specialization ?? "").toLowerCase().includes(q) ||
+        (t.phone ?? "").includes(q);
+      return matchesStatus && matchesQuery;
+    });
+  }, [trainers, statusFilter, query]);
+
+  // Data-driven filter sheet config — add a new object here to extend filters.
+  const filterSections = [
+    {
+      key: "status" as const,
+      label: "Duty Status",
+      options: [
+        { value: "all",      label: "All trainers",  count: counts.all },
+        { value: "active",   label: "On duty",       count: counts.active },
+        { value: "inactive", label: "Off duty",      count: counts.inactive },
+      ] as { value: StatusFilter; label: string; count: number }[],
+    },
+  ];
+
+  const hasActiveFilter   = statusFilter !== "all";
+
+  const openFilterSheet = () => { setPendingStatus(statusFilter); setIsFilterSheetOpen(true); };
+  const applyFilters    = () => { setStatusFilter(pendingStatus); setIsFilterSheetOpen(false); };
+  const resetFilters    = () => setPendingStatus(DEFAULT_STATUS);
+
 
   if (isLoading) {
     return (
@@ -268,24 +355,83 @@ export default function TrainersPage() {
             </p>
           </div>
           {/* FEAT-007: Add Trainer modal — button wired, modal TBD */}
-          <button className="btn-solid">
+          <button className="btn-solid trainers-add-btn">
             <Plus size={14} />
             Add trainer
           </button>
+        </div>
+
+        {/* Toolbar — search + filters */}
+        <div className="toolbar">
+          <div className="search-wrap">
+            <Search size={15} className="search-icon" />
+            <input
+              id="trainers-search"
+              className="search-input"
+              placeholder="Search by name, specialization…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Mobile: filter chip → bottom sheet */}
+          <button
+            id="trainers-filter-chip"
+            className={`filter-chip${hasActiveFilter ? " has-filters" : ""}`}
+            onClick={openFilterSheet}
+            aria-label="Open filter options"
+          >
+            <SlidersHorizontal size={14} />
+            {statusFilter === "all" ? "All trainers" : statusFilter === "active" ? "On duty" : "Off duty"}
+            {hasActiveFilter && <span className="filter-chip-badge">1</span>}
+          </button>
+
+          {/* Desktop: inline filter tabs (hidden at ≤640px via trainers.css) */}
+          <div className="trainers-filter-tabs-group filter-tabs">
+            {[
+              { value: "all",      label: "All" },
+              { value: "active",   label: "On duty" },
+              { value: "inactive", label: "Off duty" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                className={`filter-tab${statusFilter === opt.value ? " active" : ""}`}
+                onClick={() => setStatusFilter(opt.value as StatusFilter)}
+              >
+                {opt.label}
+                <span className="filter-count">
+                  {counts[opt.value as StatusFilter]}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Two-column layout */}
         <div className="trainers-layout">
           {/* Trainer cards */}
           <div className="trainer-cards">
-            {trainers.map((t) => (
+            {filtered.length === 0 ? (
+              <div className="panel-empty">
+                {query || hasActiveFilter ? "No trainers match your search." : "No trainers yet."}
+              </div>
+            ) : (
+              filtered.map((t) => (
               <TrainerCard
                 key={t.id}
                 trainer={t}
                 isSelected={t.id === effectiveSelectedId}
-                onClick={() => setSelectedId(t.id)}
+                onProfile={() => {
+                  setSelectedId(t.id);
+                  if (window.innerWidth <= 640) { setDrawerTab("profile"); setIsDrawerOpen(true); }
+                }}
+                onMembers={() => {
+                  setSelectedId(t.id);
+                  if (window.innerWidth <= 640) { setDrawerTab("members"); setIsDrawerOpen(true); }
+                }}
               />
-            ))}
+              ))
+            )}
           </div>
 
           {/* Assignment panel */}
@@ -296,6 +442,64 @@ export default function TrainersPage() {
           )}
         </div>
       </div>
+
+      {/* Mobile filter sheet — data-driven: append to filterSections to extend */}
+      {isFilterSheetOpen && (
+        <>
+          <div className="filter-sheet-overlay" onClick={() => setIsFilterSheetOpen(false)} />
+          <div className="filter-sheet" role="dialog" aria-label="Filter trainers">
+            <div className="filter-sheet-handle" />
+            <div className="filter-sheet-title">Filter Trainers</div>
+
+            {filterSections.map((section, sIdx) => (
+              <div key={section.key}>
+                {sIdx > 0 && <div className="filter-sheet-divider" />}
+                <div className="filter-sheet-section-label">{section.label}</div>
+                {section.options.map((opt) => {
+                  const isSel = pendingStatus === opt.value;
+                  return (
+                    <div
+                      key={opt.value}
+                      id={`trainers-filter-${opt.value}`}
+                      className={`filter-sheet-row${isSel ? " selected" : ""}`}
+                      onClick={() => setPendingStatus(opt.value)}
+                      role="radio"
+                      aria-checked={isSel}
+                    >
+                      <span className="filter-sheet-row-label">{opt.label}</span>
+                      <span className="filter-sheet-row-count">{opt.count}</span>
+                      {isSel && <Check size={16} className="filter-sheet-check" />}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+
+            <div className="filter-sheet-footer">
+              <button className="filter-sheet-reset" onClick={resetFilters}>Reset</button>
+              <button className="filter-sheet-apply" onClick={applyFilters}>Apply Filters</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* FAB — mobile only; add trainer; sits above the bottom tab bar */}
+      <button
+        id="trainers-fab"
+        className="fab"
+        aria-label="Add trainer"
+      >
+        <Plus size={22} />
+      </button>
+
+      {/* Trainer detail drawer — mobile only */}
+      {isDrawerOpen && selected && (
+        <TrainerDrawer
+          trainer={selected}
+          defaultTab={drawerTab}
+          onClose={() => setIsDrawerOpen(false)}
+        />
+      )}
     </>
   );
 }

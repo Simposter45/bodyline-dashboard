@@ -157,3 +157,33 @@
   border: 1px solid var(--border-hi);
   color: var(--text-primary);
 }
+
+/* ── Mobile: full-page overlay ──
+   On ≤640px the drawer transforms from a right-side panel into
+   a full-height overlay that slides up from the bottom.
+   height: 100dvh ensures it covers the entire screen (including
+   the iOS Safari address-bar area) with no content cut-off.
+   Zero TSX changes — pure CSS position/dimension swap. */
+@media (max-width: 640px) {
+  .drawer {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-left: none;
+    border-top: 1px solid var(--border-hi);
+    border-radius: 0;
+    padding: 20px 16px 32px;
+    animation: drawerSlideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes drawerSlideUp {
+    from { transform: translateY(100%); opacity: 0.7; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  /* Info grid stays 2-col — full-screen has ample width on any phone */
+}

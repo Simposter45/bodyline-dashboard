@@ -335,6 +335,68 @@ button, input, select, textarea {
 }
 .sign-out-link:hover { border-color: var(--border-hi); color: var(--text-secondary); }
 
+/* ── Sign-out icon button — mobile-only variant ── */
+.sign-out-icon-btn {
+  display: none; /* shown only at ≤640px */
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s;
+  min-width: 36px;
+  min-height: 36px;
+}
+.sign-out-icon-btn:hover { color: var(--text-secondary); }
+
+/* ───────────────────────────────────────────────────────────────
+   Mobile Bottom Tab Bar (owner) — base styles
+   Hidden by default; activated at ≤640px via the
+   responsive section below.
+   ────────────────────────────────────────────────────────────── */
+.mobile-tab-bar {
+  display: none; /* hidden on desktop */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  z-index: 50;
+  /* iOS: extend bg behind home indicator */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  gap: 3px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+  /* Minimum 44px touch target */
+  min-width: 44px;
+}
+.mobile-tab.active {
+  color: var(--accent-green);
+}
+
+.mobile-tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  line-height: 1;
+}
+
 /* ──────── Global UI Components ──────── */
 
 /* Avatar — circular identity display with initials fallback
@@ -551,3 +613,439 @@ td {
 }
 td:last-child { text-align: right; }
 
+/* ── Responsive table — card-stack layout at ≤640px ──────────────────────────
+   Opt-in via className="responsive-table" on <table>.
+   Each <td> must carry a data-label="Column Name" attribute.
+   At ≤640px:
+     • <thead> is hidden (labels come from ::before pseudo-content)
+     • Each <tbody tr> becomes an independent card block
+     • Each <td> renders as a label → value row (::before left, content right)
+   ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  table.responsive-table thead { display: none; }
+
+  table.responsive-table tbody tr {
+    display: block;
+    /* Each row becomes a distinct card — border-bottom separator replaced by gap */
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin: 0 8px 8px;
+  }
+  /* Last card: keep bottom margin so it clears the table-wrap edge */
+  table.responsive-table tbody tr:last-child { margin-bottom: 8px; }
+
+  table.responsive-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    text-align: right;
+    font-size: 13px;
+    gap: 12px;
+    /* override the global td:last-child right-align (already text-align:right above) */
+    border: none;
+  }
+
+  /* Field label injected from data-label attribute */
+  table.responsive-table td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-align: left;
+  }
+
+  /* First td (member/name cell) — full width, left-aligned, no label row needed */
+  table.responsive-table td:first-child {
+    justify-content: flex-start;
+    text-align: left;
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.responsive-table td:first-child::before { display: none; }
+}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS — Shared Layout
+   Page-specific layout breakpoints live in each page's
+   co-located .css file. Only truly shared classes here.
+   ══════════════════════════════════════════════════════ */
+
+/* ── Page container ── */
+@media (max-width: 900px) {
+  .page { max-width: 100%; margin: 0; padding: 32px 24px 60px; }
+  .page.dashboard-width { max-width: 100%; }
+}
+@media (max-width: 480px) {
+  .page { padding: 20px 16px 60px; }
+  .page-title { font-size: 1.6rem; }
+  .page-header { margin-bottom: 24px; }
+}
+
+/* ── Nav — wraps to 2-row scrollable layout on tablet (≤768px)
+   Row 1: logo (left) + sign-out text (right)
+   Row 2: nav links — scrollable, full width
+   At ≤640px: nav links hidden entirely (bottom tab bar takes over). */
+@media (max-width: 768px) {
+  .nav { padding: 14px 16px; gap: 8px; flex-wrap: wrap; }
+  .nav-links {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-meta  { gap: 8px; }
+  .nav-owner-text { display: none; } /* "Name · Role" hidden — saves space on mobile */
+}
+@media (max-width: 640px) {
+  /* Collapse to single-row top bar: logo (left) + sign-out icon (right) */
+  .nav { flex-wrap: nowrap; padding: 12px 16px; }
+  /* Nav links hidden — bottom tab bar handles navigation */
+  .nav-links { display: none; }
+  /* Swap sign-out: text → icon */
+  .sign-out-text     { display: none; }
+  .sign-out-icon-btn { display: flex; }
+  /* Show bottom tab bar */
+  .mobile-tab-bar { display: flex; }
+  /* Page bottom padding clears fixed tab bar + iOS safe area inset */
+  .page { padding-bottom: calc(60px + env(safe-area-inset-bottom) + 20px); }
+}
+@media (max-width: 480px) {
+  .nav-link { font-size: 12px; padding: 5px 10px; }
+}
+
+/* ── Toolbar — stack vertically on small screens ── */
+@media (max-width: 640px) {
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .search-wrap { max-width: 100%; }
+}
+
+/* ── Table — edge-to-edge on mobile ── */
+@media (max-width: 640px) {
+  .table-wrap { border-radius: 0; border-left: none; border-right: none; }
+  /* top padding: breathing room above first card; bottom handled by card margin */
+  .table-wrap table { padding-top: 8px; }
+  thead th, td { padding: 12px 16px; }
+}
+
+/* ── Touch targets — minimum 44px for all interactive elements ── */
+@media (max-width: 640px) {
+  tbody tr { min-height: 48px; }
+  .btn-solid   { min-height: 40px; }
+  .filter-tab  { min-height: 40px; }
+  .pagination-btn { min-height: 40px; min-width: 40px; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Floating Action Button (FAB) — mobile-only primary action
+   Usage: add className="fab" to any fixed primary action button.
+   Hidden on desktop (≥641px); shown as a fixed circular button
+   above the bottom tab bar on mobile (≤640px).
+   Always pair with a hidden header button using a page-specific
+   class (e.g. .members-add-btn) so desktop UX is unchanged.
+   ────────────────────────────────────────────────────────────── */
+.fab {
+  display: none; /* desktop: header button is used instead */
+  position: fixed;
+  bottom: calc(60px + env(safe-area-inset-bottom) + 16px);
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  color: #0d0d0f;
+  border: none;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  z-index: 45; /* above page content; below drawer (50) and modal */
+  box-shadow: 0 4px 20px rgba(74, 222, 128, 0.32), 0 2px 8px rgba(0,0,0,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.fab:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 28px rgba(74, 222, 128, 0.45), 0 2px 10px rgba(0,0,0,0.4);
+}
+.fab:active {
+  transform: scale(0.94);
+}
+
+@media (max-width: 640px) {
+  .fab { display: flex; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Mobile Filter Sheet — shared pattern for Members, Payments,
+   Attendance pages. A pill chip triggers a slide-up bottom sheet.
+   ────────────────────────────────────────────────────────────── */
+
+/* Filter chip — mobile trigger; hidden on desktop */
+.filter-chip {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-pill);
+  padding: 9px 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.filter-chip:hover { background: var(--bg3); }
+.filter-chip.has-filters {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+.filter-chip-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-green);
+  color: #0d0d0f;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 99px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+}
+
+/* Overlay */
+.filter-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 55;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Bottom sheet panel */
+.filter-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg2);
+  border-top: 1px solid var(--border-hi);
+  border-radius: 20px 20px 0 0;
+  z-index: 56;
+  max-height: 82vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+  animation: drawerSlideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.filter-sheet::-webkit-scrollbar { display: none; }
+
+/* Drag handle */
+.filter-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border-hi);
+  border-radius: 99px;
+  margin: 12px auto 0;
+}
+
+/* Sheet title */
+.filter-sheet-title {
+  padding: 18px 20px 8px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+/* Section label */
+.filter-sheet-section-label {
+  padding: 12px 20px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Thin rule between sections */
+.filter-sheet-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+
+/* Option row */
+.filter-sheet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: background 0.12s;
+  gap: 12px;
+  min-height: 52px;
+}
+.filter-sheet-row:hover { background: var(--bg3); }
+.filter-sheet-row.selected { background: var(--accent-green-dim); }
+
+.filter-sheet-row-label {
+  font-size: 15px;
+  color: var(--text-primary);
+  flex: 1;
+}
+.filter-sheet-row.selected .filter-sheet-row-label {
+  color: var(--accent-green);
+  font-weight: 500;
+}
+
+.filter-sheet-row-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg3);
+  border-radius: 99px;
+  padding: 2px 9px;
+  min-width: 28px;
+  text-align: center;
+}
+.filter-sheet-row.selected .filter-sheet-row-count {
+  background: var(--accent-green-dim);
+  color: var(--accent-green);
+}
+
+.filter-sheet-check {
+  color: var(--accent-green);
+  flex-shrink: 0;
+}
+
+/* Footer with apply + reset buttons */
+.filter-sheet-footer {
+  padding: 16px 20px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+.filter-sheet-apply {
+  flex: 1;
+  padding: 14px;
+  background: var(--accent-green);
+  color: #0d0d0f;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: opacity 0.15s;
+}
+.filter-sheet-apply:hover { opacity: 0.88; }
+
+.filter-sheet-reset {
+  padding: 14px 18px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.filter-sheet-reset:hover { border-color: var(--border-hi); color: var(--text-secondary); }
+
+/* Activate chip on mobile */
+@media (max-width: 640px) {
+  .filter-chip { display: flex; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Sort Dropdown — custom design-system sort picker
+   Shared between Payments and Members pages.
+   ────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Transparent click-catcher — closes dropdown on outside click */
+.sort-dd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+}
+
+.sort-dropdown-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.sort-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 14px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.sort-dropdown-btn:hover,
+.sort-dropdown-btn.open {
+  border-color: var(--border-hi);
+  color: var(--text-primary);
+  background: var(--bg3);
+}
+
+.sort-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--bg2);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-sm);
+  min-width: 170px;
+  z-index: 30;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  animation: fadeIn 0.12s ease;
+}
+
+.sort-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.1s;
+  gap: 10px;
+}
+.sort-dropdown-item:hover { background: var(--bg3); color: var(--text-primary); }
+.sort-dropdown-item.active { color: var(--accent-green); font-weight: 500; }
+
+@media (max-width: 640px) {
+  .sort-dropdown-btn { font-size: 12px; padding: 9px 12px; }
+}

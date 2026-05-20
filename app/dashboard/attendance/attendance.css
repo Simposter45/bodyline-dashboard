@@ -152,22 +152,61 @@
 
 /* ── Today's log table ── */
 
+/* Card header — avatar+info left, bell right (full width of the Member td) */
+.log-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
 /* Member cell inside the log table */
 .log-member-cell {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
+  min-width: 0;
 }
-.log-member-info { flex: 1; }
+.log-member-info { flex: 1; min-width: 0; }
 .log-member-name {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .log-member-phone {
   font-size: 12px;
   color: var(--text-muted);
   margin-top: 1px;
+}
+
+/* Bell reminder button — mobile only; desktop hidden */
+.att-card-bell {
+  display: none;
+}
+@media (max-width: 640px) {
+  .att-card-bell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--accent-amber);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .att-card-bell:hover {
+    background: rgba(251,191,36,0.08);
+    border-color: var(--accent-amber);
+  }
 }
 
 /* Time cells */
@@ -221,10 +260,107 @@
 }
 
 /* ── Responsive ── */
+/* .page padding is owned by globals.css — do not redefine here. */
 @media (max-width: 768px) {
   .checkin-panel { padding: 16px; }
-  .att-stats     { gap: 8px; }
+  .att-stats     { gap: 6px; }
+  .att-stat-chip { padding: 5px 10px; font-size: 12px; }
+
+  /* Range row: allow preset tabs to wrap to a 2nd line */
+  .range-row { gap: 8px; }
+
+  /* Date range inputs: stack vertically on tablet/phone */
+  .date-range-inputs { flex-direction: column; align-items: stretch; }
+  .date-range-input  { width: 100%; }
+  .date-range-sep    { display: none; }
 }
+@media (max-width: 640px) {
+  /* Table column hiding replaced by .responsive-table card-stack in globals.css. */
+
+  /* Pagination: stack info text above controls */
+  .pagination { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  /* Range preset tabs hidden — filter chip/sheet handles range selection */
+  .range-row { display: none; }
+
+  /* Desktop status filter tabs hidden — filter chip/sheet handles status */
+  .att-filter-tabs-group { display: none; }
+
+  /* Prevent card-stack rows from overflowing the viewport */
+  .table-wrap { overflow-x: hidden; }
+}
+@media (max-width: 480px) {
+  .checkin-btn  { padding: 6px 10px; font-size: 12px; }
+  .checkout-btn { padding: 5px 10px; font-size: 11px; }
+}
+
+/* ── Controls row — filter chip + status tabs + export; sits inside .toolbar ──
+   Desktop: inline flex (stays on toolbar row alongside search).
+   Mobile (≤640px): full-width row; filter-chip shows, tabs group hidden. */
+.att-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Export button — desktop shows label; mobile shows icon only */
+.att-export-btn {
+  margin-left: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  /* Controls row becomes full-width so chip stretches left and export sits right */
+  .att-controls-row {
+    width: 100%;
+    justify-content: space-between;
+  }
+  /* Filter chip fills available space to the left of the export icon */
+  .att-controls-row .filter-chip { flex: 1; justify-content: center; }
+  /* Hide "Export CSV" text — icon conveys meaning on small screens */
+  .att-export-label { display: none; }
+}
+
+/* ── Attendance card-stack overrides ─────────────────────────────────────────
+   Today mode:      Member <td> is :first-child → globals card-header applies ✓
+   Historical mode: Date <td> is :first-child, Member is :nth-child(2)
+   Strategy: use [data-label] attribute selectors so rules fire only on the
+   correct cell in each mode — no blanket :first-child override needed.
+   All selectors scoped to .att-table to prevent bleeding into other tables.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Member cell — card header in BOTH modes (left-aligned, full-width, no label).
+     In Today mode:      Member is :first-child → globals handles it + this reinforces.
+     In historical mode: Member is :nth-child(2) → this rule is the only one acting. */
+  table.att-table td[data-label="Member"] {
+    justify-content: flex-start;
+    text-align: left;
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.att-table td[data-label="Member"]::before { display: none; }
+
+  /* Date cell in historical mode — it IS :first-child then.
+     The globals td:first-child rule would card-header it; we un-do that here.
+     The [data-label="Date"]:first-child compound selector has higher specificity
+     (0,3,2) than the globals table.responsive-table td:first-child (0,2,2),
+     so it always wins when the Date td is present. */
+  table.att-table td[data-label="Date"]:first-child {
+    justify-content: space-between;
+    text-align: right;
+    padding-bottom: 6px;
+    margin-bottom: 0;
+    border-bottom: none;
+  }
+  /* Restore ::before label for Date (globals hides first-child::before) */
+  table.att-table td[data-label="Date"]:first-child::before { display: block; }
+}
+
+
+
 
 /* ── Range selector ── */
 
@@ -315,4 +451,49 @@
   border-color: var(--border-hi);
   color: var(--text-primary);
   font-weight: 500;
+}
+
+/* ── Card action cell — "View details" button (mobile only) ─────────────────
+   Desktop: th + td hidden entirely (saves column space).
+   Mobile:  full-width ghost button at the bottom of each card row.
+   Mirrors the .card-action-cell pattern in members.css.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (min-width: 641px) {
+  .att-card-action-th,
+  .att-card-action-cell { display: none; }
+}
+
+@media (max-width: 640px) {
+  .att-card-action-cell {
+    display: block !important;
+    padding: 10px 0 0 !important;
+    margin-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+  /* Suppress the auto-generated data-label ::before on this cell */
+  .att-card-action-cell::before { display: none !important; }
+
+  .att-card-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+    min-height: 40px;
+  }
+  .att-card-action-btn:hover {
+    background: var(--bg2);
+    border-color: var(--border-hi);
+    color: var(--text-primary);
+  }
 }

@@ -91,15 +91,118 @@
   color: var(--text-muted);
 }
 
+/* ── "View all" link at bottom of check-ins panel ── */
+.view-all-link {
+  display: block;
+  text-align: center;
+  padding: 13px 24px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.view-all-link:hover { color: var(--accent-green); }
+
 /* ── Responsive ── */
+/* .page padding is owned by globals.css — do not redefine here. */
 @media (max-width: 900px) {
   .stats-grid-members { grid-template-columns: repeat(2, 1fr); }
   .stats-grid-revenue { grid-template-columns: repeat(2, 1fr); }
   .bottom-grid        { grid-template-columns: 1fr; }
 }
-@media (max-width: 600px) {
-  .stats-grid-members { grid-template-columns: 1fr 1fr; }
+
+/* ─────────────────────────────────────────────────────
+   Mobile layout re-imagination (≤640px)
+   ───────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Header */
+  .greeting   { font-size: 1.7rem; }
+  .live-badge { display: none; }
+
+  /* ─── Reset the desktop transparent-border/negative-margin trick ─── */
+  /* On mobile both grids become single unified panels — no gap, no margin offset */
+  .stats-grid-members,
+  .stats-grid-revenue {
+    border: 1px solid var(--border) !important;
+    margin: 0 !important;
+    gap: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* All stat-grid children: corners handled by parent overflow:hidden */
+  .stats-grid > div { border-radius: 0 !important; min-width: 0; }
+
+  /* Individual StatCards: transparent — parent panel shows through */
+  .stats-grid-members .summary-card,
+  .stats-grid-revenue .summary-card {
+    background: transparent;
+    border: none;
+  }
+
+  /* ── Members: single-column list with dividers ── */
+  .stats-grid-members { grid-template-columns: 1fr; }
+  .stats-grid-members > div { aspect-ratio: unset; }
+
+  /* Row layout inside each card: label+sub left · value right */
+  .stats-grid-members .summary-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 0 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .stats-grid-members > div:last-child .summary-card { border-bottom: none; }
+
+  .stats-grid-members .summary-label { grid-column: 1; grid-row: 1; margin-bottom: 2px; }
+  .stats-grid-members .summary-sub   { grid-column: 1; grid-row: 2; margin-top: 0; }
+  .stats-grid-members .summary-value {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    font-size: clamp(1.4rem, 7vw, 1.8rem);
+    text-align: right;
+    margin-bottom: 0;
+  }
+
+  /* ── Revenue: hero row + 2-col subordinates, all in one panel ── */
   .stats-grid-revenue { grid-template-columns: 1fr 1fr; }
-  .greeting           { font-size: 1.9rem; }
-  .page               { padding: 24px 16px 60px; }
+
+  /* Hero spans full width */
+  .stats-grid-revenue > div:first-child { grid-column: 1 / -1; }
+  .stats-grid-revenue > div:first-child .summary-card {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .stats-grid-revenue > div:first-child .summary-value {
+    font-size: clamp(1.5rem, 7.5vw, 2rem);
+    margin-bottom: 4px;
+  }
+
+  /* Subordinate cards: compact, vertical divider between them */
+  .stats-grid-revenue > div:not(:first-child) .summary-card {
+    padding: 12px 14px;
+  }
+  .stats-grid-revenue > div:nth-child(2) .summary-card {
+    border-right: 1px solid var(--border);
+  }
+  .stats-grid-revenue > div:not(:first-child) .summary-value {
+    font-size: clamp(1rem, 5.5vw, 1.35rem);
+  }
+  .stats-grid-revenue > div:not(:first-child) .summary-label { font-size: 10px; }
+
+  /* ── Bottom panels: reduce row item padding ── */
+  .bottom-grid .row-item { padding: 12px 16px; gap: 10px; }
+  .panel-empty           { padding: 24px 16px; }
+}
+
+@media (max-width: 480px) {
+  .greeting  { font-size: 1.45rem; }
+  .date-pill { font-size: 12px; }
+}
+
+@media (max-width: 360px) {
+  .greeting { font-size: 1.25rem; }
 }

@@ -14,14 +14,83 @@
 .expiry-warning { color: var(--accent-amber); }
 .expiry-overdue { color: var(--accent-red); }
 
-/* ── Responsive (table column breakpoints) ── */
-@media (max-width: 900px) {
-  thead th:nth-child(4),
-  td:nth-child(4) { display: none; }
+/* ── Responsive ── */
+/* Table column hiding replaced by .responsive-table card-stack in globals.css.
+   Add className="responsive-table" to <table> + data-label attrs on every <td>. */
+
+/* ── Mobile: hide header add button — FAB takes over ── */
+@media (max-width: 640px) {
+  .members-add-btn { display: none; }
 }
-@media (max-width: 700px) {
-  thead th:nth-child(3),
-  td:nth-child(3) { display: none; }
-  .page { padding: 24px 16px 60px; }
-  .nav { padding: 16px; }
+
+/* ── Mobile: hide desktop filter tab rows — filter chip + sheet takes over ── */
+@media (max-width: 640px) {
+  .members-filter-tabs-group { display: none; }
+}
+
+/* ── Controls row — wraps filter chip/tabs + sort dropdown, always side by side ── */
+.members-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .members-controls-row {
+    margin-left: 0;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  /* Filter chip fills left side */
+  .members-controls-row .filter-chip {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* ── Card action cell — "View details" button inside each mobile card ──
+   Desktop: cell + th hidden (table keeps normal column layout).
+   Mobile: cell overrides responsive-table flex to a full-width block,
+   rendering the ghost button at the bottom of the card. */
+@media (min-width: 641px) {
+  .card-action-th,
+  .card-action-cell { display: none; }
+}
+
+@media (max-width: 640px) {
+  /* Override the responsive-table td flex layout for this specific cell */
+  .card-action-cell {
+    display: block !important;
+    padding: 10px 0 0 !important;
+    margin-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+  /* Suppress the ::before label pseudo-element */
+  .card-action-cell::before { display: none !important; }
+
+  .card-action-btn {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    min-height: 40px;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .card-action-btn:hover {
+    background: var(--bg3);
+    border-color: var(--border-hi);
+    color: var(--text-primary);
+  }
 }
