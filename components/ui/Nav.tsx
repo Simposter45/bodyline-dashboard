@@ -49,6 +49,21 @@ interface NavProps {
   role: "owner" | "trainer" | "member";
 }
 
+function hexToRgba(hex: string, alpha: number): string {
+  const cleanHex = hex.replace("#", "");
+  let r = 74, g = 222, b = 128; // Default to #4ade80 green
+  if (cleanHex.length === 3) {
+    r = parseInt(cleanHex.substring(0, 1).repeat(2), 16);
+    g = parseInt(cleanHex.substring(1, 2).repeat(2), 16);
+    b = parseInt(cleanHex.substring(2, 3).repeat(2), 16);
+  } else if (cleanHex.length === 6) {
+    r = parseInt(cleanHex.substring(0, 2), 16);
+    g = parseInt(cleanHex.substring(2, 4), 16);
+    b = parseInt(cleanHex.substring(4, 6), 16);
+  }
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export function Nav({ role }: NavProps) {
   const pathname = usePathname();
   const { data: settings } = useGymSettings();
@@ -73,8 +88,17 @@ export function Nav({ role }: NavProps) {
     window.location.href = "/login";
   };
 
+  const primaryColor = settings?.primary_color || "#4ade80";
+
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --accent-green: ${primaryColor};
+          --accent-green-dim: ${hexToRgba(primaryColor, 0.12)};
+          --accent-green-border: ${hexToRgba(primaryColor, 0.2)};
+        }
+      `}} />
       <nav className="nav">
         <div className="nav-logo">
           {settings?.gym_display_name ?? "Gym"}<span>.</span>
