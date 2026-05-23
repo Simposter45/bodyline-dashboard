@@ -903,7 +903,7 @@ function OnboardingContent() {
                 ) : (
                   <button
                     className={`btn-next${loading ? " loading" : ""}`}
-                    disabled={loading}
+                    disabled={loading || !settings?.gym_id}
                     onClick={handleSubmit}
                   >
                     {loading ? (
