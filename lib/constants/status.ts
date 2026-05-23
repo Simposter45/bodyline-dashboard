@@ -37,15 +37,15 @@ export interface StatusConfig {
 export const STATUS_CONFIG: Record<StatusKey, StatusConfig> = {
   active: {
     label:  "Active",
-    color:  ACCENT.green,
-    bg:     "rgba(74,222,128,0.1)",
-    border: "rgba(74,222,128,0.2)",
+    color:  "var(--accent-green)",
+    bg:     "var(--accent-green-dim)",
+    border: "var(--accent-green-border)",
   },
   paid: {
     label:  "Paid",
-    color:  ACCENT.green,
-    bg:     "rgba(74,222,128,0.1)",
-    border: "rgba(74,222,128,0.2)",
+    color:  "var(--accent-green)",
+    bg:     "var(--accent-green-dim)",
+    border: "var(--accent-green-border)",
   },
   expiring: {
     label:  "Expiring soon",

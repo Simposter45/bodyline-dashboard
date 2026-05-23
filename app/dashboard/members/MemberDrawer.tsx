@@ -133,7 +133,7 @@ export function MemberDrawer({ member, onClose }: MemberDrawerProps) {
               </div>
               <div className="drawer-info-item">
                 <span className="drawer-info-key">Paid</span>
-                <span className="drawer-info-val" style={{ color: ACCENT.green }}>
+                <span className="drawer-info-val" style={{ color: "var(--accent-green)" }}>
                   {formatINR(ms.amount_paid ?? 0)}
                 </span>
               </div>

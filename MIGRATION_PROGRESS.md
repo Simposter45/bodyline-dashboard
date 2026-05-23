@@ -227,12 +227,14 @@
         - **Overflow fix**: `.table-wrap { overflow-x: hidden }` at ≤640px
         - **Export CSV**: `.att-export-label { display: none }` on mobile — icon only
     - ✅ **Trainers page mobile UX** (`commit 3c5871a`) — **COMPLETE** — see 6.14 above
-- [x] **REFACT-008 FULLY COMPLETE** — Raise PR from `refactor/REFACT-008-mobile-responsive` → `main`
-- [ ] **CHORE-006 — Multi-Tenancy Verification** (branch `chore/CHORE-006-multitenancy-verification`)
-    - Seed a second test gym in `gyms` + `gym_settings`
-    - Verify subdomain middleware resolves `[gym-slug].localhost` correctly
-    - RLS isolation audit: zero data leakage across all 7 tables between gyms
-    - `usePublicGymStats` + `usePlans` confirmed per-gym scoped
+- [x] **REFACT-008 FULLY COMPLETE** — Merged to `main` (PR #13)
+- [x] **CHORE-006 — Multi-Tenancy Verification & Dynamic Branding** (branch `chore/CHORE-006-multitenancy-verification` — **FULLY COMPLETE — PR READY**)
+    - ✅ Seeded second test gym "Iron Temple" with custom plans, members, trainers and check constraint safeguards
+    - ✅ Hardened database RLS policies for anonymous public read and public insertion operations
+    - ✅ Implemented `?gym=slug` local dev routing resolution in subdomain middleware
+    - ✅ Audited RLS tenant isolation across all 8 tables (100% isolated, zero leakages verified)
+    - ✅ Added onboarding submission guard
+    - ✅ Implemented dynamic branding skinning based on the gym's `primary_color` (Bodyline = Green, Iron Temple = Blue)
 - [ ] **FEAT-006 — Pagination**: Members and Payments tables (25-row pattern, same as attendance)
 - [ ] **FEAT-009 — Member Portal Rebuild** (branch `feat/FEAT-009-member-portal-rebuild`)
     - 1,316-line monolith → TanStack hooks, co-located CSS, mobile-first, zero `useEffect`/`any`

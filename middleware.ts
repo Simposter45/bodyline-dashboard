@@ -54,6 +54,13 @@ export async function middleware(request: NextRequest) {
     if (parts.length > 1 && parts[0] !== "www") {
       slug = parts[0];
     }
+    // Local dev fallback: ?gym=slug when no subdomain is present.
+    // Allows testing irontemple.localhost:3000 OR localhost:3000?gym=irontemple.
+    // Only active for localhost — never reached in production.
+    if (!slug) {
+      const paramSlug = request.nextUrl.searchParams.get("gym");
+      if (paramSlug) slug = paramSlug;
+    }
   } else {
     // prod domains like gym1.bodyline.in
     const parts = host.split(".");
