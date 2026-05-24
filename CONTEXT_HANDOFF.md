@@ -87,22 +87,63 @@ $$ LANGUAGE sql STABLE;
 
 ---
 
-## 🔜 Next Tasks (Priority Order)
+## 🚀 Strategic Development Trajectory (Sprint Roadmap)
 
-| Priority | ID | Task | Branch | Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| 🔴 **High** | `FEAT-009` | **Member Portal Rebuild** | `feat/FEAT-009-member-portal-rebuild` | Monolith extraction (1,316 lines), TanStack Query hooks, co-located styles, self-service renewals |
-| 🔴 **High** | `FEAT-010` | **Trainer Portal Rebuild** | `feat/FEAT-010-trainer-portal-rebuild` | Monolith extraction (1,196 lines), assigned check-in views, notes, assigned members dues tracking, Trainer-Led Payment Collection (log cash/UPI payments for roster members), and **Trainer Attendance tracking** (trainers clock in/out — displayed on the Trainers page) |
-| 🔴 **High** | `FEAT-014` | **Membership Plan Manager** | `feat/FEAT-014-membership-plan-manager` | [NEW] Dashboard controls for managing gym membership plans (create, edit, delete plans) and assigning, pausing, or canceling subscriptions per member |
-| 🔴 **High** | `FEAT-007` | **Trainer Action Modals** | `feat/FEAT-007-trainer-actions` | `AddTrainerModal`, `AssignMemberModal`, `EditTrainerModal` (Modals TBD, buttons already wired) |
-| 🟡 **Medium** | `FEAT-011` | **QR Code Check-In** | `feat/FEAT-011-qr-attendance` | [ELEVATED] Lowest-cost, highest-performance check-in. Unique dynamic member QR codes scanned by a desk webcam/tablet to log attendance instantly |
-| 🟡 **Medium** | `CHORE-004` | **Branch-Level Attendance** | `feat/CHORE-004-branch-attendance` | Schema change: Add `branch` column to `attendance` table for location validation |
-| 🔵 **Low** | `CHORE-001` | **Atomic Member Creation** | — | Refactor 2-step insert (members → memberships) to use an atomic Supabase RPC |
-| 🔵 **Low** | `CHORE-002b` | **Auto Status Transition** | — | Database batch job (pg_cron) to auto-transition expired rows from pending to overdue |
-| 🔵 **Low** | `CHORE-003` | **Dynamic Timezones** | — | Resolve timezone offsets dynamically from `gym_settings.timezone` |
-| 🔵 **Low** | `FEAT-008` | **Loading Skeletons** | — | CSS skeleton shimmers to replace basic "Loading..." texts |
-| ⬛ **Backlog** | `FEAT-012` | **Send Reminder / WhatsApp Notifications** | — | Triggered from the **Payment drawer** for overdue/due-soon members. Channels: WhatsApp (Twilio/WATI), Email, SMS. Stubs already wired in JSX — needs provider decision before implementation |
-| ⬛ **Backlog** | `FEAT-013` | **Recharts Reports Dashboard** | — | Replace the non-functional Revenue Health card on the Payments page with a real interactive chart: Revenue ₹ + Member count on Y-axis, time on X-axis with toggles for Week / Month / 6 Months / Year |
+We structure our near-term roadmap into four high-focus Sprints, separating owner dashboard updates from full portal refactors:
+
+### 🔴 SPRINT 1 — Trainer Foundation & Admin Actions (Owner Dashboard)
+* **`FEAT-007` — Trainer Action Modals**: 
+  * Build the three core modals for owner management: `AddTrainerModal`, `AssignMemberModal`, and `EditTrainerModal` (buttons are already wired in the UI). Unblocks complete trainer configuration.
+* **`FEAT-012a` — Send Reminder Backend**:
+  * Build a unified, reusable WhatsApp server action/API. This single server action will be reused across the dashboard, particularly from the **Payment Drawer** for overdue/due-soon members.
+* **`FEAT-014` — Membership Plan Manager**:
+  * Implement admin dashboard controls for managing membership plans (create, edit, delete pricing options) and direct subscription operations (pausing, resuming, extending, canceling plans) within the `MemberDrawer`.
+
+---
+
+### 🔴 SPRINT 2 — Trainer Portal Rebuild (`FEAT-010`)
+* **Mobile-First Portal Rebuild**:
+  * Extract the 1,196-line Trainer Portal monolith into clean, modular components driven by TanStack Query hooks.
+* **Trainer Self Check-In / Attendance**:
+  * Clock-in and clock-out mechanisms for trainers to track their own attendance, rendering the historical logs on the owner's Trainers page.
+* **Session Logging**:
+  * Allow trainers to log workout/PT sessions completed with their assigned members.
+* **Assigned-Member Live Check-in View**:
+  * Roster-specific views showing real-time member check-ins and outstanding dues to drive direct trainer accountability on the floor.
+
+---
+
+### 🔴 SPRINT 3 — Member Portal Rebuild (`FEAT-009`)
+* **Mobile-First Portal Rebuild**:
+  * Refactor the 1,316-line bespoke Member Portal monolith into modular, hook-driven components with co-located CSS.
+* **Self-Service Renewal Request UI**:
+  * A member-facing request interface allowing members to submit renewal requests directly.
+* **Personal Attendance History**:
+  * Render comprehensive, IST-safe historical check-in logs for individual members.
+* **`FEAT-011` — QR Code Check-In Generation**:
+  * Naturally lands in this sprint. Generates unique, dynamic, and time-restricted QR codes in the Member Portal. When scanned by a desk webcam or tablet scanner, a server-side transaction validates status and logs attendance instantly.
+
+---
+
+### 🟡 SPRINT 4 — Analytics & Reporting
+* **`FEAT-013` — Revenue Health Graph**:
+  * Replace the static card on the Payments page with an interactive Recharts line/bar chart displaying collected revenue vs. member counts (dual axis) over Week, Month, 6 Months, and 1 Year scales.
+* **Attendance Heatmap**:
+  * Grid-based peak-hour check-in visualizers for managing floor capacity.
+* **Member Growth Trend**:
+  * Track active vs. expired subscriptions over time.
+
+---
+
+### 🔵 Ongoing / Non-Blocking Backlog
+* **`CHORE-004` — Branch-Level Attendance**:
+  * Schema update to add a `branch` column to the `attendance` table for location validation.
+* **`CHORE-001` — Atomic Member Creation**:
+  * Refactor the 2-step onboarding sequence (insert member → insert membership) into a single, atomic Supabase RPC.
+* **`CHORE-002b` — Auto Status Transition**:
+  * Set up database batch jobs (using `pg_cron` or Edge Functions) to automatically transition expired memberships from pending to overdue.
+* **`FEAT-008` — Loading Skeletons**:
+  * Add custom CSS skeleton shimmer loading screens to replace basic "Loading..." texts.
 
 ---
 
