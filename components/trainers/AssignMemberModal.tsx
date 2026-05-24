@@ -2,12 +2,12 @@
 
 // ============================================================
 // components/trainers/AssignMemberModal.tsx
-// FEAT-007 — Modal to assign a member to a trainer.
+// FEAT-007 — Modal to assign one or more members to a trainer.
 //
-// Loads all active members (useMembers), displays them as
-// selectable card rows with live search. On confirm, calls
-// useAssignMember which deactivates any prior assignment
-// for that member and creates a new one.
+// Multi-select: click any row to toggle selection. A summary
+// bar shows how many are selected. On confirm, bulk-assigns
+// all selected members via useAssignMember (which deactivates
+// any prior trainer assignment for each member first).
 // ============================================================
 
 import { useState, useMemo } from "react";
@@ -28,16 +28,16 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
   const { mutateAsync: assignMember, isPending } = useAssignMember();
   const { data: allMembers = [], isLoading: membersLoading } = useMembers();
 
-  const [query,      setQuery]      = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [query,       setQuery]       = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Active members only — filter out already-assigned ones to this trainer
-  // so the owner doesn't re-assign someone already on the roster.
+  // Members already on this trainer's current roster
   const alreadyAssignedIds = useMemo(
     () => new Set(trainer.assignments.map((a) => a.member_id)),
     [trainer.assignments],
   );
 
+  // Active members not yet assigned to this trainer
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return allMembers.filter((m) => {
@@ -51,25 +51,34 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
     });
   }, [allMembers, alreadyAssignedIds, query]);
 
+  const toggleMember = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const handleClose = () => {
     setQuery("");
-    setSelectedId(null);
+    setSelectedIds(new Set());
     onClose();
   };
 
   const handleConfirm = async () => {
-    if (!selectedId) return;
-    await assignMember({ trainerId: trainer.id, memberId: selectedId });
+    if (selectedIds.size === 0) return;
+    await assignMember({ trainerId: trainer.id, memberIds: Array.from(selectedIds) });
     handleClose();
   };
 
-  const selectedMember = filtered.find((m) => m.id === selectedId);
+  const selectedCount = selectedIds.size;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={`Assign Member — ${trainer.full_name}`}
+      title={`Assign Members — ${trainer.full_name}`}
     >
       <div className="am-container">
 
@@ -87,8 +96,8 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
           />
         </div>
 
-        {/* Member list */}
-        <div className="am-list" role="listbox" aria-label="Select a member">
+        {/* Member list — multi-select */}
+        <div className="am-list" role="listbox" aria-multiselectable="true" aria-label="Select members to assign">
           {membersLoading ? (
             <div className="am-empty">Loading members…</div>
           ) : filtered.length === 0 ? (
@@ -101,39 +110,39 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
             </div>
           ) : (
             filtered.map((m) => {
-              const isSelected = m.id === selectedId;
+              const isSelected = selectedIds.has(m.id);
               return (
                 <div
                   key={m.id}
                   id={`assign-member-row-${m.id}`}
                   className={`am-row${isSelected ? " am-row--selected" : ""}`}
-                  onClick={() => setSelectedId(isSelected ? null : m.id)}
+                  onClick={() => toggleMember(m.id)}
                   role="option"
                   aria-selected={isSelected}
                 >
+                  {/* Checkbox indicator */}
+                  <div className={`am-checkbox${isSelected ? " am-checkbox--checked" : ""}`}>
+                    {isSelected && <UserCheck size={11} />}
+                  </div>
                   <div className="am-avatar">{getInitials(m.full_name)}</div>
                   <div className="am-info">
                     <div className="am-name">{m.full_name}</div>
                     <div className="am-phone">{m.phone}</div>
                   </div>
-                  {isSelected && (
-                    <UserCheck size={16} className="am-check-icon" />
-                  )}
                 </div>
               );
             })
           )}
         </div>
 
-        {/* Confirm banner + actions */}
-        {selectedMember && (
-          <div className="am-confirm-banner">
-            <span className="am-confirm-text">
-              Assign <strong>{selectedMember.full_name}</strong> to this trainer?
-            </span>
-          </div>
-        )}
+        {/* Selection summary banner */}
+        <div className={`am-summary${selectedCount > 0 ? " am-summary--active" : ""}`}>
+          {selectedCount === 0
+            ? "Tap members above to select them"
+            : `${selectedCount} member${selectedCount > 1 ? "s" : ""} selected`}
+        </div>
 
+        {/* Actions */}
         <div className="am-actions">
           <button
             type="button"
@@ -147,10 +156,14 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
             type="button"
             id="assign-member-confirm"
             className="btn-solid"
-            disabled={!selectedId || isPending}
+            disabled={selectedCount === 0 || isPending}
             onClick={handleConfirm}
           >
-            {isPending ? "Assigning…" : "Confirm Assignment"}
+            {isPending
+              ? "Assigning…"
+              : selectedCount === 0
+                ? "Select Members"
+                : `Assign ${selectedCount} Member${selectedCount > 1 ? "s" : ""}`}
           </button>
         </div>
       </div>
@@ -159,7 +172,7 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
         .am-container {
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 12px;
         }
 
         /* Search */
@@ -193,8 +206,8 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
         .am-list {
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          max-height: 300px;
+          gap: 3px;
+          max-height: 280px;
           overflow-y: auto;
           border: 1px solid var(--border);
           border-radius: var(--radius-sm);
@@ -213,8 +226,8 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
         .am-row {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 10px 12px;
+          gap: 10px;
+          padding: 10px 10px;
           border-radius: calc(var(--radius-sm) - 2px);
           cursor: pointer;
           transition: background 0.15s;
@@ -224,26 +237,45 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
         .am-row:hover { background: var(--bg2); }
         .am-row--selected {
           background: var(--accent-green-dim);
+          border-color: rgba(74,222,128,0.2);
+        }
+
+        /* Checkbox */
+        .am-checkbox {
+          width: 18px;
+          height: 18px;
+          border-radius: 4px;
+          border: 1.5px solid var(--border-hi);
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s;
+          background: var(--bg2);
+        }
+        .am-checkbox--checked {
+          background: var(--accent-green);
           border-color: var(--accent-green);
+          color: #0d0d0f;
         }
 
         .am-avatar {
-          width: 36px;
-          height: 36px;
+          width: 34px;
+          height: 34px;
           border-radius: 50%;
           background: var(--bg2);
           border: 1px solid var(--border);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 600;
           color: var(--text-secondary);
           flex-shrink: 0;
         }
         .am-row--selected .am-avatar {
           background: var(--accent-green-dim);
-          border-color: var(--accent-green);
+          border-color: rgba(74,222,128,0.3);
           color: var(--accent-green);
         }
 
@@ -258,19 +290,24 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
         }
         .am-phone { font-size: 12px; color: var(--text-muted); }
 
-        .am-check-icon { color: var(--accent-green); flex-shrink: 0; }
-
-        /* Confirm banner */
-        .am-confirm-banner {
-          background: var(--accent-green-dim);
-          border: 1px solid rgba(74,222,128,0.2);
-          border-radius: var(--radius-sm);
+        /* Summary banner */
+        .am-summary {
           padding: 10px 14px;
+          border-radius: var(--radius-sm);
           font-size: 13px;
-          color: var(--text-secondary);
-          animation: slideIn 0.2s ease-out;
+          font-family: var(--font-body);
+          text-align: center;
+          transition: all 0.2s;
+          background: var(--bg3);
+          border: 1px solid var(--border);
+          color: var(--text-muted);
         }
-        .am-confirm-banner strong { color: var(--text-primary); }
+        .am-summary--active {
+          background: var(--accent-green-dim);
+          border-color: rgba(74,222,128,0.25);
+          color: var(--accent-green);
+          font-weight: 500;
+        }
 
         /* Actions */
         .am-actions {
@@ -278,7 +315,7 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
           align-items: center;
           justify-content: flex-end;
           gap: 12px;
-          padding-top: 14px;
+          padding-top: 12px;
           border-top: 1px solid var(--border);
         }
 
@@ -301,10 +338,7 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
         }
         .tf-btn-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateY(4px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
+        .btn-solid:disabled { opacity: 0.45; cursor: not-allowed; }
       `}</style>
     </Modal>
   );

@@ -102,55 +102,62 @@ export function useEditTrainer() {
 
 // ------------------------------------------------------------------
 // useAssignMember
-// Upsert pattern:
-//   1. Set is_current = false on all existing active assignments
-//      for this member (across any trainer).
-//   2. Insert a new assignment row with is_current = true.
-// This ensures a member always has at most one active trainer.
+// Bulk upsert pattern:
+//   1. Set is_current = false on all active assignments
+//      for ANY of the selected members (across any trainer).
+//   2. Bulk-insert new assignment rows (is_current = true)
+//      for all selected members in one call.
+// This ensures each member always has at most one active trainer.
 // ------------------------------------------------------------------
 
 interface AssignMemberPayload {
   trainerId: string;
-  memberId:  string;
+  memberIds: string[];  // multi-select: one or more members
 }
 
 export function useAssignMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ trainerId, memberId }: AssignMemberPayload) => {
+    mutationFn: async ({ trainerId, memberIds }: AssignMemberPayload) => {
+      if (memberIds.length === 0) return;
+
       const { data: { user }, error: userErr } = await supabase.auth.getUser();
       if (userErr || !user) throw new Error("Authentication error.");
 
       const gymId = user.app_metadata?.gym_id;
       if (!gymId) throw new Error("No gym assigned.");
 
-      // Step 1: deactivate any existing current assignment for this member
+      // Step 1: deactivate all active assignments for every selected member
       const { error: deactivateError } = await supabase
         .from("trainer_assignments")
         .update({ is_current: false })
-        .eq("member_id", memberId)
+        .in("member_id", memberIds)
         .eq("is_current", true);
       if (deactivateError) throw deactivateError;
 
-      // Step 2: insert the new assignment
+      // Step 2: bulk-insert new assignment rows for all selected members
+      const today = new Date().toISOString().split("T")[0];
+      const rows = memberIds.map((memberId) => ({
+        gym_id:        gymId,
+        trainer_id:    trainerId,
+        member_id:     memberId,
+        assigned_date: today,
+        is_current:    true,
+      }));
+
       const { error: insertError } = await supabase
         .from("trainer_assignments")
-        .insert({
-          gym_id:        gymId,
-          trainer_id:    trainerId,
-          member_id:     memberId,
-          assigned_date: new Date().toISOString().split("T")[0], // date portion only
-          is_current:    true,
-        });
+        .insert(rows);
       if (insertError) throw insertError;
     },
-    onSuccess: () => {
+    onSuccess: (_, { memberIds }) => {
       void queryClient.invalidateQueries({ queryKey: ["trainers"] });
-      toast.success("Member assigned to trainer");
+      const count = memberIds.length;
+      toast.success(count === 1 ? "Member assigned to trainer" : `${count} members assigned to trainer`);
     },
     onError: (error: unknown) => {
-      const msg = error instanceof Error ? error.message : "Failed to assign member";
+      const msg = error instanceof Error ? error.message : "Failed to assign members";
       toast.error(msg);
     },
   });
