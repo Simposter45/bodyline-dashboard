@@ -2,20 +2,26 @@
 
 // ============================================================
 // components/trainers/AssignMemberModal.tsx
-// FEAT-007 — Modal to assign one or more members to a trainer.
+// FEAT-007 — Modal to assign / reassign members to a trainer.
 //
-// Multi-select: click any row to toggle selection. A summary
-// bar shows how many are selected. On confirm, bulk-assigns
-// all selected members via useAssignMember (which deactivates
-// any prior trainer assignment for each member first).
+// Three member states:
+//   • Free      — no current trainer → can select normally
+//   • Reassign  — has a different trainer → shown with
+//                 "Assigned to X" badge; selecting triggers
+//                 a reassign (previous assignment deactivated)
+//   • Current   — already on THIS trainer → filtered out
+//
+// Multi-select: toggle rows freely across both categories.
+// Avatar photos shown; falls back to initials via <Avatar />.
 // ============================================================
 
 import { useState, useMemo } from "react";
-import { Search, UserCheck } from "lucide-react";
+import { Search } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
+import { Avatar } from "@/components/ui/Avatar";
 import { useAssignMember } from "@/hooks/useTrainerMutations";
 import { useMembers } from "@/hooks/useMembers";
-import { getInitials } from "@/lib/utils/format";
+import { useTrainers } from "@/hooks/useTrainers";
 import type { TrainerWithAssignments } from "@/hooks/useTrainers";
 
 interface AssignMemberModalProps {
@@ -26,30 +32,54 @@ interface AssignMemberModalProps {
 
 export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModalProps) {
   const { mutateAsync: assignMember, isPending } = useAssignMember();
-  const { data: allMembers = [], isLoading: membersLoading } = useMembers();
+  const { data: allMembers   = [] } = useMembers();
+  const { data: allTrainers  = [] } = useTrainers(); // already cached — zero extra fetch
 
   const [query,       setQuery]       = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Members already on this trainer's current roster
-  const alreadyAssignedIds = useMemo(
+  // ── Build a map: member_id → trainer name (for the CURRENT trainer's roster, skip — they're excluded)
+  const memberTrainerMap = useMemo(() => {
+    const map = new Map<string, string>(); // member_id → trainer full_name
+    for (const t of allTrainers) {
+      if (t.id === trainer.id) continue; // skip current trainer's own roster
+      for (const a of t.assignments) {
+        map.set(a.member_id, t.full_name);
+      }
+    }
+    return map;
+  }, [allTrainers, trainer.id]);
+
+  // Members on the CURRENT trainer's roster (excluded from the list)
+  const currentRosterIds = useMemo(
     () => new Set(trainer.assignments.map((a) => a.member_id)),
     [trainer.assignments],
   );
 
-  // Active members not yet assigned to this trainer
-  const filtered = useMemo(() => {
+  // ── Partition active members into free / reassignable
+  const { freeMembers, reassignMembers } = useMemo(() => {
     const q = query.toLowerCase();
-    return allMembers.filter((m) => {
-      if (!m.is_active) return false;
-      if (alreadyAssignedIds.has(m.id)) return false;
-      if (!q) return true;
-      return (
+    const free: typeof allMembers     = [];
+    const reassign: typeof allMembers = [];
+
+    for (const m of allMembers) {
+      if (!m.is_active) continue;
+      if (currentRosterIds.has(m.id)) continue; // already on this trainer
+
+      const matchesQuery =
+        !q ||
         m.full_name.toLowerCase().includes(q) ||
-        m.phone.includes(q)
-      );
-    });
-  }, [allMembers, alreadyAssignedIds, query]);
+        m.phone.includes(q);
+      if (!matchesQuery) continue;
+
+      if (memberTrainerMap.has(m.id)) {
+        reassign.push(m);
+      } else {
+        free.push(m);
+      }
+    }
+    return { freeMembers: free, reassignMembers: reassign };
+  }, [allMembers, currentRosterIds, memberTrainerMap, query]);
 
   const toggleMember = (id: string) => {
     setSelectedIds((prev) => {
@@ -72,7 +102,9 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
     handleClose();
   };
 
-  const selectedCount = selectedIds.size;
+  const selectedCount  = selectedIds.size;
+  const reassignCount  = Array.from(selectedIds).filter((id) => memberTrainerMap.has(id)).length;
+  const totalAvailable = freeMembers.length + reassignMembers.length;
 
   return (
     <Modal
@@ -96,50 +128,69 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
           />
         </div>
 
-        {/* Member list — multi-select */}
+        {/* Member list */}
         <div className="am-list" role="listbox" aria-multiselectable="true" aria-label="Select members to assign">
-          {membersLoading ? (
-            <div className="am-empty">Loading members…</div>
-          ) : filtered.length === 0 ? (
+          {totalAvailable === 0 ? (
             <div className="am-empty">
               {query
-                ? `No active members match "${query}"`
-                : alreadyAssignedIds.size > 0
-                  ? "All active members are already assigned to this trainer"
-                  : "No active members available"}
+                ? `No members match "${query}"`
+                : "No available members to assign"}
             </div>
           ) : (
-            filtered.map((m) => {
-              const isSelected = selectedIds.has(m.id);
-              return (
-                <div
-                  key={m.id}
-                  id={`assign-member-row-${m.id}`}
-                  className={`am-row${isSelected ? " am-row--selected" : ""}`}
-                  onClick={() => toggleMember(m.id)}
-                  role="option"
-                  aria-selected={isSelected}
-                >
-                  {/* Checkbox indicator */}
-                  <div className={`am-checkbox${isSelected ? " am-checkbox--checked" : ""}`}>
-                    {isSelected && <UserCheck size={11} />}
+            <>
+              {/* ── Free members ── */}
+              {freeMembers.length > 0 && (
+                <>
+                  {reassignMembers.length > 0 && (
+                    <div className="am-section-label">Available</div>
+                  )}
+                  {freeMembers.map((m) => {
+                    const isSelected = selectedIds.has(m.id);
+                    return (
+                      <MemberRow
+                        key={m.id}
+                        member={m}
+                        isSelected={isSelected}
+                        onToggle={() => toggleMember(m.id)}
+                        reassignFrom={null}
+                      />
+                    );
+                  })}
+                </>
+              )}
+
+              {/* ── Members assigned to another trainer ── */}
+              {reassignMembers.length > 0 && (
+                <>
+                  <div className="am-section-label am-section-label--warn">
+                    Reassign from another trainer
                   </div>
-                  <div className="am-avatar">{getInitials(m.full_name)}</div>
-                  <div className="am-info">
-                    <div className="am-name">{m.full_name}</div>
-                    <div className="am-phone">{m.phone}</div>
-                  </div>
-                </div>
-              );
-            })
+                  {reassignMembers.map((m) => {
+                    const isSelected = selectedIds.has(m.id);
+                    const currentTrainerName = memberTrainerMap.get(m.id) ?? "";
+                    return (
+                      <MemberRow
+                        key={m.id}
+                        member={m}
+                        isSelected={isSelected}
+                        onToggle={() => toggleMember(m.id)}
+                        reassignFrom={currentTrainerName}
+                      />
+                    );
+                  })}
+                </>
+              )}
+            </>
           )}
         </div>
 
-        {/* Selection summary banner */}
+        {/* Summary banner */}
         <div className={`am-summary${selectedCount > 0 ? " am-summary--active" : ""}`}>
           {selectedCount === 0
-            ? "Tap members above to select them"
-            : `${selectedCount} member${selectedCount > 1 ? "s" : ""} selected`}
+            ? "Tap members above to select"
+            : reassignCount > 0
+              ? `${selectedCount} selected · ${reassignCount} will be reassigned`
+              : `${selectedCount} member${selectedCount > 1 ? "s" : ""} selected`}
         </div>
 
         {/* Actions */}
@@ -163,7 +214,9 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
               ? "Assigning…"
               : selectedCount === 0
                 ? "Select Members"
-                : `Assign ${selectedCount} Member${selectedCount > 1 ? "s" : ""}`}
+                : reassignCount > 0
+                  ? `Assign & Reassign ${selectedCount}`
+                  : `Assign ${selectedCount} Member${selectedCount > 1 ? "s" : ""}`}
           </button>
         </div>
       </div>
@@ -201,13 +254,14 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
           transition: border-color 0.15s;
         }
         .am-search-input:focus { border-color: var(--accent-green); }
+        .am-search-input::placeholder { color: var(--text-muted); }
 
         /* Member list */
         .am-list {
           display: flex;
           flex-direction: column;
-          gap: 3px;
-          max-height: 280px;
+          gap: 2px;
+          max-height: 300px;
           overflow-y: auto;
           border: 1px solid var(--border);
           border-radius: var(--radius-sm);
@@ -223,21 +277,40 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
           color: var(--text-muted);
         }
 
+        /* Section headers */
+        .am-section-label {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.09em;
+          text-transform: uppercase;
+          color: var(--text-muted);
+          padding: 8px 10px 4px;
+        }
+        .am-section-label--warn {
+          color: var(--accent-amber);
+          opacity: 0.8;
+        }
+
+        /* Member rows */
         .am-row {
           display: flex;
           align-items: center;
           gap: 10px;
-          padding: 10px 10px;
+          padding: 8px 10px;
           border-radius: calc(var(--radius-sm) - 2px);
           cursor: pointer;
           transition: background 0.15s;
-          min-height: 44px;
+          min-height: 48px;
           border: 1px solid transparent;
         }
         .am-row:hover { background: var(--bg2); }
         .am-row--selected {
           background: var(--accent-green-dim);
           border-color: rgba(74,222,128,0.2);
+        }
+        .am-row--reassign.am-row--selected {
+          background: var(--accent-amber-dim);
+          border-color: rgba(251,191,36,0.25);
         }
 
         /* Checkbox */
@@ -250,33 +323,20 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
           display: flex;
           align-items: center;
           justify-content: center;
+          font-size: 11px;
           transition: all 0.15s;
           background: var(--bg2);
+          color: transparent;
         }
-        .am-checkbox--checked {
+        .am-row--selected .am-checkbox {
           background: var(--accent-green);
           border-color: var(--accent-green);
           color: #0d0d0f;
         }
-
-        .am-avatar {
-          width: 34px;
-          height: 34px;
-          border-radius: 50%;
-          background: var(--bg2);
-          border: 1px solid var(--border);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--text-secondary);
-          flex-shrink: 0;
-        }
-        .am-row--selected .am-avatar {
-          background: var(--accent-green-dim);
-          border-color: rgba(74,222,128,0.3);
-          color: var(--accent-green);
+        .am-row--reassign.am-row--selected .am-checkbox {
+          background: var(--accent-amber);
+          border-color: var(--accent-amber);
+          color: #0d0d0f;
         }
 
         .am-info { flex: 1; min-width: 0; }
@@ -288,7 +348,29 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
           overflow: hidden;
           text-overflow: ellipsis;
         }
-        .am-phone { font-size: 12px; color: var(--text-muted); }
+        .am-meta {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .am-phone {
+          font-size: 12px;
+          color: var(--text-muted);
+        }
+        .am-reassign-badge {
+          font-size: 10px;
+          font-weight: 600;
+          color: var(--accent-amber);
+          background: var(--accent-amber-dim);
+          border: 1px solid rgba(251,191,36,0.2);
+          border-radius: 99px;
+          padding: 1px 7px;
+          white-space: nowrap;
+          max-width: 140px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
 
         /* Summary banner */
         .am-summary {
@@ -337,9 +419,62 @@ export function AssignMemberModal({ isOpen, onClose, trainer }: AssignMemberModa
           color: var(--text-primary);
         }
         .tf-btn-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
-
         .btn-solid:disabled { opacity: 0.45; cursor: not-allowed; }
       `}</style>
     </Modal>
+  );
+}
+
+// ------------------------------------------------------------------
+// MemberRow — extracted sub-component for clean rendering
+// ------------------------------------------------------------------
+
+interface MemberRowProps {
+  member:       { id: string; full_name: string; phone: string; profile_photo_url: string | null };
+  isSelected:   boolean;
+  onToggle:     () => void;
+  reassignFrom: string | null; // null = free; string = trainer name
+}
+
+function MemberRow({ member, isSelected, onToggle, reassignFrom }: MemberRowProps) {
+  const isReassign = reassignFrom !== null;
+  const rowClass = [
+    "am-row",
+    isReassign   ? "am-row--reassign" : "",
+    isSelected   ? "am-row--selected" : "",
+  ].filter(Boolean).join(" ");
+
+  return (
+    <div
+      id={`assign-member-row-${member.id}`}
+      className={rowClass}
+      onClick={onToggle}
+      role="option"
+      aria-selected={isSelected}
+    >
+      {/* Checkbox */}
+      <div className="am-checkbox">✓</div>
+
+      {/* Avatar — photo if available, initials fallback */}
+      <Avatar
+        name={member.full_name}
+        src={member.profile_photo_url}
+        size={34}
+        accent={isReassign ? "amber" : "neutral"}
+      />
+
+      {/* Name + meta */}
+      <div className="am-info">
+        <div className="am-name">{member.full_name}</div>
+        <div className="am-meta">
+          <span className="am-phone">{member.phone}</span>
+          {isReassign && (
+            <span className="am-reassign-badge" title={`Currently: ${reassignFrom}`}>
+              ↩ {reassignFrom}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
