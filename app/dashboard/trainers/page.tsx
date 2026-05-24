@@ -68,18 +68,19 @@ function getSpecColor(spec: string | null) {
 function TrainerCard({
   trainer,
   isSelected,
-  onProfile,
-  onMembers,
+  onClick,
 }: {
   trainer: TrainerWithAssignments;
   isSelected: boolean;
-  onProfile: () => void;
-  onMembers: () => void;
+  onClick: () => void;
 }) {
   const specColor = getSpecColor(trainer.specialization);
 
   return (
-    <div className={`trainer-card${isSelected ? " trainer-card--selected" : ""}`}>
+    <div
+      className={`trainer-card${isSelected ? " trainer-card--selected" : ""}`}
+      onClick={onClick}
+    >
       {/* Top row: avatar + duty badge */}
       <div className="trainer-card-top">
         <div className="trainer-card-avatar">{getInitials(trainer.full_name)}</div>
@@ -109,25 +110,6 @@ function TrainerCard({
           {trainer.specialization}
         </span>
       )}
-
-      {/* Two action buttons — always visible; open drawer on mobile, update panel on desktop */}
-      <div className="trainer-card-actions">
-        <button
-          className="trainer-card-btn trainer-card-btn-ghost"
-          onClick={onProfile}
-          aria-label={`View profile for ${trainer.full_name}`}
-        >
-          Profile
-        </button>
-        <button
-          className="trainer-card-btn trainer-card-btn-outline"
-          onClick={onMembers}
-          aria-label={`View members for ${trainer.full_name}`}
-        >
-          Members
-          <span className="trainer-card-btn-badge">{trainer.assignments.length}</span>
-        </button>
-      </div>
     </div>
   );
 }
@@ -455,13 +437,9 @@ export default function TrainersPage() {
                 key={t.id}
                 trainer={t}
                 isSelected={t.id === effectiveSelectedId}
-                onProfile={() => {
+                onClick={() => {
                   setSelectedId(t.id);
                   if (window.innerWidth <= 640) { setDrawerTab("profile"); setIsDrawerOpen(true); }
-                }}
-                onMembers={() => {
-                  setSelectedId(t.id);
-                  if (window.innerWidth <= 640) { setDrawerTab("members"); setIsDrawerOpen(true); }
                 }}
               />
               ))
