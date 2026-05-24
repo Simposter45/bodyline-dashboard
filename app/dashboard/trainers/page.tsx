@@ -17,6 +17,7 @@ import { useState, useMemo } from "react";
 import { Phone, Mail, Plus, MapPin, CalendarDays, Search, SlidersHorizontal, Check } from "lucide-react";
 import { TrainerDrawer } from "./TrainerDrawer";
 import { Nav } from "@/components/ui/Nav";
+import { Avatar } from "@/components/ui/Avatar";
 import { useTrainers, type TrainerWithAssignments } from "@/hooks/useTrainers";
 import { getInitials, formatDate } from "@/lib/utils/format";
 import { AddTrainerModal } from "@/components/trainers/AddTrainerModal";
@@ -229,9 +230,11 @@ function AssignmentPanel({
         <div className="ap-members">
           {trainer.assignments.map((a) => (
             <div key={a.id} className="ap-member-row">
-              <div className="ap-member-avatar">
-                {getInitials(a.member.full_name)}
-              </div>
+              <Avatar
+                name={a.member.full_name}
+                src={a.member.profile_photo_url}
+                size={32}
+              />
               <div className="ap-member-info">
                 <div className="ap-member-name">{a.member.full_name}</div>
                 <div className="ap-member-sub">

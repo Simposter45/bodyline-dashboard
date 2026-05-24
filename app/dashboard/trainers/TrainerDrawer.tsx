@@ -9,6 +9,7 @@
 import "./TrainerDrawer.css";
 import { useState } from "react";
 import { X, Phone, Mail, MapPin, CalendarDays } from "lucide-react";
+import { Avatar } from "@/components/ui/Avatar";
 import { getInitials, formatDate } from "@/lib/utils/format";
 import type { TrainerWithAssignments } from "@/hooks/useTrainers";
 
@@ -136,9 +137,11 @@ export function TrainerDrawer({
               <div className="ap-members">
                 {trainer.assignments.map((a) => (
                   <div key={a.id} className="ap-member-row">
-                    <div className="ap-member-avatar">
-                      {getInitials(a.member.full_name)}
-                    </div>
+                    <Avatar
+                      name={a.member.full_name}
+                      src={a.member.profile_photo_url}
+                      size={32}
+                    />
                     <div className="ap-member-info">
                       <div className="ap-member-name">{a.member.full_name}</div>
                       <div className="ap-member-sub">
