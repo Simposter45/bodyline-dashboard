@@ -92,7 +92,7 @@ $$ LANGUAGE sql STABLE;
 | Priority | ID | Task | Branch | Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | 🔴 **High** | `FEAT-009` | **Member Portal Rebuild** | `feat/FEAT-009-member-portal-rebuild` | Monolith extraction (1,316 lines), TanStack Query hooks, co-located styles, self-service renewals |
-| 🔴 **High** | `FEAT-010` | **Trainer Portal Rebuild** | `feat/FEAT-010-trainer-portal-rebuild` | Monolith extraction (1,196 lines), assigned check-in views, notes, assigned members dues tracking, and Trainer-Led Payment Collection (log cash/UPI payments directly for roster members) |
+| 🔴 **High** | `FEAT-010` | **Trainer Portal Rebuild** | `feat/FEAT-010-trainer-portal-rebuild` | Monolith extraction (1,196 lines), assigned check-in views, notes, assigned members dues tracking, Trainer-Led Payment Collection (log cash/UPI payments for roster members), and **Trainer Attendance tracking** (trainers clock in/out — displayed on the Trainers page) |
 | 🔴 **High** | `FEAT-014` | **Membership Plan Manager** | `feat/FEAT-014-membership-plan-manager` | [NEW] Dashboard controls for managing gym membership plans (create, edit, delete plans) and assigning, pausing, or canceling subscriptions per member |
 | 🔴 **High** | `FEAT-007` | **Trainer Action Modals** | `feat/FEAT-007-trainer-actions` | `AddTrainerModal`, `AssignMemberModal`, `EditTrainerModal` (Modals TBD, buttons already wired) |
 | 🟡 **Medium** | `FEAT-011` | **QR Code Check-In** | `feat/FEAT-011-qr-attendance` | [ELEVATED] Lowest-cost, highest-performance check-in. Unique dynamic member QR codes scanned by a desk webcam/tablet to log attendance instantly |
@@ -101,8 +101,8 @@ $$ LANGUAGE sql STABLE;
 | 🔵 **Low** | `CHORE-002b` | **Auto Status Transition** | — | Database batch job (pg_cron) to auto-transition expired rows from pending to overdue |
 | 🔵 **Low** | `CHORE-003` | **Dynamic Timezones** | — | Resolve timezone offsets dynamically from `gym_settings.timezone` |
 | 🔵 **Low** | `FEAT-008` | **Loading Skeletons** | — | CSS skeleton shimmers to replace basic "Loading..." texts |
-| ⬛ **Backlog** | `FEAT-012` | **WhatsApp Notifications** | — | Expiry and registration notifications via Twilio/WATI (stubs are already wired in JSX) |
-| ⬛ **Backlog** | `FEAT-013` | **Recharts Reports Dashboard** | — | Graphical statistics, revenue charts, and attendance heatmaps |
+| ⬛ **Backlog** | `FEAT-012` | **Send Reminder / WhatsApp Notifications** | — | Triggered from the **Payment drawer** for overdue/due-soon members. Channels: WhatsApp (Twilio/WATI), Email, SMS. Stubs already wired in JSX — needs provider decision before implementation |
+| ⬛ **Backlog** | `FEAT-013` | **Recharts Reports Dashboard** | — | Replace the non-functional Revenue Health card on the Payments page with a real interactive chart: Revenue ₹ + Member count on Y-axis, time on X-axis with toggles for Week / Month / 6 Months / Year |
 
 ---
 
@@ -225,3 +225,33 @@ With zero physical gate lock or biometric systems set up, we adopt a software-ba
 Rather than static plan types, owners need standard administrative controls to manage all membership packages:
 * **Plans Dashboard**: Add controls to configure gym plans (name, price, duration in months, maximum freeze allowance) (`FEAT-014`).
 * **Direct Operations**: Give the gym owner full permission to pause subscriptions (for travel or medical reasons), extend active plans, or cancel and void member memberships directly through the Member Drawer.
+
+### 4. Trainer Attendance Tracking
+Trainers are accountable staff, not just service providers — their own attendance must be tracked:
+* **Clock In / Clock Out**: Trainers mark their own attendance (likely via the Trainer Portal or a dedicated desk panel).
+* **Owner Visibility**: The Trainers page on the owner dashboard displays daily/weekly trainer attendance logs alongside member assignment data.
+* **Scope**: Part of `FEAT-010` (Trainer Portal Rebuild). Schema may reuse or extend the existing `attendance` table with a `role` discriminator column, or use a separate `trainer_attendance` table — to be decided at implementation time.
+
+---
+
+## 🚧 Open / Deferred Decisions (Payments Page)
+
+The following items from the Payments page were raised and need resolution before the next agent picks them up:
+
+### 1. Mark as Paid vs. Record Payment
+* **Current state**: A `RecordPaymentModal` already exists and is the canonical way to log a payment.
+* **Question**: Is a separate one-click "Mark as Paid" button in the Payment Drawer actually needed, or is `RecordPaymentModal` sufficient for all cases?
+* **Tentative conclusion**: Keep only `RecordPaymentModal`. Remove or hide any redundant "Mark as Paid" button to avoid dual code paths. **Confirm before building.**
+
+### 2. Send Reminder — Channel & Provider
+* **Importance**: Flagged as the single most important owner-facing action on the Payments page.
+* **Trigger point**: Button inside the Payment Drawer for a specific overdue/due-soon member.
+* **Channels under consideration**: WhatsApp (Twilio Messaging API or WATI), Email (Resend/SendGrid), plain SMS.
+* **Decision needed**: Which channel(s) to launch with. WATI is the most practical for Indian gym WhatsApp flows. No provider has been set up yet — this must be chosen before `FEAT-012` is scoped.
+
+### 3. Revenue Health Card → Revenue Graph
+* **Current state**: The Revenue Health card on the Payments page is a static UI element with no real data behind it.
+* **Agreed direction**: Replace it with an interactive Recharts line/bar graph.
+  * **Y-axis**: Revenue (₹) and/or Member count (dual axis).
+  * **X-axis**: Time — toggle between Week / Month / 6 Months / Year.
+* **Ticket**: `FEAT-013` — currently in Backlog. Should be promoted to Medium priority once `FEAT-009` and `FEAT-010` are done.
