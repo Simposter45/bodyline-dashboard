@@ -92,12 +92,14 @@ $$ LANGUAGE sql STABLE;
 We structure our near-term roadmap into four high-focus Sprints, separating owner dashboard updates from full portal refactors:
 
 ### 🔴 SPRINT 1 — Trainer Foundation & Admin Actions (Owner Dashboard)
-* **`FEAT-007` — Trainer Action Modals**: 
-  * Build the three core modals for owner management: `AddTrainerModal`, `AssignMemberModal`, and `EditTrainerModal` (buttons are already wired in the UI). Unblocks complete trainer configuration.
+* **`FEAT-007` — Trainer Action Modals**: **DONE ✅**
+  * Built the core modals (`AddTrainerModal`, `AssignMemberModal`, `EditTrainerModal`) and established the bulk-assignment upsert pattern and RLS gym_id injection. Unblocked complete trainer configuration.
 * **`FEAT-012a` — Send Reminder Backend**:
   * Build a unified, reusable WhatsApp server action/API. This single server action will be reused across the dashboard, particularly from the **Payment Drawer** for overdue/due-soon members.
 * **`FEAT-014` — Membership Plan Manager**:
   * Implement admin dashboard controls for managing membership plans (create, edit, delete pricing options) and direct subscription operations (pausing, resuming, extending, canceling plans) within the `MemberDrawer`.
+* **`FEAT-015` — Owner Profile & Settings Page**:
+  * Build a dedicated profile page for the gym owner to view/edit their personal details (Name, Contact info) and securely manage account credentials (Password change flow).
 
 ---
 
