@@ -31,7 +31,14 @@ export function useAddTrainer() {
 
   return useMutation({
     mutationFn: async (data: AddTrainerFormData) => {
+      const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !user) throw new Error("Authentication error.");
+
+      const gymId = user.app_metadata?.gym_id;
+      if (!gymId) throw new Error("No gym assigned.");
+
       const payload = {
+        gym_id: gymId,
         full_name: data.full_name,
         phone:          data.phone          || null,
         email:          data.email          || null,
@@ -112,6 +119,12 @@ export function useAssignMember() {
 
   return useMutation({
     mutationFn: async ({ trainerId, memberId }: AssignMemberPayload) => {
+      const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !user) throw new Error("Authentication error.");
+
+      const gymId = user.app_metadata?.gym_id;
+      if (!gymId) throw new Error("No gym assigned.");
+
       // Step 1: deactivate any existing current assignment for this member
       const { error: deactivateError } = await supabase
         .from("trainer_assignments")
@@ -124,6 +137,7 @@ export function useAssignMember() {
       const { error: insertError } = await supabase
         .from("trainer_assignments")
         .insert({
+          gym_id:        gymId,
           trainer_id:    trainerId,
           member_id:     memberId,
           assigned_date: new Date().toISOString().split("T")[0], // date portion only
