@@ -360,11 +360,69 @@
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ── Desktop: Hide action buttons (entire card is clickable) ── */
+.trainer-card-actions {
+  display: none;
+}
 
 /* ── Responsive ── */
 /* .trainers-layout collapses to 1-col at ≤960px (above).
    .page padding is owned by globals.css — do not redefine here. */
 @media (max-width: 640px) {
+  .trainer-card-name { font-size: 15px; }
+  .trainer-card-top { margin-bottom: 12px; }
+  .trainer-card-avatar { width: 36px; height: 36px; font-size: 13px; }
+
+  /* ── Mobile: Show Action Buttons on Trainer Card ── */
+  .trainer-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .trainer-card-btn {
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    white-space: nowrap;
+  }
+  .trainer-card-btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border-hi);
+    color: var(--text-secondary);
+  }
+  .trainer-card-btn-ghost:hover {
+    background: var(--bg3);
+    color: var(--text-primary);
+  }
+  .trainer-card-btn-outline {
+    background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.25);
+    color: var(--accent-green);
+  }
+  .trainer-card-btn-outline:hover {
+    background: rgba(74,222,128,0.15);
+  }
+  .trainer-card-btn-badge {
+    background: rgba(74,222,128,0.2);
+    color: var(--accent-green);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 99px;
+    min-width: 18px;
+    text-align: center;
+  }
+
   .trainer-card         { padding: 16px; }
   .trainer-card-stats   { gap: 12px; flex-wrap: wrap; }
 

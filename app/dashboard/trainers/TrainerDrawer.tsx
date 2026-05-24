@@ -125,6 +125,17 @@ export function TrainerDrawer({
                 {formatDate(trainer.created_at)}
               </div>
             </div>
+
+            <div className="tr-drawer-divider" />
+            <div className="ap-actions">
+              <button
+                className="ap-btn ap-btn-secondary"
+                onClick={onEdit}
+                id="trainer-drawer-edit-btn"
+              >
+                Edit trainer
+              </button>
+            </div>
           </div>
         )}
 
@@ -158,7 +169,6 @@ export function TrainerDrawer({
 
             <div className="tr-drawer-divider" />
 
-            {/* Actions — FEAT-007 */}
             <div className="ap-actions">
               <button
                 className="ap-btn ap-btn-primary"
@@ -166,13 +176,6 @@ export function TrainerDrawer({
                 id="trainer-drawer-assign-btn"
               >
                 Assign member
-              </button>
-              <button
-                className="ap-btn ap-btn-secondary"
-                onClick={onEdit}
-                id="trainer-drawer-edit-btn"
-              >
-                Edit trainer
               </button>
             </div>
           </div>

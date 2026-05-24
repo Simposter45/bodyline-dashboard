@@ -69,10 +69,14 @@ function TrainerCard({
   trainer,
   isSelected,
   onClick,
+  onProfile,
+  onMembers,
 }: {
   trainer: TrainerWithAssignments;
   isSelected: boolean;
   onClick: () => void;
+  onProfile: () => void;
+  onMembers: () => void;
 }) {
   const specColor = getSpecColor(trainer.specialization);
 
@@ -110,6 +114,25 @@ function TrainerCard({
           {trainer.specialization}
         </span>
       )}
+
+      {/* Two action buttons — shown only on mobile via CSS */}
+      <div className="trainer-card-actions">
+        <button
+          className="trainer-card-btn trainer-card-btn-ghost"
+          onClick={(e) => { e.stopPropagation(); onProfile(); }}
+          aria-label={`View profile for ${trainer.full_name}`}
+        >
+          Profile
+        </button>
+        <button
+          className="trainer-card-btn trainer-card-btn-outline"
+          onClick={(e) => { e.stopPropagation(); onMembers(); }}
+          aria-label={`View members for ${trainer.full_name}`}
+        >
+          Members
+          <span className="trainer-card-btn-badge">{trainer.assignments.length}</span>
+        </button>
+      </div>
     </div>
   );
 }
@@ -198,6 +221,16 @@ function AssignmentPanel({
         </div>
       </div>
 
+      <div className="ap-actions" style={{ marginTop: 12 }}>
+        <button
+          className="ap-btn ap-btn-secondary"
+          onClick={onEdit}
+          id="trainer-panel-edit-btn"
+        >
+          Edit trainer
+        </button>
+      </div>
+
       <div className="ap-divider" />
 
       {/* ── Section B: Assigned Members ── */}
@@ -231,23 +264,14 @@ function AssignmentPanel({
         </div>
       )}
 
-      <div className="ap-divider" />
-
-      {/* ── Section D: Actions — FEAT-007 ── */}
-      <div className="ap-actions">
+      {/* ── Section C: Assign Action ── */}
+      <div className="ap-actions" style={{ marginTop: 12 }}>
         <button
           className="ap-btn ap-btn-primary"
           onClick={onAssign}
           id="trainer-panel-assign-btn"
         >
           Assign member
-        </button>
-        <button
-          className="ap-btn ap-btn-secondary"
-          onClick={onEdit}
-          id="trainer-panel-edit-btn"
-        >
-          Edit trainer
         </button>
       </div>
     </div>
@@ -440,6 +464,14 @@ export default function TrainersPage() {
                 onClick={() => {
                   setSelectedId(t.id);
                   if (window.innerWidth <= 640) { setDrawerTab("profile"); setIsDrawerOpen(true); }
+                }}
+                onProfile={() => {
+                  setSelectedId(t.id);
+                  if (window.innerWidth <= 640) { setDrawerTab("profile"); setIsDrawerOpen(true); }
+                }}
+                onMembers={() => {
+                  setSelectedId(t.id);
+                  if (window.innerWidth <= 640) { setDrawerTab("members"); setIsDrawerOpen(true); }
                 }}
               />
               ))
