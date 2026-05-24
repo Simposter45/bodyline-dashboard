@@ -19,6 +19,9 @@ import { TrainerDrawer } from "./TrainerDrawer";
 import { Nav } from "@/components/ui/Nav";
 import { useTrainers, type TrainerWithAssignments } from "@/hooks/useTrainers";
 import { getInitials, formatDate } from "@/lib/utils/format";
+import { AddTrainerModal } from "@/components/trainers/AddTrainerModal";
+import { EditTrainerModal } from "@/components/trainers/EditTrainerModal";
+import { AssignMemberModal } from "@/components/trainers/AssignMemberModal";
 import "./trainers.css";
 
 // ------------------------------------------------------------------
@@ -132,7 +135,15 @@ function TrainerCard({
 // Assignment panel (right column)
 // ------------------------------------------------------------------
 
-function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
+function AssignmentPanel({
+  trainer,
+  onAssign,
+  onEdit,
+}: {
+  trainer: TrainerWithAssignments;
+  onAssign: () => void;
+  onEdit: () => void;
+}) {
   const specColor = getSpecColor(trainer.specialization);
 
   return (
@@ -237,10 +248,22 @@ function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
 
       <div className="ap-divider" />
 
-      {/* ── Section D: Actions — FEAT-007 stubs ── */}
+      {/* ── Section D: Actions — FEAT-007 ── */}
       <div className="ap-actions">
-        <button className="ap-btn ap-btn-primary">Assign member</button>
-        <button className="ap-btn ap-btn-secondary">Edit trainer</button>
+        <button
+          className="ap-btn ap-btn-primary"
+          onClick={onAssign}
+          id="trainer-panel-assign-btn"
+        >
+          Assign member
+        </button>
+        <button
+          className="ap-btn ap-btn-secondary"
+          onClick={onEdit}
+          id="trainer-panel-edit-btn"
+        >
+          Edit trainer
+        </button>
       </div>
     </div>
   );
@@ -252,9 +275,14 @@ function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
 
 export default function TrainersPage() {
   const { data: trainers = [], isLoading, error } = useTrainers();
-  const [selectedId,    setSelectedId]    = useState<string | null>(null);
-  const [isDrawerOpen,  setIsDrawerOpen]  = useState(false);
-  const [drawerTab,     setDrawerTab]     = useState<"profile" | "members">("profile");
+  const [selectedId,      setSelectedId]      = useState<string | null>(null);
+  const [isDrawerOpen,    setIsDrawerOpen]    = useState(false);
+  const [drawerTab,       setDrawerTab]       = useState<"profile" | "members">("profile");
+
+  // FEAT-007 modal state
+  const [isAddOpen,    setIsAddOpen]    = useState(false);
+  const [isEditOpen,   setIsEditOpen]   = useState(false);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
 
   // Auto-select first trainer once data loads
   const effectiveSelectedId =
@@ -354,8 +382,11 @@ export default function TrainersPage() {
               {activeCount} active · {totalAssigned} members currently assigned
             </p>
           </div>
-          {/* FEAT-007: Add Trainer modal — button wired, modal TBD */}
-          <button className="btn-solid trainers-add-btn">
+          <button
+            className="btn-solid trainers-add-btn"
+            onClick={() => setIsAddOpen(true)}
+            id="trainers-add-btn"
+          >
             <Plus size={14} />
             Add trainer
           </button>
@@ -436,7 +467,11 @@ export default function TrainersPage() {
 
           {/* Assignment panel */}
           {selected ? (
-            <AssignmentPanel trainer={selected} />
+            <AssignmentPanel
+              trainer={selected}
+              onAssign={() => setIsAssignOpen(true)}
+              onEdit={() => setIsEditOpen(true)}
+            />
           ) : (
             <div className="panel-empty">Select a trainer to view details.</div>
           )}
@@ -488,6 +523,7 @@ export default function TrainersPage() {
         id="trainers-fab"
         className="fab"
         aria-label="Add trainer"
+        onClick={() => setIsAddOpen(true)}
       >
         <Plus size={22} />
       </button>
@@ -498,7 +534,30 @@ export default function TrainersPage() {
           trainer={selected}
           defaultTab={drawerTab}
           onClose={() => setIsDrawerOpen(false)}
+          onAssign={() => { setIsDrawerOpen(false); setIsAssignOpen(true); }}
+          onEdit={() => { setIsDrawerOpen(false); setIsEditOpen(true); }}
         />
+      )}
+
+      {/* FEAT-007 — Trainer action modals */}
+      <AddTrainerModal
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+      />
+
+      {selected && (
+        <>
+          <EditTrainerModal
+            isOpen={isEditOpen}
+            onClose={() => setIsEditOpen(false)}
+            trainer={selected}
+          />
+          <AssignMemberModal
+            isOpen={isAssignOpen}
+            onClose={() => setIsAssignOpen(false)}
+            trainer={selected}
+          />
+        </>
       )}
     </>
   );

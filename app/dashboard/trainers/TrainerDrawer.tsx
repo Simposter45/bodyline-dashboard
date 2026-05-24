@@ -16,12 +16,16 @@ interface TrainerDrawerProps {
   trainer: TrainerWithAssignments;
   onClose: () => void;
   defaultTab?: "profile" | "members";
+  onAssign?: () => void;
+  onEdit?: () => void;
 }
 
 export function TrainerDrawer({
   trainer,
   onClose,
   defaultTab = "profile",
+  onAssign,
+  onEdit,
 }: TrainerDrawerProps) {
   const [activeTab, setActiveTab] = useState<"profile" | "members">(defaultTab);
   const specColor = getSpecColorDrawer(trainer.specialization);
@@ -151,10 +155,22 @@ export function TrainerDrawer({
 
             <div className="tr-drawer-divider" />
 
-            {/* Actions — FEAT-007 stubs */}
+            {/* Actions — FEAT-007 */}
             <div className="ap-actions">
-              <button className="ap-btn ap-btn-primary">Assign member</button>
-              <button className="ap-btn ap-btn-secondary">Edit trainer</button>
+              <button
+                className="ap-btn ap-btn-primary"
+                onClick={onAssign}
+                id="trainer-drawer-assign-btn"
+              >
+                Assign member
+              </button>
+              <button
+                className="ap-btn ap-btn-secondary"
+                onClick={onEdit}
+                id="trainer-drawer-edit-btn"
+              >
+                Edit trainer
+              </button>
             </div>
           </div>
         )}
