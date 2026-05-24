@@ -92,16 +92,17 @@ $$ LANGUAGE sql STABLE;
 | Priority | ID | Task | Branch | Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | 🔴 **High** | `FEAT-009` | **Member Portal Rebuild** | `feat/FEAT-009-member-portal-rebuild` | Monolith extraction (1,316 lines), TanStack Query hooks, co-located styles, self-service renewals |
-| 🔴 **High** | `FEAT-010` | **Trainer Portal Rebuild** | `feat/FEAT-010-trainer-portal-rebuild` | Monolith extraction (1,196 lines), assigned check-in views, notes |
+| 🔴 **High** | `FEAT-010` | **Trainer Portal Rebuild** | `feat/FEAT-010-trainer-portal-rebuild` | Monolith extraction (1,196 lines), assigned check-in views, notes, assigned members dues tracking, and Trainer-Led Payment Collection (log cash/UPI payments directly for roster members) |
+| 🔴 **High** | `FEAT-014` | **Membership Plan Manager** | `feat/FEAT-014-membership-plan-manager` | [NEW] Dashboard controls for managing gym membership plans (create, edit, delete plans) and assigning, pausing, or canceling subscriptions per member |
 | 🔴 **High** | `FEAT-007` | **Trainer Action Modals** | `feat/FEAT-007-trainer-actions` | `AddTrainerModal`, `AssignMemberModal`, `EditTrainerModal` (Modals TBD, buttons already wired) |
+| 🟡 **Medium** | `FEAT-011` | **QR Code Check-In** | `feat/FEAT-011-qr-attendance` | [ELEVATED] Lowest-cost, highest-performance check-in. Unique dynamic member QR codes scanned by a desk webcam/tablet to log attendance instantly |
 | 🟡 **Medium** | `CHORE-004` | **Branch-Level Attendance** | `feat/CHORE-004-branch-attendance` | Schema change: Add `branch` column to `attendance` table for location validation |
 | 🔵 **Low** | `CHORE-001` | **Atomic Member Creation** | — | Refactor 2-step insert (members → memberships) to use an atomic Supabase RPC |
 | 🔵 **Low** | `CHORE-002b` | **Auto Status Transition** | — | Database batch job (pg_cron) to auto-transition expired rows from pending to overdue |
 | 🔵 **Low** | `CHORE-003` | **Dynamic Timezones** | — | Resolve timezone offsets dynamically from `gym_settings.timezone` |
 | 🔵 **Low** | `FEAT-008` | **Loading Skeletons** | — | CSS skeleton shimmers to replace basic "Loading..." texts |
-| ⬛ **Backlog** | `FEAT-011` | **QR Code Check-In** | — | Auto check-in scans via `/checkin?member=uuid` |
 | ⬛ **Backlog** | `FEAT-012` | **WhatsApp Notifications** | — | Expiry and registration notifications via Twilio/WATI (stubs are already wired in JSX) |
-| ⬛ **Backlog` | `FEAT-013` | **Recharts Reports Dashboard** | — | Graphical statistics, revenue charts, and attendance heatmaps |
+| ⬛ **Backlog** | `FEAT-013` | **Recharts Reports Dashboard** | — | Graphical statistics, revenue charts, and attendance heatmaps |
 
 ---
 
@@ -195,3 +196,32 @@ hooks/
 * **Launch Dev Server**: `npm run dev` (Runs locally on `localhost:3000`)
 * **Subdomain Emulation**: Use `bodyline.localhost:3000` or attach query params `?gym=bodyline` or `?gym=iron-temple` to bypass subdomain routing locally.
 * **Types Check**: Proactively run `npx tsc --noEmit` to verify type safety before proposing commits.
+
+---
+
+## 📱 Mobile-First Styling & Unified UI/UX Standards
+
+Starting with all new features, we enforce a strict **Mobile-First Responsive design** standard. Instead of separate parallel codebases, we maintain a single, highly-adaptive codebase:
+* **Tailwind & Vanilla Media Queries**: Layouts must dynamically transform based on screen widths (e.g. desktop side-by-side tables become swipable, touch-friendly card decks on screens `≤640px`).
+* **Mobile Drawer Standard**: In desktop views, side panels or modals are acceptable, but on mobile, these **must** resolve as bottom drawer sheets (`MemberDrawer` and `PaymentDrawer` style).
+* **High Touch-Target Design**: All interactive items, buttons, input fields, and status toggles must have a minimum interactive height/width of `44px` for easy tap actions on mobile screens.
+
+---
+
+## 🇮🇳 Special Indian Gym Operational Features & Strategic Blueprint
+
+### 1. Trainer Financial & Roster Accountability
+In Indian gyms, trainers act as direct relationship managers for their member roster:
+* **Assigned Member Dues Tracking**: Trainers can check their assigned members' pending dues directly inside the rebuilt Trainer Portal (`FEAT-010`).
+* **Trainer-Led Payment Collection**: Enables trainers on the floor to collect payments (Cash/UPI) directly from members and record them in the system. The collected payment is marked with a reference tag `recorded_by_trainer_id` for owner reconciliation.
+
+### 2. QR Code Attendance Strategy (Lowest Cost, Highest Performance)
+With zero physical gate lock or biometric systems set up, we adopt a software-based dynamic QR Code system as the ultimate low-cost, high-performance solution:
+* **No Hardware Overhead**: Avoids expensive biometric devices or integration protocols.
+* **Member Digital ID**: The rebuilt Member Portal (`FEAT-009`) will generate a dynamic, time-limited secure QR code representing the member's unique UUID.
+* **Desk Scanner Interface**: A simple webcam or dedicated cheap tablet interface scanning desk-side. When scanned, a database transaction checks for active/overdue membership status, logs the check-in time in IST, and visually signals check-in success/failure to the desk operator.
+
+### 3. Owner Membership & Plans Manager
+Rather than static plan types, owners need standard administrative controls to manage all membership packages:
+* **Plans Dashboard**: Add controls to configure gym plans (name, price, duration in months, maximum freeze allowance) (`FEAT-014`).
+* **Direct Operations**: Give the gym owner full permission to pause subscriptions (for travel or medical reasons), extend active plans, or cancel and void member memberships directly through the Member Drawer.
