@@ -17,8 +17,12 @@ import { useState, useMemo } from "react";
 import { Phone, Mail, Plus, MapPin, CalendarDays, Search, SlidersHorizontal, Check } from "lucide-react";
 import { TrainerDrawer } from "./TrainerDrawer";
 import { Nav } from "@/components/ui/Nav";
+import { Avatar } from "@/components/ui/Avatar";
 import { useTrainers, type TrainerWithAssignments } from "@/hooks/useTrainers";
 import { getInitials, formatDate } from "@/lib/utils/format";
+import { AddTrainerModal } from "@/components/trainers/AddTrainerModal";
+import { EditTrainerModal } from "@/components/trainers/EditTrainerModal";
+import { AssignMemberModal } from "@/components/trainers/AssignMemberModal";
 import "./trainers.css";
 
 // ------------------------------------------------------------------
@@ -64,18 +68,23 @@ function getSpecColor(spec: string | null) {
 function TrainerCard({
   trainer,
   isSelected,
+  onClick,
   onProfile,
   onMembers,
 }: {
   trainer: TrainerWithAssignments;
   isSelected: boolean;
+  onClick: () => void;
   onProfile: () => void;
   onMembers: () => void;
 }) {
   const specColor = getSpecColor(trainer.specialization);
 
   return (
-    <div className={`trainer-card${isSelected ? " trainer-card--selected" : ""}`}>
+    <div
+      className={`trainer-card${isSelected ? " trainer-card--selected" : ""}`}
+      onClick={onClick}
+    >
       {/* Top row: avatar + duty badge */}
       <div className="trainer-card-top">
         <div className="trainer-card-avatar">{getInitials(trainer.full_name)}</div>
@@ -106,18 +115,18 @@ function TrainerCard({
         </span>
       )}
 
-      {/* Two action buttons — always visible; open drawer on mobile, update panel on desktop */}
+      {/* Two action buttons — shown only on mobile via CSS */}
       <div className="trainer-card-actions">
         <button
           className="trainer-card-btn trainer-card-btn-ghost"
-          onClick={onProfile}
+          onClick={(e) => { e.stopPropagation(); onProfile(); }}
           aria-label={`View profile for ${trainer.full_name}`}
         >
           Profile
         </button>
         <button
           className="trainer-card-btn trainer-card-btn-outline"
-          onClick={onMembers}
+          onClick={(e) => { e.stopPropagation(); onMembers(); }}
           aria-label={`View members for ${trainer.full_name}`}
         >
           Members
@@ -132,7 +141,15 @@ function TrainerCard({
 // Assignment panel (right column)
 // ------------------------------------------------------------------
 
-function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
+function AssignmentPanel({
+  trainer,
+  onAssign,
+  onEdit,
+}: {
+  trainer: TrainerWithAssignments;
+  onAssign: () => void;
+  onEdit: () => void;
+}) {
   const specColor = getSpecColor(trainer.specialization);
 
   return (
@@ -204,6 +221,16 @@ function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
         </div>
       </div>
 
+      <div className="ap-actions" style={{ marginTop: 12 }}>
+        <button
+          className="ap-btn ap-btn-secondary"
+          onClick={onEdit}
+          id="trainer-panel-edit-btn"
+        >
+          Edit trainer
+        </button>
+      </div>
+
       <div className="ap-divider" />
 
       {/* ── Section B: Assigned Members ── */}
@@ -218,9 +245,11 @@ function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
         <div className="ap-members">
           {trainer.assignments.map((a) => (
             <div key={a.id} className="ap-member-row">
-              <div className="ap-member-avatar">
-                {getInitials(a.member.full_name)}
-              </div>
+              <Avatar
+                name={a.member.full_name}
+                src={a.member.profile_photo_url}
+                size={32}
+              />
               <div className="ap-member-info">
                 <div className="ap-member-name">{a.member.full_name}</div>
                 <div className="ap-member-sub">
@@ -235,12 +264,15 @@ function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
         </div>
       )}
 
-      <div className="ap-divider" />
-
-      {/* ── Section D: Actions — FEAT-007 stubs ── */}
-      <div className="ap-actions">
-        <button className="ap-btn ap-btn-primary">Assign member</button>
-        <button className="ap-btn ap-btn-secondary">Edit trainer</button>
+      {/* ── Section C: Assign Action ── */}
+      <div className="ap-actions" style={{ marginTop: 12 }}>
+        <button
+          className="ap-btn ap-btn-primary"
+          onClick={onAssign}
+          id="trainer-panel-assign-btn"
+        >
+          Assign member
+        </button>
       </div>
     </div>
   );
@@ -252,9 +284,14 @@ function AssignmentPanel({ trainer }: { trainer: TrainerWithAssignments }) {
 
 export default function TrainersPage() {
   const { data: trainers = [], isLoading, error } = useTrainers();
-  const [selectedId,    setSelectedId]    = useState<string | null>(null);
-  const [isDrawerOpen,  setIsDrawerOpen]  = useState(false);
-  const [drawerTab,     setDrawerTab]     = useState<"profile" | "members">("profile");
+  const [selectedId,      setSelectedId]      = useState<string | null>(null);
+  const [isDrawerOpen,    setIsDrawerOpen]    = useState(false);
+  const [drawerTab,       setDrawerTab]       = useState<"profile" | "members">("profile");
+
+  // FEAT-007 modal state
+  const [isAddOpen,    setIsAddOpen]    = useState(false);
+  const [isEditOpen,   setIsEditOpen]   = useState(false);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
 
   // Auto-select first trainer once data loads
   const effectiveSelectedId =
@@ -354,8 +391,11 @@ export default function TrainersPage() {
               {activeCount} active · {totalAssigned} members currently assigned
             </p>
           </div>
-          {/* FEAT-007: Add Trainer modal — button wired, modal TBD */}
-          <button className="btn-solid trainers-add-btn">
+          <button
+            className="btn-solid trainers-add-btn"
+            onClick={() => setIsAddOpen(true)}
+            id="trainers-add-btn"
+          >
             <Plus size={14} />
             Add trainer
           </button>
@@ -421,6 +461,10 @@ export default function TrainersPage() {
                 key={t.id}
                 trainer={t}
                 isSelected={t.id === effectiveSelectedId}
+                onClick={() => {
+                  setSelectedId(t.id);
+                  if (window.innerWidth <= 640) { setDrawerTab("profile"); setIsDrawerOpen(true); }
+                }}
                 onProfile={() => {
                   setSelectedId(t.id);
                   if (window.innerWidth <= 640) { setDrawerTab("profile"); setIsDrawerOpen(true); }
@@ -436,7 +480,11 @@ export default function TrainersPage() {
 
           {/* Assignment panel */}
           {selected ? (
-            <AssignmentPanel trainer={selected} />
+            <AssignmentPanel
+              trainer={selected}
+              onAssign={() => setIsAssignOpen(true)}
+              onEdit={() => setIsEditOpen(true)}
+            />
           ) : (
             <div className="panel-empty">Select a trainer to view details.</div>
           )}
@@ -488,6 +536,7 @@ export default function TrainersPage() {
         id="trainers-fab"
         className="fab"
         aria-label="Add trainer"
+        onClick={() => setIsAddOpen(true)}
       >
         <Plus size={22} />
       </button>
@@ -498,7 +547,30 @@ export default function TrainersPage() {
           trainer={selected}
           defaultTab={drawerTab}
           onClose={() => setIsDrawerOpen(false)}
+          onAssign={() => { setIsDrawerOpen(false); setIsAssignOpen(true); }}
+          onEdit={() => { setIsDrawerOpen(false); setIsEditOpen(true); }}
         />
+      )}
+
+      {/* FEAT-007 — Trainer action modals */}
+      <AddTrainerModal
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+      />
+
+      {selected && (
+        <>
+          <EditTrainerModal
+            isOpen={isEditOpen}
+            onClose={() => setIsEditOpen(false)}
+            trainer={selected}
+          />
+          <AssignMemberModal
+            isOpen={isAssignOpen}
+            onClose={() => setIsAssignOpen(false)}
+            trainer={selected}
+          />
+        </>
       )}
     </>
   );
