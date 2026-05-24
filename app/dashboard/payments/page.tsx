@@ -1,8 +1,8 @@
 "use client";
 
 import "./payments.css";
-import { useMemo, useState } from "react";
-import { SlidersHorizontal, Check, ChevronRight, ArrowUpDown, ChevronDown, Bell, RefreshCw, IndianRupee } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { SlidersHorizontal, Check, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Bell, RefreshCw, IndianRupee } from "lucide-react";
 import { usePayments, type PaymentRecord } from "@/hooks/usePayments";
 import { Nav } from "@/components/ui/Nav";
 import { Avatar } from "@/components/ui/Avatar";
@@ -76,6 +76,8 @@ const METHOD_LABEL: Record<string, string> = {
   card:  "Card",
   other: "Other",
 };
+
+const PAGE_SIZE = 25;
 
 // ------------------------------------------------------------------
 // RevenueBar — local sparkline bar (payments-page only, not shared)
@@ -178,6 +180,7 @@ export default function PaymentsPage() {
   // Filter sheet state (mobile)
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [pendingFilters, setPendingFilters] = useState<FilterValues>(DEFAULT_FILTERS);
+  const [page, setPage] = useState(1);
 
   // ── Revenue summary ─────────────────────────────────────────────
   const summary = useMemo(() => {
@@ -245,6 +248,13 @@ export default function PaymentsPage() {
     });
   }, [records, activeFilters, sort, search]);
 
+  // Reset to page 1 whenever filters, search, or sort changes
+  useEffect(() => { setPage(1); }, [activeFilters, search, sort]);
+
+  // ── Pagination slice ─────────────────────────────────────────────
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage   = Math.min(page, totalPages);
+  const paginated  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
 
   // ── Filter sheet helpers ─────────────────────────────────────────
@@ -484,13 +494,14 @@ export default function PaymentsPage() {
             {/* Payments table */}
             <div className="table-wrap">
               <div className="table-meta">
-                Showing {filtered.length} of {records.length} records
+                Showing {paginated.length} of {filtered.length} records
                 {search && ` · "${search}"`}
               </div>
 
               {filtered.length === 0 ? (
                 <div className="empty-state">No payment records found.</div>
               ) : (
+                <>
                 <table className="responsive-table">
                   <thead>
                     <tr>
@@ -504,7 +515,7 @@ export default function PaymentsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map((r) => {
+                    {paginated.map((r) => {
                       const statusKey = (["paid", "pending", "overdue", "superseded"] as PaymentStatus[]).includes(
                         r.payment_status
                       ) ? r.payment_status : "superseded";
@@ -589,8 +600,36 @@ export default function PaymentsPage() {
                     })}
                   </tbody>
                 </table>
-              )}
-            </div>
+
+                {totalPages > 1 && (
+                  <div className="pagination">
+                    <span className="pagination-info">
+                      Rows {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
+                    </span>
+                    <div className="pagination-controls">
+                      <button
+                        className="pagination-btn"
+                        disabled={safePage === 1}
+                        onClick={() => setPage((p) => p - 1)}
+                      >
+                        <ChevronLeft size={14} /> Prev
+                      </button>
+                      <span className="pagination-btn active" style={{ cursor: "default" }}>
+                        {safePage} / {totalPages}
+                      </span>
+                      <button
+                        className="pagination-btn"
+                        disabled={safePage === totalPages}
+                        onClick={() => setPage((p) => p + 1)}
+                      >
+                        Next <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
           </div>
 
           {/* Mobile filter sheet — status only */}

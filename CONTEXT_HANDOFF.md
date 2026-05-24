@@ -1,297 +1,197 @@
-# SaaS Migration Handoff: Production Readiness & Modularity
+# SaaS Platform Context & Handoff Tracker
 
-## 🎯 Current Objective
+This document is the absolute **single source of truth** for the multi-tenant SaaS dashboard, summarizing the platform history, architectural foundations, past milestones, and upcoming roadmap items.
 
-**CHORE-006 is COMPLETE — branch `chore/CHORE-006-multitenancy-verification`.**
+---
 
-**Current focus: Raise PR, merge CHORE-006 to main, then proceed to the next production launch blockers (e.g. pagination or portal rebuilds).**
+## 🎯 Current Focus & Active Objective
 
-All multi-tenancy verification and dynamic branding steps are complete and verified:
-Seeding ✅ (`10492f1`). Subdomain Middleware ✅ (`5e3f6c4`). RLS audit ✅ (`c22ce0c`). Anon policies ✅ (`e9fce97`). Onboarding guard ✅ (`98690cc`). Dynamic branding overlays ✅ (`0d14196`).
-
-**Roadmap agreed with owner:**
-1. ✅ REFACT-008: Mobile Responsiveness (all 4 pages)
-2. ✅ CHORE-006: Multi-Tenancy Verification & Dynamic Branding — **JUST COMPLETED**
-3. 🔜 FEAT-006: Pagination on Members and Payments (25-row pattern)
-4. 🔜 FEAT-009: Member Portal Rebuild (mobile-first, TanStack hooks)
-
-**Pending before merging CHORE-006:**
-- Raise PR from `chore/CHORE-006-multitenancy-verification` → `main`
-- Review + merge
+* **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
+* **Current Focus**: **FEAT-009 — Member Portal Rebuild** (Branch: `feat/FEAT-009-member-portal-rebuild`)
+  * **Objective**: Rebuild the 1,316-line bespoke member portal monolith into a modern, hook-driven (TanStack Query), mobile-first component structure with co-located CSS.
+  * **Key additions**: Add self-service membership renewal requests, dynamic membership expiry alert banners, and a full personal attendance history log.
 
 ---
 
 ## 🏗️ Architectural Core
-- **Framework**: Next.js 16.2.1 (App Router) + Supabase SSR. Never use Pages Router.
-- **Tenancy**: Multi-tenant via `gym_id`. Resolution via subdomain middleware.
-- **Security**: PostgreSQL RLS is ACTIVE and HARDENED. `current_gym_id()` and `get_my_role()` are source of truth. Never filter by gym_id client-side.
-- **Styling**: Co-located `.css` files (one per page/component). Global tokens in `app/globals.css`. No Tailwind + vanilla mixing. Always check `globals.css` before writing any new class.
-- **Data Fetching**: TanStack Query (hooks in `hooks/`) for ALL DB ops. No raw `useEffect` fetching.
-- **Forms**: React Hook Form + Zod. Schema in `lib/validations/<entity>.ts`. Always `zodResolver`.
-- **Toasts**: `react-hot-toast`. `toast.success()` / `toast.error()` only. `<Toaster />` in `app/layout.tsx`.
-- **Icons**: `lucide-react` only. No raw emoji strings in JSX (PowerShell encoding risk).
+
+* **Framework**: Next.js 16.2.1 (App Router) + Supabase SSR. (Pages Router is forbidden).
+* **Multi-Tenancy Resolution**:
+  * Scoped via the `gym_id` column present across all 8 tables.
+  * Resolved at the request level via Next.js middleware using subdomain headers.
+  * Local Dev: resolves subdomains like `[slug].localhost` or falls back to the `?gym=slug` query parameter bypass.
+* **Security & Row Level Security (RLS)**:
+  * PostgreSQL RLS is active, verified, and hardened across all tables.
+  * Tenant boundaries are enforced via `current_gym_id()` which extracts the middleware-injected tenant context.
+  * Direct client-side gym-filtering is prohibited; all scoping must go through authenticated, RLS-enforced database queries.
+* **Data Fetching**: TanStack Query v5 is the project standard. Raw client-side `useEffect` data fetching is prohibited. Custom hooks live in `hooks/`.
+* **State & Styling**:
+  * Vanilla CSS with co-located `.css` files (one per page/component).
+  * Design tokens and shared classes are located in `app/globals.css` (always check globally before writing custom classes).
+  * Tailwind CSS is supported for new layouts but must not be mixed with vanilla CSS in the same file.
+* **Forms & Validations**: React Hook Form + Zod resolvers. Validation schemas live in `lib/validations/<entity>.ts`.
 
 ---
 
-## 🛣️ Current Branch State
+## 🗄️ Database & RLS Infrastructure
 
-### Active branch: `chore/CHORE-006-multitenancy-verification` — **COMPLETE**
+### Multi-Tenant Helper Functions
+The tenant identifier is automatically resolved in middleware and injected into the database session context. The following PostgreSQL RLS helper is the source of truth for all query policies:
+```sql
+CREATE OR REPLACE FUNCTION current_gym_id()
+RETURNS UUID AS $$
+  SELECT current_setting('request.gym_id', true)::UUID;
+$$ LANGUAGE sql STABLE;
+```
 
-**Status:** CHORE-006 steps are complete. Data isolation and dynamic branding verified. Ready for PR.
-
-### Session commits (this branch)
-- `0d14196` — Implement dynamic branding color overlays on dashboard (status pills, Nav, MemberDrawer)
-- `98690cc` — Onboarding: add `!settings?.gym_id` guard to prevent headless submission
-- `e9fce97` — SQL: tighten database RLS anon-read and anon-insert policies
-- `c22ce0c` — SQL: write full RLS audit verification queries across all 8 tables
-- `5e3f6c4` — Middleware: add local dev `?gym=slug` query param routing support
-- `10492f1` — SQL: seed test gym "Iron Temple" with appropriate check constraints
-
-### Recently merged to main
-- `refactor/REFACT-008-mobile-responsive` — Mobile responsiveness for all 4 dashboard pages + bottom tab bar
-- `chore/CHORE-005-error-boundaries` — Route-level error boundaries
-
----
-
-## ✅ Fully Complete & Merged to Main
-
-1. **Members Page (Golden UI Standard)** — `app/dashboard/members/page.tsx`
-2. **Add Member Modal** — 3-step wizard, Zod validation, TanStack mutation
-3. **Nav Component** — Attendance link added for owner role
-4. **Dashboard Page** — REFACT-004, zero `useEffect`, TanStack stats
-5. **Renew & Record Payment Modals** — FEAT-003 ✅
-6. **CHORE-002** — `superseded` payment status, client-side logic complete
-7. **Payments Page** — REFACT-005, 1419 → 255 lines
-8. **Login Page** — REFACT-006, live gym stats via `usePublicGymStats`
-9. **Onboarding Page** — REFACT-006, dynamic branches, shared utils
-10. **Attendance Page** — FEAT-004 + FEAT-004b: check-in/out, historical view, pagination, CSV export, IST-aware date queries
-11. **Trainers Page** — REFACT-007: `useTrainers` hook, co-located CSS, 861 → ~210 lines
-12. **Error Boundaries** — CHORE-005: `ErrorFallback` + 5 route `error.tsx` files
-13. **Mobile Responsiveness — REFACT-008** — **Phase A + B + C + D done & merged to main**
-    - Fixed bottom tab bar (owner only, `≤640px`)
-    - Responsive card stacks for members, payments, attendance, trainers
-    - Dashboard mobile redesign: unified panels, compact StatCards, View All check-ins
-    - Responsive filter sheets & slide-up drawer panel polish
-
-## ✅ In Progress (Branch: `chore/CHORE-006-multitenancy-verification`)
-
-14. **Multi-Tenancy Verification — CHORE-006** — **JUST COMPLETED**
-    - ✅ Seed test gym "Iron Temple" with appropriate schema constraint overrides
-    - ✅ Hardened database RLS anon-read & anon-insert policies
-    - ✅ Implemented `?gym=slug` local dev subdomain bypass
-    - ✅ Audited RLS tenant isolation across all 8 tables (100% isolated)
-    - ✅ Added onboarding submission guard
-    - ✅ Implemented dynamic branding skinning based on the gym's `primary_color` (Bodyline = Green, Iron Temple = Blue)
-
-    - ✅ **Payments page mobile UX** (`commit f9d15ce`):
-        - **Revenue Health panel**: redesigned — green left-accent border, ambient glow, `collection rate %` badge (green dim, top-right), three horizontal proportional progress bars (Collected / Pending / Overdue), method chips at bottom. `clamp()` fluid font on amount.
-        - **SortDropdown**: custom design-system dropdown (shared `globals.css` styles) in `.payments-controls-row`, side-by-side with filter chip
-        - **Filter chip + sheet**: same pattern as Members (data-driven `filterSections[]`, status filter only)
-        - **CardActionBar**: data-driven `CardAction[]` (`variant: primary | ghost | icon`) per record. Built by `getCardActions(r)` — computed once per row:
-          - `pending` → Record Payment (primary) + View details (ghost) + 🔔 Bell (amber icon, top-right card header)
-    - ✅ **Payments page mobile UX**: redesigned Revenue Health panel, custom SortDropdown, mobile-optimized filter sheet, and card-based actions.
-    - ✅ **Attendance page mobile UX**: mobile-optimized filter sheet, card-based actions, and responsive layout adjustments.
-    - ✅ **Trainers page mobile UX**: TrainerDrawer bottom-sheet, compact card layout, and mobile-optimized search/filters.
+### Audited Tenant Tables (100% Isolated)
+1. `gyms` (Tenant metadata, branch lists)
+2. `gym_settings` (Branding, primary colors, support contacts)
+3. `members` (Gym members data, scoped via `gym_id`)
+4. `member_memberships` (Membership history)
+5. `trainers` (Trainers directory)
+6. `trainer_assignments` (Trainer-member rosters)
+7. `attendance` (Check-in/check-out logs, role-guarded `att_gym_isolation` policies with CHECK constraint)
+8. `payments` (Payment ledger)
 
 ---
 
+## ✅ Completed Milestones (Merged to `main`)
 
-## ✅ REFACT-007 — What Was Done Last Session
+### 1. Multi-Tenancy & Dynamic Branding (`CHORE-006`)
+* Seeded a second sandbox tenant ("Iron Temple") alongside the default ("Bodyline Fitness").
+* Hardened anonymous policies for secure onboarding read/insert operations.
+* Implemented dynamic branding skinning that maps colors and components directly to the gym's custom `primary_color` (e.g. Bodyline = Green, Iron Temple = Blue).
 
-### Branch: `refactor/REFACT-007-trainers-page` (based off `origin/main` @ `5d66885`)
+### 2. Client-Side Pagination (`FEAT-006`)
+* Standardized 25-row client-side pagination implemented across the **Members**, **Payments**, and **Attendance** pages.
+* Integrated with active filters, search queries, and sort matrices, resetting dynamically to page 1 on search or filter updates.
 
-**Problem:** `app/dashboard/trainers/page.tsx` was 861 lines — a pre-modularisation monolith with:
-- Raw `useEffect` for data fetching
-- 450-line inline `<style>` block (with `:root`, `body`, nav, global duplicates)
-- Hardcoded `"Pradeep · Owner"` in a custom nav (not using `<Nav />`)
-- Raw inline SVG icons instead of `lucide-react`
-- Local `getInitials()` and `formatDate()` duplicating `lib/utils/format.ts`
-- Wrong Supabase import path (`@/lib/supabase` instead of `@/lib/supabase/client`)
-- `assignmentsRes.error` was silently ignored (only `trainersRes.error` was checked)
+### 3. Mobile Responsiveness & Bottom Navigation (`REFACT-008`)
+* Developed a 5-tab fixed bottom navigation bar for the owner role at `≤640px` (Dashboard, Members, Payments, Attendance, Trainers).
+* Replaced standard tables with responsive table card stacks (`className="responsive-table"`).
+* Swapped desktop filters with sliding bottom filter sheets.
+* Implemented FABs (floating action buttons) for quick additions on mobile.
 
-**What was built:**
+### 4. Modular Trainers Page (`REFACT-007`)
+* Refactored the pre-modularization 861-line monolith to under 210 lines.
+* Extracted styling to co-located `trainers.css` and migrated data layers to TanStack Query (`useTrainers.ts`).
+* Integrated the unified `<Nav role="owner" />` component.
 
-#### Step 1 — `hooks/useTrainers.ts`
-- TanStack Query hook, `queryKey: ["trainers"]`
-- `Promise.all` parallel fetch: `trainers` + `trainer_assignments` (with `members` join, `is_current = true`)
-- Exports `TrainerWithAssignments` type (Trainer & { assignments: (TrainerAssignment & { member: Member })[] })
-- Both `trainersRes.error` AND `assignmentsRes.error` now checked (bug fix)
-- 60s staleTime, 5min gcTime
+### 5. Historical Attendance & IST Date Bounds (`FEAT-004` & `FEAT-004b`)
+* Built live check-in/check-out mutations and an IST-aware historical search page (Today, Yesterday, Last 7 Days, Last 30 Days, Custom Range).
+* Resolved IST day offset issues (`BUG-002` & `BUG-003`) by shifting date boundaries from UTC midnight to local IST (UTC+5:30) date boundaries.
 
-#### Step 2 — `app/dashboard/trainers/trainers.css`
-- 450-line `<style>` block extracted to co-located CSS file
-- Removed all global duplicates: `:root`, `body`, `*`, `::-webkit-scrollbar`, `@import`, `.nav*`, `.page*`, `.loading*`, `.error-screen`
-- Kept trainer-specific only: `.trainers-layout`, `.trainer-card*`, `.trainer-active-badge`, `.trainer-spec-tag`, `.trainer-card-stats`, `.assignment-panel`, `.ap-*`, `.panel-empty`
-- `99px` hardcoded values → `var(--radius-pill)` token
-
-#### Step 3 — `app/dashboard/trainers/page.tsx` rewrite
-- 861 → ~210 lines
-- `<Nav role="owner" />` replaces custom nav + hardcoded `"Pradeep · Owner"`
-- `useTrainers()` replaces raw `useEffect` + local `fetchTrainers()`
-- `getInitials`, `formatDate` from `lib/utils/format.ts` (local copies removed)
-- `<Phone />`, `<Mail />`, `<Plus />` from `lucide-react` (raw SVGs removed)
-- `.btn-solid` global class replaces local `.add-btn`
-- `trainer.phone` null-guard added (was rendering null — `phone: string | null` in types)
-- Auto-select first trainer via pure derivation, no `useEffect`
-- `import "./trainers.css"` wired
-
-#### Step 4 — `types/index.ts` verified
-- Zero changes needed. `Trainer`, `TrainerAssignment`, `Member` all correct.
-- `TrainerWithMembers` (lighter shape in types) is distinct from `TrainerWithAssignments` (richer, in hook) — no conflict.
-
-#### Merge
-- `origin/main` (with FEAT-004 attendance) merged into branch mid-work
-- Single conflict in `MIGRATION_PROGRESS.md` — resolved by keeping full FEAT-004 history (6.8–6.11) from main + adding REFACT-007 as 6.12
-
-**TypeScript:** `npx tsc --noEmit` — **0 errors** (verified post-merge)
+### 6. Error Boundaries (`CHORE-005`)
+* Integrated Route-level crash catcher screens using a shared `ErrorFallback` UI wrapper.
 
 ---
 
 ## 🔜 Next Tasks (Priority Order)
 
 | Priority | ID | Task | Branch | Notes |
-|----------|-----|------|--------|-------|
-| 🔴 | FEAT-006 | **Pagination: Members & Payments** | `feat/FEAT-006-pagination` | Use same 25-row pattern as attendance page |
-| 🔴 | FEAT-009 | **Member Portal Rebuild** | `feat/FEAT-009-member-portal-rebuild` | Mobile-first, self-service renewal, TanStack hooks, co-located CSS |
-| 🔴 | FEAT-010 | **Trainer Portal Rebuild** | `feat/FEAT-010-trainer-portal-rebuild` | Mobile-first, attendance view for assigned members, TanStack hooks |
-| 🟠 | FEAT-007 | **Trainer Actions (Owner Dashboard)** | `feat/FEAT-007-trainer-actions` | Add/Assign/Edit trainer modals — buttons already wired |
-| 🟡 | CHORE-004 | **Branch-Level Attendance** | `feat/CHORE-004-branch-attendance` | Schema change: `branch` col on attendance table; multi-branch gyms |
-| 🔵 | CHORE-001 | **Atomic Member Creation** | — | Supabase RPC/PostgreSQL transaction (replaces 2-step insert) |
-| 🔵 | CHORE-002b | `pending → overdue` auto-transition | — | pg_cron daily job; client-side dedup workaround in place |
-| 🔵 | CHORE-003 | Per-gym timezone | — | `gym_settings.timezone` + dynamic offset in date helpers |
-| 🔵 | FEAT-008 | Loading Skeletons | `feat/FEAT-008-loading-skeletons` | CSS shimmer pattern — cosmetic, deferred |
-| ⬛ | FEAT-011 | QR Check-In | — | Post-launch |
-| ⬛ | FEAT-013 | Reports Dashboard | — | Post-launch |
+| :--- | :--- | :--- | :--- | :--- |
+| 🔴 **High** | `FEAT-009` | **Member Portal Rebuild** | `feat/FEAT-009-member-portal-rebuild` | Monolith extraction (1,316 lines), TanStack Query hooks, co-located styles, self-service renewals |
+| 🔴 **High** | `FEAT-010` | **Trainer Portal Rebuild** | `feat/FEAT-010-trainer-portal-rebuild` | Monolith extraction (1,196 lines), assigned check-in views, notes |
+| 🔴 **High** | `FEAT-007` | **Trainer Action Modals** | `feat/FEAT-007-trainer-actions` | `AddTrainerModal`, `AssignMemberModal`, `EditTrainerModal` (Modals TBD, buttons already wired) |
+| 🟡 **Medium** | `CHORE-004` | **Branch-Level Attendance** | `feat/CHORE-004-branch-attendance` | Schema change: Add `branch` column to `attendance` table for location validation |
+| 🔵 **Low** | `CHORE-001` | **Atomic Member Creation** | — | Refactor 2-step insert (members → memberships) to use an atomic Supabase RPC |
+| 🔵 **Low** | `CHORE-002b` | **Auto Status Transition** | — | Database batch job (pg_cron) to auto-transition expired rows from pending to overdue |
+| 🔵 **Low** | `CHORE-003` | **Dynamic Timezones** | — | Resolve timezone offsets dynamically from `gym_settings.timezone` |
+| 🔵 **Low** | `FEAT-008` | **Loading Skeletons** | — | CSS skeleton shimmers to replace basic "Loading..." texts |
+| ⬛ **Backlog** | `FEAT-011` | **QR Code Check-In** | — | Auto check-in scans via `/checkin?member=uuid` |
+| ⬛ **Backlog** | `FEAT-012` | **WhatsApp Notifications** | — | Expiry and registration notifications via Twilio/WATI (stubs are already wired in JSX) |
+| ⬛ **Backlog` | `FEAT-013` | **Recharts Reports Dashboard** | — | Graphical statistics, revenue charts, and attendance heatmaps |
 
 ---
 
-## 🗂️ Key File Structure (Current)
+## 🗂️ Key Directory Architecture
 
 ```
 app/
-  globals.css                    ← Design tokens + shared UI classes (check here first)
-  layout.tsx                     ← <Toaster /> from react-hot-toast
+  globals.css                    ← Design system tokens & global class overrides (check first!)
+  layout.tsx                     ← Root template (<Toaster /> from react-hot-toast)
   login/
-    page.tsx                     ✅ Cleaned up (REFACT-006)
-    login.css
+    page.tsx                     ✅ Modular login page
+    login.css                    ← Co-located login CSS
   dashboard/
-    page.tsx                     ✅ FEAT-004b: check-ins capped at 5 + "View all" link
+    page.tsx                     ✅ Clean, hook-driven home dashboard (check-ins capped at 5)
     dashboard.css
     attendance/
-      page.tsx                   ✅ FEAT-004b full rewrite (historical view, pagination, CSV)
-      attendance.css             ✅ range selector + pagination CSS added
+      page.tsx                   ✅ Param-driven historical view, pagination, CSV exports
+      attendance.css
     members/
-      page.tsx                   ✅ Golden UI reference (source of truth for design)
+      page.tsx                   ✅ "Golden UI" Reference (design and spacing truth)
       members.css
-      MemberDrawer.tsx           ✅ Reused from attendance page via useMember(id)
+      MemberDrawer.tsx           ✅ Shared panel reused in Attendance and Members
       MemberDrawer.css
     payments/
-      page.tsx                   ✅ REFACT-005
+      page.tsx                   ✅ Modular Payments Page (1419 → 255 lines)
       payments.css
-      PaymentDrawer.tsx
+      PaymentDrawer.tsx          ← Co-located Payment details sheet
       PaymentDrawer.css
     trainers/
-      TrainerDrawer.tsx           ✅ REFACT-008 Phase D — mobile bottom-sheet, Profile/Members tabs
+      page.tsx                   ✅ Hook-driven Trainers panel (Nav integrated, no useEffects)
+      trainers.css
+      TrainerDrawer.tsx          ← Mobile layout tab-switch sheet
       TrainerDrawer.css
   onboarding/
-    page.tsx                     ✅ Cleaned up (REFACT-006)
+    page.tsx                     ✅ Modular Gym Owner registration form
     onboarding.css
 components/
   ui/
-    Nav.tsx                      ✅ Attendance link added (owner role)
+    Nav.tsx                      ← Dynamic navigation bar (owner role scrollable bottom bar)
     Modal.tsx, Avatar.tsx, StatCard.tsx, StatusPill.tsx, Panel.tsx
   members/
-    AddMemberModal.tsx           ✅ 3-step wizard
-    RenewMembershipModal.tsx     ✅
-    RecordPaymentModal.tsx       ✅
+    AddMemberModal.tsx           ← 3-step wizard form (Zod validation)
+    RenewMembershipModal.tsx     ← Renewal submission modal
+    RecordPaymentModal.tsx       ← Payment logging modal
 hooks/
-  useMembers.ts                  ✅ TanStack Query
-  useMember.ts                   ✅ single-member fetch (attendance drawer)
-  useTrainers.ts                 ✅ REFACT-007 — TanStack Query, TrainerWithAssignments type
-  usePayments.ts                 ✅ TanStack Query
-  useAttendance.ts               ✅ FEAT-004b — param-driven range + isLive flag
-  useCheckin.ts                  ✅ useCheckIn + useCheckOut mutations
-  usePublicGymStats.ts           ✅ anon-safe member/trainer counts (login page)
-  useCreateMember.ts, useRenewMembership.ts, useRecordPayment.ts
-  usePlans.ts, useGymSettings.ts, useDashboardStats.ts, useCurrentUser.ts
-lib/
-  utils/
-    format.ts   ← formatINR, formatDate, formatTime, getInitials, getGreeting,
-                   formatDuration, formatShortDate
-    date.ts     ← todayISO, todayRangeIST, yesterdayRangeIST, lastNDaysRangeIST,
-                   monthStartISO, monthStartISTTimestamp, todayFormatted,
-                   currentMonthName, sevenDaysFromNow, addDays
-                   todayRangeISO — ⚠️ FULLY DEPRECATED, do not use (UTC midnight boundary)
-  constants/
-    design.ts, status.ts
-  members/
-    status.ts, filters.ts
-  validations/
-    member.ts
-types/
-  index.ts                       ← All shared TypeScript types
-scripts/
-  01_handoff_migration.sql       ✅ RLS att_gym_isolation WITH CHECK enforces role guard
-  02_public_rls_policies.sql
+  useMembers.ts                  ← Members query fetch hook
+  useMember.ts                   ← Single member query fetch hook
+  useTrainers.ts                 ← Trainers query hook with Assignment joins
+  usePayments.ts                 ← Payment ledger ledger hook
+  useAttendance.ts               ← Params-based attendance range hook
+  useCheckin.ts                  ← checkIn & checkOut TanStack mutations
+  usePublicGymStats.ts           ← Public counts query hook (anonymous safe)
 ```
 
 ---
 
-## ⚠️ Known Conventions (AGENTS.md §9)
+## ⚠️ Known Gotchas & Historical Warning Logs
 
-### Date Handling
-- Always use `lib/utils/date.ts` helpers. Never `new Date().toISOString()` directly.
-- IST-aware queries: `todayRangeIST()`, `yesterdayRangeIST()`, `lastNDaysRangeIST(n)`, `monthStartISTTimestamp()`
-- `todayRangeISO()` is **deprecated** — IST-unaware, do not use for attendance queries
+### 1. ₹0 Collected Revenue Discrepancy (`BUG-001`)
+* **Root Cause**: Plain date comparisons (`monthStartISO()`) against SQL ISO UTC timestamps resulted in wrong date matches for Indian timezone (IST) users.
+* **Fix**: Implemented `monthStartISTTimestamp()` which converts IST month-start dates to their exact UTC counterparts for database timestamp comparison.
 
-### CSS
-- Co-located `.css` files only. No `<style jsx>`. No Tailwind + vanilla mixing.
-- Always check `globals.css` first before writing any style.
-- Key global classes: `.toolbar`, `.filter-tabs`, `.filter-tab`, `.filter-count`, `.search-wrap`, `.search-input`, `.table-wrap`, `.table-meta`, `.empty-state`, `.btn-solid`, `.page`, `.page-header`
-
-### Error Handling
-```ts
-catch (error: unknown) {
-  const msg = error instanceof Error ? error.message : "Something went wrong";
-  toast.error(msg);
-}
-```
-
-### Supabase Pattern
-```ts
-const { data, error } = await supabase.from("table").select("*");
-if (error) throw error; // always check before accessing data
-```
+### 2. Early Morning Attendance Misses (`BUG-002` & `BUG-003`)
+* **Root Cause**: UTC midnight date boundary queries missed check-ins logged between 00:00 AM and 05:30 AM IST (the timezone offset delta).
+* **Fix**: Deprecated `todayRangeISO()` completely. Switched queries to use `todayRangeIST()` which uses `toISTDateString()` on the server side to properly query within local Indian Standard Time boundaries.
 
 ---
 
-## 🧪 Local Testing
-- `npm run dev` (already running on port 3000)
-- Test subdomains: `bodyline.localhost` or `?gym=slug` query param
-- TypeScript check: `npx tsc --noEmit` — must return **0 errors** before any commit
+## ⚠️ Coding Conventions & Guidelines (AGENTS.md §9)
+
+1. **Strict Types Only**: No `any` types. Catch statements must narrow the error explicitly:
+   ```typescript
+   catch (error: unknown) {
+     const msg = error instanceof Error ? error.message : "Something went wrong";
+     toast.error(msg);
+   }
+   ```
+2. **CSS Separation**: Write co-located `.css` files for pages and components. Refrain from mixing inline `<style>` blocks or Tailwind classes with traditional CSS in a single component.
+3. **Vanilla CSS Standard**: Always check `globals.css` before writing new visual selectors (utilize `.toolbar`, `.filter-tabs`, `.table-wrap`, `.btn-solid` classes).
+4. **No Raw Dates**: Always use the IST-safe Date helpers in `lib/utils/date.ts`. Never use raw `new Date().toISOString()`.
+5. **Supabase Handling**: Check for errors immediately on Supabase returns before accessing properties:
+   ```typescript
+   const { data, error } = await supabase.from("table").select("*");
+   if (error) throw error;
+   ```
 
 ---
 
-## 🚩 Pending Production Items
+## 🧪 Local Deployment & Verification
 
-### 🔴 Launch Blockers
-- **REFACT-008**: Mobile responsiveness — all dashboard pages + both portals (`62vw` max-width breaks on mobile)
-- **CHORE-006**: Multi-tenancy verification — subdomain routing + RLS isolation audit for second gym
-- **FEAT-006**: Pagination on Members and Payments (25-row pattern, same as attendance)
-- **FEAT-009**: Member portal rebuild — mobile-first, TanStack hooks, self-service renewal
-- **FEAT-010**: Trainer portal rebuild — mobile-first, TanStack hooks, assigned-member attendance view
-- **FEAT-007**: Trainer action modals (Add Trainer, Assign Member, Edit Trainer)
-
-### 🟡 Important (Pre-Scale)
-- **CHORE-004**: Branch-level attendance tracking (schema change: `branch` col on attendance table)
-
-### 🔵 Technical Debt (Non-Blocking)
-- `CHORE-001`: Atomic member creation (Supabase RPC)
-- `CHORE-002b`: pg_cron daily `pending → overdue` auto-transition
-- `CHORE-003`: Per-gym timezone support
-- `FEAT-008`: Loading skeletons (cosmetic, deferred)
-
-### ⬛ Post-Launch
-- `FEAT-011`: QR Check-In
-- `FEAT-012`: WhatsApp Notifications
-- `FEAT-013`: Reports Dashboard
+* **Launch Dev Server**: `npm run dev` (Runs locally on `localhost:3000`)
+* **Subdomain Emulation**: Use `bodyline.localhost:3000` or attach query params `?gym=bodyline` or `?gym=iron-temple` to bypass subdomain routing locally.
+* **Types Check**: Proactively run `npx tsc --noEmit` to verify type safety before proposing commits.

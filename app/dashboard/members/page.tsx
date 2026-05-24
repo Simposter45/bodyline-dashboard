@@ -1,8 +1,8 @@
 "use client";
 
 import "./members.css";
-import { useState, useMemo } from "react";
-import { Plus, SlidersHorizontal, Check, ChevronRight, ArrowUpDown, ChevronDown } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Plus, SlidersHorizontal, Check, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown } from "lucide-react";
 import type { Member } from "@/types";
 import { formatINR, formatDate } from "@/lib/utils/format";
 import { daysUntil } from "@/lib/utils/date";
@@ -30,6 +30,8 @@ const MEMBER_SORT_OPTIONS: { key: MemberSortKey; label: string }[] = [
   { key: "name",   label: "Name (A–Z)" },
   { key: "expiry", label: "Expiry (soonest)" },
 ];
+
+const PAGE_SIZE = 25;
 
 // ------------------------------------------------------------------
 // SortDropdown — custom sort picker (globals.css styles)
@@ -91,6 +93,7 @@ export default function MembersPage() {
   const [selected, setSelected] = useState<MemberWithMembership | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [sort, setSort] = useState<MemberSortKey>("joined");
+  const [page, setPage] = useState(1);
 
   // Filter sheet state (mobile)
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
@@ -138,6 +141,13 @@ export default function MembersPage() {
     });
   }, [members, activeFilters, search, sort]);
 
+  // Reset to page 1 whenever filters, search, or sort changes
+  useEffect(() => { setPage(1); }, [activeFilters, search, sort]);
+
+  // ── Pagination slice ─────────────────────────────────────────────
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage   = Math.min(page, totalPages);
+  const paginated  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
 
   // Filter sections config — add a new object here to add a new filter parameter.
@@ -301,7 +311,7 @@ export default function MembersPage() {
           <div className="table-wrap">
             <div className="table-meta">
               <span>
-                Showing {filtered.length} of {counts.all} members
+                Showing {paginated.length} of {filtered.length} members
                 {search && ` · "${search}"`}
               </span>
             </div>
@@ -313,6 +323,7 @@ export default function MembersPage() {
                 {search && ` matching "${search}"`}
               </div>
             ) : (
+              <>
               <table className="responsive-table">
                 <thead>
                   <tr>
@@ -327,7 +338,7 @@ export default function MembersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((m) => {
+                  {paginated.map((m) => {
                     const status = getMemberStatus(m);
                     const cfg = STATUS_CONFIG[status];
                     const ms = m.membership;
@@ -451,6 +462,34 @@ export default function MembersPage() {
                   })}
                 </tbody>
               </table>
+              
+                {totalPages > 1 && (
+                  <div className="pagination">
+                    <span className="pagination-info">
+                      Rows {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
+                    </span>
+                    <div className="pagination-controls">
+                      <button
+                        className="pagination-btn"
+                        disabled={safePage === 1}
+                        onClick={() => setPage((p) => p - 1)}
+                      >
+                        <ChevronLeft size={14} /> Prev
+                      </button>
+                      <span className="pagination-btn active" style={{ cursor: "default" }}>
+                        {safePage} / {totalPages}
+                      </span>
+                      <button
+                        className="pagination-btn"
+                        disabled={safePage === totalPages}
+                        onClick={() => setPage((p) => p + 1)}
+                      >
+                        Next <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
           </div>

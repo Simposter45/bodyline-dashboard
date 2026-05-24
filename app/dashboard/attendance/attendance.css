@@ -277,9 +277,6 @@
 @media (max-width: 640px) {
   /* Table column hiding replaced by .responsive-table card-stack in globals.css. */
 
-  /* Pagination: stack info text above controls */
-  .pagination { flex-direction: column; align-items: flex-start; gap: 8px; }
-
   /* Range preset tabs hidden — filter chip/sheet handles range selection */
   .range-row { display: none; }
 
@@ -397,60 +394,6 @@
 .date-range-sep {
   font-size: 13px;
   color: var(--text-muted);
-}
-
-/* ── Pagination ── */
-
-/* Outer wrapper — sits below the table inside .table-wrap */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 24px;
-  border-top: 1px solid var(--border);
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.pagination-info {
-  font-size: 13px;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.pagination-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--bg2);
-  color: var(--text-secondary);
-  font-family: var(--font-body);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.pagination-btn:hover:not(:disabled) {
-  border-color: var(--border-hi);
-  color: var(--text-primary);
-}
-.pagination-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-.pagination-btn.active {
-  background: var(--bg3);
-  border-color: var(--border-hi);
-  color: var(--text-primary);
-  font-weight: 500;
 }
 
 /* ── Card action cell — "View details" button (mobile only) ─────────────────
