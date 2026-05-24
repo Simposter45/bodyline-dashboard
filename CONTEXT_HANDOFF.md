@@ -7,9 +7,9 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🎯 Current Focus & Active Objective
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
-* **Current Focus**: **FEAT-009 — Member Portal Rebuild** (Branch: `feat/FEAT-009-member-portal-rebuild`)
-  * **Objective**: Rebuild the 1,316-line bespoke member portal monolith into a modern, hook-driven (TanStack Query), mobile-first component structure with co-located CSS.
-  * **Key additions**: Add self-service membership renewal requests, dynamic membership expiry alert banners, and a full personal attendance history log.
+* **Current Focus**: **FEAT-012a — Send Reminder Backend** (Sprint 1)
+  * **Objective**: Build a unified, reusable WhatsApp server action/API. This single server action will be reused across the dashboard, particularly from the Payment Drawer for overdue/due-soon members.
+  * **Trajectory Note**: The Member Portal (`FEAT-009`, Sprint 3) will be built *after* the Trainer Portal (`FEAT-010`, Sprint 2) is complete. Our immediate focus is finishing Sprint 1.
 
 ---
 
