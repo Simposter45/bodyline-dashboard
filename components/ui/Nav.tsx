@@ -17,7 +17,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useGymSettings } from "@/hooks/useGymSettings";
 import {
-  LayoutDashboard, Users, CreditCard, CalendarCheck, Dumbbell, LogOut,
+  LayoutDashboard, Users, CreditCard, CalendarCheck, Dumbbell, LogOut, Settings
 } from "lucide-react";
 
 // Module-level — createClient() is not recreated on every render.
@@ -31,6 +31,7 @@ const ROLE_LINKS: Record<NavProps["role"], { href: string; label: string }[]> = 
     { href: "/dashboard/payments",   label: "Payments"   },
     { href: "/dashboard/attendance", label: "Attendance" },
     { href: "/dashboard/trainers",   label: "Trainers"   },
+    { href: "/dashboard/settings",   label: "Settings"   },
   ],
   trainer: [{ href: "/trainer", label: "My Portal"  }],
   member:  [{ href: "/member",  label: "My Profile" }],
@@ -43,6 +44,7 @@ const OWNER_TAB_ICONS: Record<string, React.ReactNode> = {
   "/dashboard/payments":   <CreditCard      size={20} />,
   "/dashboard/attendance": <CalendarCheck   size={20} />,
   "/dashboard/trainers":   <Dumbbell        size={20} />,
+  "/dashboard/settings":   <Settings        size={20} />,
 };
 
 interface NavProps {
@@ -121,6 +123,17 @@ export function Nav({ role }: NavProps) {
           <span className="nav-owner-text">
             {displayName} · {roleLabel}
           </span>
+          {role === "owner" && (
+            <Link
+              href="/dashboard/settings"
+              className={`sign-out-icon-btn ${pathname === "/dashboard/settings" ? "active" : ""}`}
+              style={{ display: "flex", marginLeft: 4 }}
+              title="Profile & Settings"
+              aria-label="Settings"
+            >
+              <Settings size={16} />
+            </Link>
+          )}
           {/* Desktop: text sign-out button */}
           <button onClick={handleSignOut} className="sign-out-link sign-out-text">
             Sign out
