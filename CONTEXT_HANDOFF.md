@@ -7,8 +7,8 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🎯 Current Focus & Active Objective
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
-* **Current Focus**: **FEAT-012a — Send Reminder Backend** (Sprint 1)
-  * **Objective**: Build a unified, reusable WhatsApp server action/API. This single server action will be reused across the dashboard, particularly from the Payment Drawer for overdue/due-soon members.
+* **Current Focus**: **FEAT-014 — Membership Plan Manager** (Sprint 1)
+  * **Objective**: Implement admin dashboard controls for managing membership plans (create, edit, delete pricing options) and direct subscription operations (pausing, resuming, extending, canceling plans) within the `MemberDrawer`.
   * **Trajectory Note**: The Member Portal (`FEAT-009`, Sprint 3) will be built *after* the Trainer Portal (`FEAT-010`, Sprint 2) is complete. Our immediate focus is finishing Sprint 1.
 
 ---
@@ -94,8 +94,8 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
 ### 🔴 SPRINT 1 — Trainer Foundation & Admin Actions (Owner Dashboard)
 * **`FEAT-007` — Trainer Action Modals**: **DONE ✅**
   * Built the core modals (`AddTrainerModal`, `AssignMemberModal`, `EditTrainerModal`) and established the bulk-assignment upsert pattern and RLS gym_id injection. Unblocked complete trainer configuration.
-* **`FEAT-012a` — Send Reminder Backend**:
-  * Build a unified, reusable WhatsApp server action/API. This single server action will be reused across the dashboard, particularly from the **Payment Drawer** for overdue/due-soon members.
+* **`FEAT-012a` — Send Reminder Backend**: **DONE ✅**
+  * Built a secure Next.js Route Handler for the Meta WhatsApp Cloud API and integrated a TanStack mutation hook into the Payment Drawer for instant reminders.
 * **`FEAT-014` — Membership Plan Manager**:
   * Implement admin dashboard controls for managing membership plans (create, edit, delete pricing options) and direct subscription operations (pausing, resuming, extending, canceling plans) within the `MemberDrawer`.
 * **`FEAT-015` — Owner Profile & Settings Page**:
@@ -282,15 +282,10 @@ Trainers are accountable staff, not just service providers — their own attenda
 The following items from the Payments page were raised and need resolution before the next agent picks them up:
 
 ### 1. Mark as Paid vs. Record Payment
-* **Current state**: A `RecordPaymentModal` already exists and is the canonical way to log a payment.
-* **Question**: Is a separate one-click "Mark as Paid" button in the Payment Drawer actually needed, or is `RecordPaymentModal` sufficient for all cases?
-* **Tentative conclusion**: Keep only `RecordPaymentModal`. Remove or hide any redundant "Mark as Paid" button to avoid dual code paths. **Confirm before building.**
+* **Resolution**: The redundant "Mark as Paid" button was completely removed in `FEAT-012a` to enforce a single code path through the `RecordPaymentModal`.
 
 ### 2. Send Reminder — Channel & Provider
-* **Importance**: Flagged as the single most important owner-facing action on the Payments page.
-* **Trigger point**: Button inside the Payment Drawer for a specific overdue/due-soon member.
-* **Channels under consideration**: WhatsApp (Twilio Messaging API or WATI), Email (Resend/SendGrid), plain SMS.
-* **Decision needed**: Which channel(s) to launch with. WATI is the most practical for Indian gym WhatsApp flows. No provider has been set up yet — this must be chosen before `FEAT-012` is scoped.
+* **Resolution**: Integrated directly with the Meta WhatsApp Cloud API (`FEAT-012a`) using utility templates. WATI/Twilio were skipped in favor of direct, zero-markup Meta integration.
 
 ### 3. Revenue Health Card → Revenue Graph
 * **Current state**: The Revenue Health card on the Payments page is a static UI element with no real data behind it.
