@@ -6,9 +6,10 @@
 //
 // CSS: all styles live in app/globals.css (/* Navigation */ section).
 // Fetches: gym name from useGymSettings, user name from Supabase auth.
-// Mobile (≤640px): top bar shows logo + LogOut icon only.
+// Mobile (≤640px): top bar shows logo + gear icon only.
 //   Owner role gets a fixed bottom tab bar (5 Lucide-icon tabs).
 //   Tab label is visible only on the active tab.
+//   Sign-out lives on /dashboard/settings — NOT in the nav bar.
 // ============================================================
 
 import Link from "next/link";
@@ -17,7 +18,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useGymSettings } from "@/hooks/useGymSettings";
 import {
-  LayoutDashboard, Users, CreditCard, CalendarCheck, Dumbbell, LogOut, Settings
+  LayoutDashboard, Users, CreditCard, CalendarCheck, Dumbbell, Settings
 } from "lucide-react";
 
 // Module-level — createClient() is not recreated on every render.
@@ -31,7 +32,6 @@ const ROLE_LINKS: Record<NavProps["role"], { href: string; label: string }[]> = 
     { href: "/dashboard/payments",   label: "Payments"   },
     { href: "/dashboard/attendance", label: "Attendance" },
     { href: "/dashboard/trainers",   label: "Trainers"   },
-    { href: "/dashboard/settings",   label: "Settings"   },
   ],
   trainer: [{ href: "/trainer", label: "My Portal"  }],
   member:  [{ href: "/member",  label: "My Profile" }],
@@ -44,7 +44,6 @@ const OWNER_TAB_ICONS: Record<string, React.ReactNode> = {
   "/dashboard/payments":   <CreditCard      size={20} />,
   "/dashboard/attendance": <CalendarCheck   size={20} />,
   "/dashboard/trainers":   <Dumbbell        size={20} />,
-  "/dashboard/settings":   <Settings        size={20} />,
 };
 
 interface NavProps {
@@ -85,11 +84,6 @@ export function Nav({ role }: NavProps) {
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
   const links = ROLE_LINKS[role];
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  };
-
   const primaryColor = settings?.primary_color || "#4ade80";
 
   return (
@@ -124,28 +118,26 @@ export function Nav({ role }: NavProps) {
             {displayName} · {roleLabel}
           </span>
           {role === "owner" && (
-            <Link
-              href="/dashboard/settings"
-              className={`sign-out-icon-btn ${pathname === "/dashboard/settings" ? "active" : ""}`}
-              style={{ display: "flex", marginLeft: 4 }}
-              title="Profile & Settings"
-              aria-label="Settings"
-            >
-              <Settings size={16} />
-            </Link>
+            <>
+              {/* Desktop: "Manage Profile" text + icon */}
+              <Link
+                href="/dashboard/settings"
+                className={`sign-out-link sign-out-text manage-profile-btn ${pathname === "/dashboard/settings" ? "active-settings" : ""}`}
+                title="Manage Profile & Settings"
+              >
+                <Settings size={14} />
+                Manage Profile
+              </Link>
+              {/* Mobile: gear icon only */}
+              <Link
+                href="/dashboard/settings"
+                className={`sign-out-icon-btn ${pathname === "/dashboard/settings" ? "active-settings" : ""}`}
+                aria-label="Manage Profile"
+              >
+                <Settings size={16} />
+              </Link>
+            </>
           )}
-          {/* Desktop: text sign-out button */}
-          <button onClick={handleSignOut} className="sign-out-link sign-out-text">
-            Sign out
-          </button>
-          {/* Mobile: icon-only sign-out button */}
-          <button
-            onClick={handleSignOut}
-            className="sign-out-icon-btn"
-            aria-label="Sign out"
-          >
-            <LogOut size={16} />
-          </button>
         </div>
       </nav>
 

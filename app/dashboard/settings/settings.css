@@ -227,28 +227,87 @@
   .settings-card {
     padding: 24px 20px;
   }
-  
+
   .profile-view {
     flex-direction: column;
     align-items: flex-start;
     gap: 20px;
   }
-  
+
   .profile-view .btn-ghost-sm {
     width: 100%;
     justify-content: center;
   }
-  
+
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .form-actions > * {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* ── Change Password — collapsible toggle ────────────────── */
+.password-toggle-row {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.password-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.password-toggle-btn:hover {
+  color: var(--text-secondary);
+}
+
+.password-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  animation: fadeIn 0.18s ease;
+}
+
+/* ── Danger Zone Card ────────────────────────────────────── */
+.danger-zone {
+  border-color: rgba(248, 113, 113, 0.12);
+}
+
+.btn-danger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-red-dim);
+  color: var(--accent-red);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 11px 20px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  min-height: 44px;
+}
+
+.btn-danger:hover {
+  background: rgba(248, 113, 113, 0.2);
+  border-color: rgba(248, 113, 113, 0.35);
 }

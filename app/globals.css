@@ -335,6 +335,23 @@ button, input, select, textarea {
 }
 .sign-out-link:hover { border-color: var(--border-hi); color: var(--text-secondary); }
 
+/* Manage Profile button — desktop nav, icon + text */
+.manage-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+.manage-profile-btn.active-settings {
+  border-color: var(--border-hi);
+  color: var(--text-primary);
+}
+
+/* Gear icon active state */
+.sign-out-icon-btn.active-settings {
+  color: var(--accent-green);
+}
+
 /* ── Sign-out icon button — mobile-only variant ── */
 .sign-out-icon-btn {
   display: none; /* shown only at ≤640px */

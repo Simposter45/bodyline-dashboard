@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createClient } from "@/lib/supabase/client";
 import { Nav } from "@/components/ui/Nav";
 import { Avatar } from "@/components/ui/Avatar";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useUpdateDisplayName, useChangePassword } from "@/hooks/useOwnerProfileMutation";
 import { profileSchema, passwordSchema, type ProfileFormData, type PasswordFormData } from "@/lib/validations/profile";
-import { Pen, Wrench, Lock } from "lucide-react";
+import { Pen, Wrench, LogOut, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import "./settings.css";
+
+const supabase = createClient();
 
 type Tab = "account" | "gym";
 
@@ -73,13 +76,18 @@ export default function SettingsPage() {
 
 function AccountTab({ userInfo }: { userInfo: { userName: string; email: string } }) {
   const [editingProfile, setEditingProfile] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   // ── Profile Form ──
-  const { register: regProfile, handleSubmit: submitProfile, formState: { errors: profileErrs } } = useForm<ProfileFormData>({
+  const {
+    register: regProfile,
+    handleSubmit: submitProfile,
+    formState: { errors: profileErrs },
+  } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: { full_name: userInfo.userName },
   });
-  
+
   const updateName = useUpdateDisplayName();
   const onProfileSubmit = (data: ProfileFormData) => {
     updateName.mutate(data.full_name, {
@@ -88,24 +96,37 @@ function AccountTab({ userInfo }: { userInfo: { userName: string; email: string 
   };
 
   // ── Password Form ──
-  const { register: regPass, handleSubmit: submitPass, reset: resetPass, formState: { errors: passErrs } } = useForm<PasswordFormData>({
+  const {
+    register: regPass,
+    handleSubmit: submitPass,
+    reset: resetPass,
+    formState: { errors: passErrs },
+  } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
-  
+
   const changePass = useChangePassword();
   const onPassSubmit = (data: PasswordFormData) => {
     changePass.mutate(data.new_password, {
-      onSuccess: () => resetPass(),
+      onSuccess: () => {
+        resetPass();
+        setShowPasswordForm(false);
+      },
     });
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
   };
 
   return (
     <>
-      {/* ── Personal Profile Card ── */}
+      {/* ── Profile Card ── */}
       <div className="settings-card">
         <div className="settings-card-header">
           <h2 className="settings-card-title">Personal Profile</h2>
-          <p className="settings-card-sub">Update your display name and personal details</p>
+          <p className="settings-card-sub">Your display name and login details</p>
         </div>
 
         {!editingProfile ? (
@@ -119,11 +140,11 @@ function AccountTab({ userInfo }: { userInfo: { userName: string; email: string 
             </div>
             <button className="btn-ghost-sm" onClick={() => setEditingProfile(true)}>
               <Pen size={14} />
-              Edit Profile
+              Edit
             </button>
           </div>
         ) : (
-          <form onSubmit={submitProfile(onProfileSubmit)} className="profile-edit-form">
+          <form onSubmit={submitProfile(onProfileSubmit)}>
             <div className="form-grid">
               <div className="form-field">
                 <label className="form-label">Full Name</label>
@@ -132,26 +153,105 @@ function AccountTab({ userInfo }: { userInfo: { userName: string; email: string 
                   className="form-input"
                   placeholder="Your name"
                 />
-                {profileErrs.full_name && <span className="form-error">{profileErrs.full_name.message}</span>}
+                {profileErrs.full_name && (
+                  <span className="form-error">{profileErrs.full_name.message}</span>
+                )}
               </div>
-              
+
               <div className="form-field">
-                <label className="form-label">Email Address (Read-only)</label>
+                <label className="form-label">Email Address</label>
                 <input
                   type="text"
                   value={userInfo.email}
                   readOnly
                   className="form-input form-input-readonly"
-                  title="Email cannot be changed directly"
+                  title="Email cannot be changed"
                 />
               </div>
             </div>
-            
+
             <div className="form-actions">
               <button type="submit" className="btn-solid" disabled={updateName.isPending}>
                 {updateName.isPending ? "Saving..." : "Save Changes"}
               </button>
-              <button type="button" className="btn-ghost-sm" onClick={() => setEditingProfile(false)}>
+              <button
+                type="button"
+                className="btn-ghost-sm"
+                onClick={() => setEditingProfile(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* ── Change Password — collapsible, subtle ── */}
+        <div className="password-toggle-row">
+          <button
+            className="password-toggle-btn"
+            onClick={() => setShowPasswordForm((v) => !v)}
+            type="button"
+          >
+            <Lock size={13} />
+            Change password
+            {showPasswordForm ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+          </button>
+        </div>
+
+        {showPasswordForm && (
+          <form onSubmit={submitPass(onPassSubmit)} className="password-form">
+            <div className="form-grid">
+              <div className="form-field">
+                <label className="form-label">Current Password</label>
+                <input
+                  {...regPass("current_password")}
+                  type="password"
+                  className="form-input"
+                  placeholder="••••••••"
+                />
+                {passErrs.current_password && (
+                  <span className="form-error">{passErrs.current_password.message}</span>
+                )}
+              </div>
+            </div>
+            <div className="form-grid" style={{ marginTop: 16 }}>
+              <div className="form-field">
+                <label className="form-label">New Password</label>
+                <input
+                  {...regPass("new_password")}
+                  type="password"
+                  className="form-input"
+                  placeholder="Min. 8 characters"
+                />
+                {passErrs.new_password && (
+                  <span className="form-error">{passErrs.new_password.message}</span>
+                )}
+              </div>
+              <div className="form-field">
+                <label className="form-label">Confirm New Password</label>
+                <input
+                  {...regPass("confirm_password")}
+                  type="password"
+                  className="form-input"
+                  placeholder="Must match"
+                />
+                {passErrs.confirm_password && (
+                  <span className="form-error">{passErrs.confirm_password.message}</span>
+                )}
+              </div>
+            </div>
+            <div className="form-actions">
+              <button type="submit" className="btn-solid" disabled={changePass.isPending}>
+                {changePass.isPending ? "Updating..." : "Update Password"}
+              </button>
+              <button
+                type="button"
+                className="btn-ghost-sm"
+                onClick={() => {
+                  resetPass();
+                  setShowPasswordForm(false);
+                }}
+              >
                 Cancel
               </button>
             </div>
@@ -159,58 +259,16 @@ function AccountTab({ userInfo }: { userInfo: { userName: string; email: string 
         )}
       </div>
 
-      {/* ── Security Card ── */}
-      <div className="settings-card">
-        <div className="settings-card-header">
-          <h2 className="settings-card-title">Change Password</h2>
-          <p className="settings-card-sub">Ensure your account is using a long, random password to stay secure</p>
+      {/* ── Sign Out ── */}
+      <div className="settings-card danger-zone">
+        <div className="settings-card-header" style={{ marginBottom: 16 }}>
+          <h2 className="settings-card-title">Sign Out</h2>
+          <p className="settings-card-sub">You will be redirected to the login page</p>
         </div>
-
-        <form onSubmit={submitPass(onPassSubmit)}>
-          <div className="form-grid">
-            <div className="form-field">
-              <label className="form-label">Current Password</label>
-              <input
-                {...regPass("current_password")}
-                type="password"
-                className="form-input"
-                placeholder="••••••••"
-              />
-              {passErrs.current_password && <span className="form-error">{passErrs.current_password.message}</span>}
-            </div>
-          </div>
-          
-          <div className="form-grid" style={{ marginTop: 20 }}>
-            <div className="form-field">
-              <label className="form-label">New Password</label>
-              <input
-                {...regPass("new_password")}
-                type="password"
-                className="form-input"
-                placeholder="Min. 8 characters"
-              />
-              {passErrs.new_password && <span className="form-error">{passErrs.new_password.message}</span>}
-            </div>
-            
-            <div className="form-field">
-              <label className="form-label">Confirm New Password</label>
-              <input
-                {...regPass("confirm_password")}
-                type="password"
-                className="form-input"
-                placeholder="Must match new password"
-              />
-              {passErrs.confirm_password && <span className="form-error">{passErrs.confirm_password.message}</span>}
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button type="submit" className="btn-solid" disabled={changePass.isPending}>
-              <Lock size={14} />
-              {changePass.isPending ? "Updating..." : "Update Password"}
-            </button>
-          </div>
-        </form>
+        <button className="btn-danger" onClick={handleSignOut}>
+          <LogOut size={15} />
+          Sign out of your account
+        </button>
       </div>
     </>
   );
@@ -228,9 +286,10 @@ function GymSettingsTab() {
       </div>
       <h2 className="coming-soon-title">Gym Settings & Configuration</h2>
       <p className="coming-soon-desc">
-        We are building a unified interface to manage all your gym-level branding, notifications, and subscription configurations.
+        We&apos;re building a unified interface to manage all your gym-level branding,
+        notifications, and subscription configurations.
       </p>
-      
+
       <div className="coming-soon-list">
         <div className="coming-soon-row">
           <span className="coming-soon-row-label">Branding & Identity (Logo, Colors)</span>
