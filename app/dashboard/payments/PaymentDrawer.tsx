@@ -11,6 +11,8 @@ import { X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { STATUS_CONFIG } from "@/lib/constants/status";
 import { formatINR, formatDate } from "@/lib/utils/format";
+import { useSendReminder } from "@/hooks/useSendReminder";
+import { useGymSettings } from "@/hooks/useGymSettings";
 import type { PaymentRecord } from "@/hooks/usePayments";
 import type { PaymentStatus } from "@/types";
 
@@ -20,6 +22,9 @@ interface PaymentDrawerProps {
 }
 
 export function PaymentDrawer({ record, onClose }: PaymentDrawerProps) {
+  const { data: gymSettings } = useGymSettings();
+  const { mutate: sendReminder, isPending: isSending } = useSendReminder();
+
   // Narrow to the statuses STATUS_CONFIG supports; fall back to superseded
   const statusKey = (["paid", "pending", "overdue", "superseded"] as PaymentStatus[]).includes(
     record.payment_status
@@ -139,13 +144,21 @@ export function PaymentDrawer({ record, onClose }: PaymentDrawerProps) {
 
         {/* Actions */}
         <div className="payment-drawer-actions">
-          {record.payment_status !== "paid" && (
-            <button className="payment-drawer-btn payment-drawer-btn-primary">
-              Mark as paid
-            </button>
-          )}
-          <button className="payment-drawer-btn payment-drawer-btn-secondary">
-            Send reminder
+          <button 
+            className="payment-drawer-btn payment-drawer-btn-secondary"
+            disabled={!record.member.phone || due === 0 || isSending}
+            onClick={() => {
+              if (record.member.phone && due > 0) {
+                sendReminder({
+                  phone: record.member.phone,
+                  memberName: record.member.full_name,
+                  gymName: gymSettings?.gym_display_name || "the gym",
+                  amountDue: due,
+                });
+              }
+            }}
+          >
+            {isSending ? "Sending..." : "Send reminder"}
           </button>
         </div>
       </div>
