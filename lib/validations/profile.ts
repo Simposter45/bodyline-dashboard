@@ -2,22 +2,17 @@ import { z } from "zod";
 
 // ── Profile edit — display name (email is read-only) ─────────────────────────
 
+// ── Profile edit (display name and phone) ─────────────────────────────────────
+
 export const profileSchema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
-});
-
-export type ProfileFormData = z.infer<typeof profileSchema>;
-
-// ── Phone edit ────────────────────────────────────────────────────────────────
-
-export const phoneSchema = z.object({
   phone: z
     .string()
     .regex(/^[6-9]\d{9}$/, "Must be a 10-digit Indian mobile number")
     .or(z.literal("")), // allow clearing the field
 });
 
-export type PhoneFormData = z.infer<typeof phoneSchema>;
+export type ProfileFormData = z.infer<typeof profileSchema>;
 
 // ── Password change ───────────────────────────────────────────────────────────
 // Note: `current_password` is a UX-only confirmation field. Supabase Auth's

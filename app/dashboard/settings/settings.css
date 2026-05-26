@@ -95,15 +95,17 @@
   color: var(--text-muted);
 }
 
-/* ── Inline-editable field rows ──────────────────────────── */
+/* ── Read-only Field Rows ────────────────────────────────── */
+.profile-fields-view {
+  display: flex;
+  flex-direction: column;
+}
+
 .profile-field-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 14px 0;
   border-bottom: 1px solid var(--border);
-  gap: 16px;
-  min-height: 52px;
 }
 
 .profile-field-row:last-of-type {
@@ -116,147 +118,22 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  flex-shrink: 0;
-  min-width: 100px;
+  min-width: 120px;
 }
 
-.profile-field-value {
+.profile-field-value,
+.profile-field-readonly {
   font-size: 14px;
   color: var(--text-primary);
-  flex: 1;
+}
+
+.profile-field-readonly {
+  color: var(--text-muted);
 }
 
 .profile-field-value.muted {
   color: var(--text-muted);
   font-style: italic;
-}
-
-.profile-field-readonly {
-  font-size: 14px;
-  color: var(--text-muted);
-  flex: 1;
-}
-
-/* Pencil edit button — appears on hover of the row */
-.profile-field-edit-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: var(--radius-sm);
-  transition: color 0.15s, background 0.12s;
-  flex-shrink: 0;
-  min-width: 30px;
-  min-height: 30px;
-  opacity: 0;
-}
-
-.profile-field-row:hover .profile-field-edit-btn {
-  opacity: 1;
-}
-
-.profile-field-edit-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg3);
-}
-
-/* Inline edit state */
-.profile-field-form-container {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.profile-field-form {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.profile-field-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.text-mobile {
-  display: none;
-}
-
-.icon-desktop {
-  display: block;
-}
-
-.profile-field-input {
-  flex: 1;
-  background: var(--bg3);
-  border: 1px solid var(--border-hi);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  font-size: 14px;
-  outline: none;
-}
-
-.profile-field-input:focus {
-  border-color: var(--accent-green);
-}
-
-.profile-field-confirm-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent-green-dim);
-  border: 1px solid rgba(74, 222, 128, 0.2);
-  border-radius: var(--radius-sm);
-  color: var(--accent-green);
-  cursor: pointer;
-  padding: 7px;
-  min-width: 32px;
-  min-height: 32px;
-  transition: background 0.12s;
-}
-
-.profile-field-confirm-btn:hover {
-  background: rgba(74, 222, 128, 0.2);
-}
-
-.profile-field-confirm-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.profile-field-cancel-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 7px;
-  min-width: 32px;
-  min-height: 32px;
-  transition: border-color 0.12s;
-}
-
-.profile-field-cancel-btn:hover {
-  border-color: var(--border-hi);
-  color: var(--text-secondary);
-}
-
-.profile-field-error {
-  font-size: 11px;
-  color: var(--accent-red);
-  margin-top: 4px;
 }
 
 /* ── Form Fields ─────────────────────────────────────────── */
@@ -315,6 +192,66 @@
   margin-top: 24px;
   padding-top: 24px;
   border-top: 1px solid var(--border);
+}
+
+/* ── Security & Access Card ──────────────────────────────── */
+.security-section {
+  margin-bottom: 24px;
+}
+
+.security-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.security-section-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.security-section-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.security-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 24px 0;
+}
+
+.password-form-full {
+  margin-top: 16px;
+}
+
+/* Danger Zone specific */
+.danger-zone {
+  border-color: rgba(248, 113, 113, 0.12);
+}
+
+.btn-danger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-red-dim);
+  color: var(--accent-red);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 11px 20px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  min-height: 44px;
+}
+
+.btn-danger:hover {
+  background: rgba(248, 113, 113, 0.2);
+  border-color: rgba(248, 113, 113, 0.35);
 }
 
 /* ── Coming Soon Placeholder ─────────────────────────────── */
@@ -385,76 +322,18 @@
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {
   .settings-card {
-    padding: 20px 16px;
+    padding: 24px 16px;
   }
 
-  /* Field rows: slightly taller for touch */
   .profile-field-row {
-    min-height: 56px;
-    padding: 16px 0;
-  }
-
-  /* On mobile there is no hover — always show the pencil */
-  .profile-field-edit-btn {
-    opacity: 1;
-    min-width: 40px;
-    min-height: 40px;
-    /* Visually subtle but always tappable */
-    color: var(--text-muted);
-    background: var(--bg3);
-    border-radius: var(--radius-sm);
-  }
-
-  /* ── Mobile Inline Edit UX ── */
-  .profile-field-row.is-editing {
     flex-direction: column;
-    align-items: stretch;
-    height: auto;
-    gap: 8px;
-    padding: 16px 0;
-  }
-  
-  .profile-field-row.is-editing .profile-field-label {
-    min-width: auto;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 12px 0;
   }
 
-  .profile-field-form {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .profile-field-actions {
-    display: flex;
-    gap: 12px;
-  }
-
-  .profile-field-confirm-btn,
-  .profile-field-cancel-btn {
-    flex: 1;
-    min-height: 44px;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .text-mobile {
-    display: inline-block;
-  }
-
-  .icon-desktop {
-    display: none;
-  }
-
-  /* Inline input full-width on mobile */
-  .profile-field-input {
-    font-size: 15px;
-    padding: 10px 12px;
-  }
-
-  /* Shrink label slightly to give value more room */
   .profile-field-label {
-    min-width: 80px;
+    min-width: auto;
     font-size: 11px;
   }
 
@@ -470,69 +349,4 @@
     width: 100%;
     justify-content: center;
   }
-
-  .password-toggle-btn {
-    font-size: 14px;
-    padding: 8px 0;
-    min-height: 44px;
-  }
-}
-
-/* ── Change Password — collapsible toggle ────────────────── */
-.password-toggle-row {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
-
-.password-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-family: var(--font-body);
-  font-size: 13px;
-  cursor: pointer;
-  padding: 4px 0;
-  transition: color 0.15s;
-}
-
-.password-toggle-btn:hover {
-  color: var(--text-secondary);
-}
-
-.password-form {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-  animation: fadeIn 0.18s ease;
-}
-
-/* ── Danger Zone Card ────────────────────────────────────── */
-.danger-zone {
-  border-color: rgba(248, 113, 113, 0.12);
-}
-
-.btn-danger {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--accent-red-dim);
-  color: var(--accent-red);
-  border: 1px solid rgba(248, 113, 113, 0.2);
-  border-radius: var(--radius-sm);
-  padding: 11px 20px;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  min-height: 44px;
-}
-
-.btn-danger:hover {
-  background: rgba(248, 113, 113, 0.2);
-  border-color: rgba(248, 113, 113, 0.35);
 }

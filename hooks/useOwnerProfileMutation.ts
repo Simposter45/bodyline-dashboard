@@ -4,49 +4,25 @@ import { toast } from "react-hot-toast";
 
 const supabase = createClient();
 
-// ── Update Display Name ───────────────────────────────────────────────────────
+// ── Update Profile (Name & Phone) ─────────────────────────────────────────────
 
-export function useUpdateDisplayName() {
+export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (fullName: string) => {
+    mutationFn: async ({ fullName, phone }: { fullName: string; phone: string }) => {
       const { data, error } = await supabase.auth.updateUser({
-        data: { full_name: fullName },
+        data: { full_name: fullName, phone },
       });
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["current-user"] });
-      toast.success("Name updated");
+      toast.success("Profile updated successfully");
     },
     onError: (error: unknown) => {
-      const msg = error instanceof Error ? error.message : "Failed to update name";
-      toast.error(msg);
-    },
-  });
-}
-
-// ── Update Phone ──────────────────────────────────────────────────────────────
-
-export function useUpdatePhone() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (phone: string) => {
-      const { data, error } = await supabase.auth.updateUser({
-        data: { phone },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["current-user"] });
-      toast.success("Phone number updated");
-    },
-    onError: (error: unknown) => {
-      const msg = error instanceof Error ? error.message : "Failed to update phone";
+      const msg = error instanceof Error ? error.message : "Failed to update profile";
       toast.error(msg);
     },
   });

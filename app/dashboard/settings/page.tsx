@@ -8,19 +8,16 @@ import { Nav } from "@/components/ui/Nav";
 import { Avatar } from "@/components/ui/Avatar";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
-  useUpdateDisplayName,
-  useUpdatePhone,
+  useUpdateProfile,
   useChangePassword,
 } from "@/hooks/useOwnerProfileMutation";
 import {
   profileSchema,
-  phoneSchema,
   passwordSchema,
   type ProfileFormData,
-  type PhoneFormData,
   type PasswordFormData,
 } from "@/lib/validations/profile";
-import { Pen, Check, X, Wrench, LogOut, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { Pen, Wrench, LogOut, Lock } from "lucide-react";
 import "./settings.css";
 
 const supabase = createClient();
@@ -91,12 +88,144 @@ interface UserInfo {
 }
 
 function AccountTab({ userInfo }: { userInfo: UserInfo }) {
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const updateName = useUpdateDisplayName();
-  const updatePhone = useUpdatePhone();
+  const updateProfile = useUpdateProfile();
 
-  // ── Password Form ──
+  const {
+    register: regProfile,
+    handleSubmit: submitProfile,
+    formState: { errors: profileErrs },
+    reset: resetProfile,
+  } = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: { full_name: userInfo.userName, phone: userInfo.phone },
+  });
+
+  const onProfileSubmit = (data: ProfileFormData) => {
+    updateProfile.mutate(
+      { fullName: data.full_name, phone: data.phone },
+      {
+        onSuccess: () => setIsEditing(false),
+      }
+    );
+  };
+
+  const handleCancel = () => {
+    resetProfile({ full_name: userInfo.userName, phone: userInfo.phone });
+    setIsEditing(false);
+  };
+
+  return (
+    <>
+      {/* ── Personal Profile Card ── */}
+      <div className="settings-card">
+        <div className="settings-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <h2 className="settings-card-title">Personal Profile</h2>
+            <p className="settings-card-sub">Your identity on the Bodyline platform</p>
+          </div>
+          {!isEditing && (
+            <button className="btn-ghost-sm" onClick={() => setIsEditing(true)}>
+              <Pen size={14} />
+              Edit Profile
+            </button>
+          )}
+        </div>
+
+        {/* Avatar block */}
+        <div className="profile-header">
+          <Avatar name={userInfo.userName} size={72} />
+          <div className="profile-meta">
+            <div className="profile-name">{userInfo.userName}</div>
+            <div className="profile-email">{userInfo.email || "—"}</div>
+          </div>
+        </div>
+
+        {!isEditing ? (
+          <div className="profile-fields-view">
+            <div className="profile-field-row">
+              <span className="profile-field-label">Full Name</span>
+              <span className="profile-field-value">{userInfo.userName}</span>
+            </div>
+            <div className="profile-field-row">
+              <span className="profile-field-label">Email</span>
+              <span className="profile-field-readonly">{userInfo.email || "—"}</span>
+            </div>
+            <div className="profile-field-row">
+              <span className="profile-field-label">Phone</span>
+              <span className={`profile-field-value ${!userInfo.phone ? "muted" : ""}`}>
+                {userInfo.phone || "Not set"}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={submitProfile(onProfileSubmit)}>
+            <div className="form-grid">
+              <div className="form-field">
+                <label className="form-label">Full Name</label>
+                <input
+                  {...regProfile("full_name")}
+                  className="form-input"
+                  placeholder="Your full name"
+                />
+                {profileErrs.full_name && (
+                  <span className="form-error">{profileErrs.full_name.message}</span>
+                )}
+              </div>
+
+              <div className="form-field">
+                <label className="form-label">Email Address (Read-only)</label>
+                <input
+                  type="text"
+                  value={userInfo.email}
+                  readOnly
+                  className="form-input form-input-readonly"
+                  title="Email cannot be changed directly"
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="form-label">Phone</label>
+                <input
+                  {...regProfile("phone")}
+                  className="form-input"
+                  placeholder="10-digit mobile number"
+                  inputMode="tel"
+                />
+                {profileErrs.phone && (
+                  <span className="form-error">{profileErrs.phone.message}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn-solid" disabled={updateProfile.isPending}>
+                {updateProfile.isPending ? "Saving..." : "Save Changes"}
+              </button>
+              <button
+                type="button"
+                className="btn-ghost-sm"
+                onClick={handleCancel}
+                disabled={updateProfile.isPending}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+
+      <SecurityAccessCard />
+    </>
+  );
+}
+
+// ============================================================================
+// SECURITY & ACCESS CARD
+// ============================================================================
+
+function SecurityAccessCard() {
   const {
     register: regPass,
     handleSubmit: submitPass,
@@ -109,7 +238,6 @@ function AccountTab({ userInfo }: { userInfo: UserInfo }) {
     changePass.mutate(data.new_password, {
       onSuccess: () => {
         resetPass();
-        setShowPasswordForm(false);
       },
     });
   };
@@ -120,239 +248,74 @@ function AccountTab({ userInfo }: { userInfo: UserInfo }) {
   };
 
   return (
-    <>
-      {/* ── Personal Profile Card ── */}
-      <div className="settings-card">
-        <div className="settings-card-header">
-          <h2 className="settings-card-title">Personal Profile</h2>
-          <p className="settings-card-sub">Your identity on the Bodyline platform</p>
-        </div>
-
-        {/* Avatar + name identity block */}
-        <div className="profile-header">
-          <Avatar name={userInfo.userName} size={72} />
-          <div className="profile-meta">
-            <div className="profile-name">{userInfo.userName}</div>
-            <div className="profile-email">{userInfo.email || "—"}</div>
-          </div>
-        </div>
-
-        {/* Always-visible field rows with per-field inline pencil edit */}
-        <InlineField
-          label="Full Name"
-          value={userInfo.userName}
-          schema={profileSchema}
-          schemaKey="full_name"
-          placeholder="Your full name"
-          onSave={(val) => updateName.mutate(val)}
-          isSaving={updateName.isPending}
-        />
-
-        <div className="profile-field-row">
-          <span className="profile-field-label">Email</span>
-          <span className="profile-field-readonly">{userInfo.email || "—"}</span>
-          {/* Email is read-only — Supabase requires two-step email confirmation */}
-        </div>
-
-        <InlineField
-          label="Phone"
-          value={userInfo.phone}
-          schema={phoneSchema}
-          schemaKey="phone"
-          placeholder="+91 98765 43210 (optional)"
-          emptyLabel="Not set"
-          onSave={(val) => updatePhone.mutate(val)}
-          isSaving={updatePhone.isPending}
-          inputMode="tel"
-        />
-
-        {/* Change Password — collapsible */}
-        <div className="password-toggle-row">
-          <button
-            className="password-toggle-btn"
-            onClick={() => setShowPasswordForm((v) => !v)}
-            type="button"
-          >
-            <Lock size={13} />
-            Change password
-            {showPasswordForm ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-          </button>
-        </div>
-
-        {showPasswordForm && (
-          <form onSubmit={submitPass(onPassSubmit)} className="password-form">
-            <div className="form-grid">
-              <div className="form-field">
-                <label className="form-label">Current Password</label>
-                <input
-                  {...regPass("current_password")}
-                  type="password"
-                  className="form-input"
-                  placeholder="••••••••"
-                />
-                {passErrs.current_password && (
-                  <span className="form-error">{passErrs.current_password.message}</span>
-                )}
-              </div>
-            </div>
-            <div className="form-grid" style={{ marginTop: 16 }}>
-              <div className="form-field">
-                <label className="form-label">New Password</label>
-                <input
-                  {...regPass("new_password")}
-                  type="password"
-                  className="form-input"
-                  placeholder="Min. 8 characters"
-                />
-                {passErrs.new_password && (
-                  <span className="form-error">{passErrs.new_password.message}</span>
-                )}
-              </div>
-              <div className="form-field">
-                <label className="form-label">Confirm New Password</label>
-                <input
-                  {...regPass("confirm_password")}
-                  type="password"
-                  className="form-input"
-                  placeholder="Must match"
-                />
-                {passErrs.confirm_password && (
-                  <span className="form-error">{passErrs.confirm_password.message}</span>
-                )}
-              </div>
-            </div>
-            <div className="form-actions">
-              <button type="submit" className="btn-solid" disabled={changePass.isPending}>
-                {changePass.isPending ? "Updating..." : "Update Password"}
-              </button>
-              <button
-                type="button"
-                className="btn-ghost-sm"
-                onClick={() => { resetPass(); setShowPasswordForm(false); }}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
+    <div className="settings-card danger-zone">
+      <div className="settings-card-header">
+        <h2 className="settings-card-title">Security & Access</h2>
+        <p className="settings-card-sub">Manage your password and active sessions</p>
       </div>
 
-      {/* ── Sign Out ── */}
-      <div className="settings-card danger-zone">
-        <div className="settings-card-header" style={{ marginBottom: 16 }}>
-          <h2 className="settings-card-title">Sign Out</h2>
-          <p className="settings-card-sub">You will be redirected to the login page</p>
-        </div>
+      <div className="security-section">
+        <h3 className="security-section-title">Change Password</h3>
+        <form onSubmit={submitPass(onPassSubmit)} className="password-form-full">
+          <div className="form-grid">
+            <div className="form-field">
+              <label className="form-label">Current Password</label>
+              <input
+                {...regPass("current_password")}
+                type="password"
+                className="form-input"
+                placeholder="••••••••"
+              />
+              {passErrs.current_password && (
+                <span className="form-error">{passErrs.current_password.message}</span>
+              )}
+            </div>
+          </div>
+          <div className="form-grid" style={{ marginTop: 16 }}>
+            <div className="form-field">
+              <label className="form-label">New Password</label>
+              <input
+                {...regPass("new_password")}
+                type="password"
+                className="form-input"
+                placeholder="Min. 8 characters"
+              />
+              {passErrs.new_password && (
+                <span className="form-error">{passErrs.new_password.message}</span>
+              )}
+            </div>
+            <div className="form-field">
+              <label className="form-label">Confirm New Password</label>
+              <input
+                {...regPass("confirm_password")}
+                type="password"
+                className="form-input"
+                placeholder="Must match"
+              />
+              {passErrs.confirm_password && (
+                <span className="form-error">{passErrs.confirm_password.message}</span>
+              )}
+            </div>
+          </div>
+          <div className="form-actions">
+            <button type="submit" className="btn-solid" disabled={changePass.isPending}>
+              <Lock size={14} />
+              {changePass.isPending ? "Updating..." : "Update Password"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="security-divider" />
+
+      <div className="security-section">
+        <h3 className="security-section-title">Sign Out</h3>
+        <p className="security-section-desc">You will be redirected to the login page.</p>
         <button className="btn-danger" onClick={handleSignOut}>
           <LogOut size={15} />
           Sign out of your account
         </button>
       </div>
-    </>
-  );
-}
-
-// ============================================================================
-// INLINE FIELD — generic reusable per-field inline edit row
-// ============================================================================
-
-import { z } from "zod";
-
-interface InlineFieldProps {
-  label: string;
-  value: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  schema: z.ZodObject<any>;
-  schemaKey: string;
-  placeholder?: string;
-  emptyLabel?: string;
-  onSave: (value: string) => void;
-  isSaving: boolean;
-  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
-}
-
-function InlineField({
-  label,
-  value,
-  schema,
-  schemaKey,
-  placeholder,
-  emptyLabel = "—",
-  onSave,
-  isSaving,
-  inputMode,
-}: InlineFieldProps) {
-  const [editing, setEditing] = useState(false);
-  const [localError, setLocalError] = useState<string | null>(null);
-
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
-    resolver: zodResolver(schema),
-    defaultValues: { [schemaKey]: value },
-  });
-
-  const onSubmit = handleSubmit((data) => {
-    const val = data[schemaKey] as string;
-    // Validate locally before firing mutation
-    const result = schema.safeParse({ [schemaKey]: val });
-    if (!result.success) {
-      setLocalError(result.error.issues[0]?.message ?? "Invalid input");
-      return;
-    }
-    setLocalError(null);
-    onSave(val);
-    setEditing(false);
-  });
-
-  const handleCancel = () => {
-    reset({ [schemaKey]: value });
-    setLocalError(null);
-    setEditing(false);
-  };
-
-  const errorMsg = (errors[schemaKey]?.message as string | undefined) ?? localError;
-
-  return (
-    <div className={`profile-field-row ${editing ? "is-editing" : ""}`}>
-      <span className="profile-field-label">{label}</span>
-
-      {editing ? (
-        <div className="profile-field-form-container">
-          <form onSubmit={onSubmit} className="profile-field-form">
-            <input
-              {...register(schemaKey)}
-              className="profile-field-input"
-              placeholder={placeholder}
-              inputMode={inputMode}
-              autoFocus
-            />
-            <div className="profile-field-actions">
-              <button type="submit" className="profile-field-confirm-btn" disabled={isSaving}>
-                <Check size={14} className="icon-desktop" />
-                <span className="text-mobile">Save</span>
-              </button>
-              <button type="button" className="profile-field-cancel-btn" onClick={handleCancel}>
-                <X size={14} className="icon-desktop" />
-                <span className="text-mobile">Cancel</span>
-              </button>
-            </div>
-          </form>
-          {errorMsg && <span className="profile-field-error">{errorMsg}</span>}
-        </div>
-      ) : (
-        <>
-          <span className={`profile-field-value ${!value ? "muted" : ""}`}>
-            {value || emptyLabel}
-          </span>
-          <button
-            className="profile-field-edit-btn"
-            onClick={() => setEditing(true)}
-            aria-label={`Edit ${label}`}
-            title={`Edit ${label}`}
-          >
-            <Pen size={13} />
-          </button>
-        </>
-      )}
     </div>
   );
 }
