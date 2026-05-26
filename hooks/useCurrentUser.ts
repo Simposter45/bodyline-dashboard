@@ -14,6 +14,9 @@ import { createClient } from "@/lib/supabase/client";
 
 interface CurrentUser {
   userName: string;
+  email: string;
+  phone: string;
+  avatarUrl: string | null;
 }
 
 async function fetchCurrentUser(): Promise<CurrentUser> {
@@ -30,7 +33,11 @@ async function fetchCurrentUser(): Promise<CurrentUser> {
     user?.email?.split("@")[0] ??
     "User";
 
-  return { userName };
+  const email = user?.email ?? "";
+  const phone = user?.user_metadata?.phone ?? "";
+  const avatarUrl = user?.user_metadata?.avatar_url ?? null;
+
+  return { userName, email, phone, avatarUrl };
 }
 
 /**

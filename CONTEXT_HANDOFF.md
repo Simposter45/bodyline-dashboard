@@ -7,8 +7,8 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🎯 Current Focus & Active Objective
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
-* **Current Focus**: **FEAT-014 — Membership Plan Manager** (Sprint 1)
-  * **Objective**: Implement admin dashboard controls for managing membership plans (create, edit, delete pricing options) and direct subscription operations (pausing, resuming, extending, canceling plans) within the `MemberDrawer`.
+* **Current Focus**: **FEAT-014 — Membership Plan Manager**
+  * **Objective**: We just completed FEAT-015 (Owner Personal Profile & Gym Settings) alongside Avatar/Logo bucket uploads. The next step is to implement the Membership Plan Manager.
   * **Trajectory Note**: The Member Portal (`FEAT-009`, Sprint 3) will be built *after* the Trainer Portal (`FEAT-010`, Sprint 2) is complete. Our immediate focus is finishing Sprint 1.
 
 ---
@@ -98,8 +98,10 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
   * Built a secure Next.js Route Handler for the Meta WhatsApp Cloud API and integrated a TanStack mutation hook into the Payment Drawer for instant reminders.
 * **`FEAT-014` — Membership Plan Manager**:
   * Implement admin dashboard controls for managing membership plans (create, edit, delete pricing options) and direct subscription operations (pausing, resuming, extending, canceling plans) within the `MemberDrawer`.
-* **`FEAT-015` — Owner Profile & Settings Page**:
-  * Build a dedicated profile page for the gym owner to view/edit their personal details (Name, Contact info) and securely manage account credentials (Password change flow).
+* **`FEAT-015` — Owner Profile & Settings Page**: **DONE ✅**
+  * Built a dedicated profile page for the gym owner to edit personal details, securely manage account credentials, and upload profile avatars.
+  * Implemented the "Gym Settings" tab (Branding, primary colors, Gym Logo uploads, WhatsApp/Email Config, Payments/UPI Integration).
+  * Extracted and refactored highly reusable `.form-*` CSS classes into `globals.css` for future modularity.
 
 ---
 
