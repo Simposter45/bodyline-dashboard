@@ -185,3 +185,17 @@ export function currentMonthName(): string {
   });
 }
 
+/**
+ * Formats an arbitrary ISO timestamp into a human-readable date string in IST.
+ * e.g. "1 May 2026"
+ */
+export function formatDateIST(isoStr: string): string {
+  if (!isoStr) return "";
+  return new Date(isoStr).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  });
+}
+

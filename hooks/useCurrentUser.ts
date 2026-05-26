@@ -16,6 +16,7 @@ interface CurrentUser {
   userName: string;
   email: string;
   phone: string;
+  avatarUrl: string | null;
 }
 
 async function fetchCurrentUser(): Promise<CurrentUser> {
@@ -34,8 +35,9 @@ async function fetchCurrentUser(): Promise<CurrentUser> {
 
   const email = user?.email ?? "";
   const phone = user?.user_metadata?.phone ?? "";
+  const avatarUrl = user?.user_metadata?.avatar_url ?? null;
 
-  return { userName, email, phone };
+  return { userName, email, phone, avatarUrl };
 }
 
 /**

@@ -10,9 +10,21 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ fullName, phone }: { fullName: string; phone: string }) => {
+    mutationFn: async ({
+      fullName,
+      phone,
+      avatarUrl,
+    }: {
+      fullName: string;
+      phone: string;
+      avatarUrl?: string;
+    }) => {
       const { data, error } = await supabase.auth.updateUser({
-        data: { full_name: fullName, phone },
+        data: {
+          full_name: fullName,
+          phone,
+          ...(avatarUrl !== undefined && { avatar_url: avatarUrl }),
+        },
       });
       if (error) throw error;
       return data;
