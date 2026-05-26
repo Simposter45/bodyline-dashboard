@@ -165,11 +165,32 @@
 }
 
 /* Inline edit state */
-.profile-field-input-wrap {
+.profile-field-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.profile-field-form {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
+  width: 100%;
+}
+
+.profile-field-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.text-mobile {
+  display: none;
+}
+
+.icon-desktop {
+  display: block;
 }
 
 .profile-field-input {
@@ -384,12 +405,45 @@
     border-radius: var(--radius-sm);
   }
 
-  /* Confirm / cancel buttons — bigger touch targets on mobile */
+  /* ── Mobile Inline Edit UX ── */
+  .profile-field-row.is-editing {
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+    gap: 8px;
+    padding: 16px 0;
+  }
+  
+  .profile-field-row.is-editing .profile-field-label {
+    min-width: auto;
+  }
+
+  .profile-field-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .profile-field-actions {
+    display: flex;
+    gap: 12px;
+  }
+
   .profile-field-confirm-btn,
   .profile-field-cancel-btn {
-    min-width: 40px;
-    min-height: 40px;
-    padding: 10px;
+    flex: 1;
+    min-height: 44px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .text-mobile {
+    display: inline-block;
+  }
+
+  .icon-desktop {
+    display: none;
   }
 
   /* Inline input full-width on mobile */

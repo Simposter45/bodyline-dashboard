@@ -312,12 +312,12 @@ function InlineField({
   const errorMsg = (errors[schemaKey]?.message as string | undefined) ?? localError;
 
   return (
-    <div className="profile-field-row">
+    <div className={`profile-field-row ${editing ? "is-editing" : ""}`}>
       <span className="profile-field-label">{label}</span>
 
       {editing ? (
-        <form onSubmit={onSubmit} className="profile-field-input-wrap" style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+        <div className="profile-field-form-container">
+          <form onSubmit={onSubmit} className="profile-field-form">
             <input
               {...register(schemaKey)}
               className="profile-field-input"
@@ -325,15 +325,19 @@ function InlineField({
               inputMode={inputMode}
               autoFocus
             />
-            <button type="submit" className="profile-field-confirm-btn" disabled={isSaving}>
-              <Check size={14} />
-            </button>
-            <button type="button" className="profile-field-cancel-btn" onClick={handleCancel}>
-              <X size={14} />
-            </button>
-          </div>
+            <div className="profile-field-actions">
+              <button type="submit" className="profile-field-confirm-btn" disabled={isSaving}>
+                <Check size={14} className="icon-desktop" />
+                <span className="text-mobile">Save</span>
+              </button>
+              <button type="button" className="profile-field-cancel-btn" onClick={handleCancel}>
+                <X size={14} className="icon-desktop" />
+                <span className="text-mobile">Cancel</span>
+              </button>
+            </div>
+          </form>
           {errorMsg && <span className="profile-field-error">{errorMsg}</span>}
-        </form>
+        </div>
       ) : (
         <>
           <span className={`profile-field-value ${!value ? "muted" : ""}`}>
