@@ -25,15 +25,20 @@ import {
   ALLOWED_PRIMARY_COLORS,
   type GymSettingsFormData,
 } from "@/lib/validations/gym";
-import { Pen, LogOut, Lock, Check, Globe, Mail, MessageSquare, Copy, Camera, ImagePlus } from "lucide-react";
+import { Pen, LogOut, Lock, Check, Globe, Mail, MessageSquare, Copy, Camera, ImagePlus, Plus, X, RotateCcw, PenSquare } from "lucide-react";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { formatDateIST } from "@/lib/utils/date";
+import { formatINR } from "@/lib/utils/format";
 import { uploadAvatar, uploadGymLogo } from "@/lib/utils/upload";
+import { useAllPlans } from "@/hooks/usePlans";
+import { useDeactivatePlan, useRestorePlan } from "@/hooks/usePlanMutations";
+import { PlanModal } from "@/components/plans/PlanModal";
+import type { MembershipPlan } from "@/types";
 import "./settings.css";
 
 const supabase = createClient();
 
-type Tab = "account" | "gym";
+type Tab = "account" | "gym" | "plans";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("account");
@@ -76,11 +81,18 @@ export default function SettingsPage() {
             >
               Gym Settings
             </button>
+            <button
+              className={`settings-tab ${activeTab === "plans" ? "active" : ""}`}
+              onClick={() => setActiveTab("plans")}
+            >
+              Plans
+            </button>
           </div>
 
           <div className="settings-content">
             {activeTab === "account" && <AccountTab userInfo={{ ...userInfo, avatarUrl: userInfo.avatarUrl }} />}
             {activeTab === "gym" && <GymSettingsTab />}
+            {activeTab === "plans" && <PlansTab />}
           </div>
         </div>
       )}
@@ -780,5 +792,197 @@ function GymSettingsTab() {
         </button>
       </div>
     </form>
+  );
+}
+
+// ============================================================================
+// PLANS TAB
+// ============================================================================
+
+function PlansTab() {
+  const { data: plans, isLoading, error } = useAllPlans();
+  const deactivatePlan = useDeactivatePlan();
+  const restorePlan = useRestorePlan();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
+  const [confirmDeactivateId, setConfirmDeactivateId] = useState<string | null>(null);
+
+  if (isLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner" />
+        Loading plans...
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="error-screen">Failed to load plans: {error.message}</div>;
+  }
+
+  const activePlans = plans?.filter((p) => p.is_active) ?? [];
+  const inactivePlans = plans?.filter((p) => !p.is_active) ?? [];
+
+  const handleEdit = (plan: MembershipPlan) => {
+    setSelectedPlan(plan);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedPlan(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDeactivateConfirm = (id: string) => {
+    deactivatePlan.mutate(id, {
+      onSuccess: () => setConfirmDeactivateId(null),
+    });
+  };
+
+  return (
+    <>
+      <div className="settings-card">
+        <div
+          className="settings-card-header"
+          style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}
+        >
+          <div>
+            <h2 className="settings-card-title">Membership Plans</h2>
+            <p className="settings-card-sub">Configure pricing packages for your gym</p>
+          </div>
+          <button className="btn-solid" onClick={handleAdd}>
+            <Plus size={14} />
+            <span className="text-desktop">Add Plan</span>
+          </button>
+        </div>
+
+        {/* ── Active Plans ── */}
+        <div className="plans-section">
+          <h3 className="plans-section-title">Active Plans</h3>
+          {activePlans.length === 0 ? (
+            <div className="plans-empty">
+              No active plans. Add your first plan to get started.
+            </div>
+          ) : (
+            <div className="plans-list">
+              {activePlans.map((plan) => (
+                <div key={plan.id}>
+                  <div className="plan-row">
+                    <div className="plan-info">
+                      <div className="plan-name">{plan.name}</div>
+                      <div className="plan-meta">
+                        {plan.duration_days} days
+                        <span className="plan-meta-dot">·</span>
+                        {formatINR(plan.price)}
+                        {plan.max_freeze_days > 0 && (
+                          <>
+                            <span className="plan-meta-dot">·</span>
+                            Freeze: {plan.max_freeze_days}d
+                          </>
+                        )}
+                        {plan.description && (
+                          <>
+                            <span className="plan-meta-dot">·</span>
+                            <span className="plan-description">{plan.description}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="plan-actions">
+                      <button
+                        className="btn-ghost-sm"
+                        onClick={() => handleEdit(plan)}
+                        title="Edit plan"
+                      >
+                        <PenSquare size={14} />
+                      </button>
+                      <button
+                        className="btn-ghost-sm plan-deactivate-btn"
+                        onClick={() => setConfirmDeactivateId(plan.id)}
+                        title="Deactivate plan"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Inline deactivation confirmation */}
+                  {confirmDeactivateId === plan.id && (
+                    <div className="plan-confirm-strip">
+                      <span>Deactivate &ldquo;{plan.name}&rdquo;? Members already on this plan are unaffected.</span>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          className="btn-ghost-sm"
+                          onClick={() => setConfirmDeactivateId(null)}
+                          disabled={deactivatePlan.isPending}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="btn-danger"
+                          style={{ padding: "7px 14px", minHeight: 36 }}
+                          onClick={() => handleDeactivateConfirm(plan.id)}
+                          disabled={deactivatePlan.isPending}
+                        >
+                          {deactivatePlan.isPending ? "Deactivating..." : "Confirm"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Deactivated Plans ── */}
+        {inactivePlans.length > 0 && (
+          <>
+            <div className="security-divider" />
+            <div className="plans-section">
+              <h3 className="plans-section-title" style={{ color: "var(--text-muted)" }}>Deactivated Plans</h3>
+              <div className="plans-list">
+                {inactivePlans.map((plan) => (
+                  <div key={plan.id} className="plan-row inactive">
+                    <div className="plan-info">
+                      <div className="plan-name">{plan.name}</div>
+                      <div className="plan-meta">
+                        {plan.duration_days} days
+                        <span className="plan-meta-dot">·</span>
+                        {formatINR(plan.price)}
+                      </div>
+                    </div>
+                    <div className="plan-actions">
+                      <button
+                        className="btn-ghost-sm"
+                        onClick={() => restorePlan.mutate(plan.id)}
+                        disabled={restorePlan.isPending}
+                        title="Restore plan"
+                      >
+                        <RotateCcw size={14} />
+                        <span className="text-desktop">Restore</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── Footer hint ── */}
+        <div className="plans-hint">
+          <span style={{ fontSize: 16 }}>ⓘ</span>
+          Deactivated plans are hidden and cannot be assigned to new members. Existing memberships on deactivated plans remain unaffected.
+        </div>
+      </div>
+
+      <PlanModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        initialPlan={selectedPlan}
+      />
+    </>
   );
 }
