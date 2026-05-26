@@ -7,8 +7,8 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🎯 Current Focus & Active Objective
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
-* **Current Focus**: **FEAT-014 — Membership Plan Manager** (Sprint 1)
-  * **Objective**: Implement admin dashboard controls for managing membership plans (create, edit, delete pricing options) and direct subscription operations (pausing, resuming, extending, canceling plans) within the `MemberDrawer`.
+* **Current Focus**: **FEAT-015 — Gym Settings (Section 2)** and **FEAT-014 — Membership Plan Manager**
+  * **Objective**: We just completed FEAT-015 Section 1 (Owner Personal Profile & Security). The next chat should focus on implementing the "Gym Settings" tab (Branding, WhatsApp/Email Config, Payments/UPI Integration). After that, proceed to FEAT-014 (Membership Plan Manager).
   * **Trajectory Note**: The Member Portal (`FEAT-009`, Sprint 3) will be built *after* the Trainer Portal (`FEAT-010`, Sprint 2) is complete. Our immediate focus is finishing Sprint 1.
 
 ---
@@ -99,7 +99,8 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
 * **`FEAT-014` — Membership Plan Manager**:
   * Implement admin dashboard controls for managing membership plans (create, edit, delete pricing options) and direct subscription operations (pausing, resuming, extending, canceling plans) within the `MemberDrawer`.
 * **`FEAT-015` — Owner Profile & Settings Page**:
-  * Build a dedicated profile page for the gym owner to view/edit their personal details (Name, Contact info) and securely manage account credentials (Password change flow).
+  * **Section 1 (Personal Profile & Security)**: **DONE ✅** Built a dedicated profile page for the gym owner to edit personal details, and securely manage account credentials.
+  * **Section 2 (Gym Settings)**: Implement the "Gym Settings" tab (Branding, Contact/Notifications, UPI Integrations). Currently a "Coming Soon" placeholder.
 
 ---
 
