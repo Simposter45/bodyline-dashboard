@@ -18,12 +18,35 @@ export function useUpdateDisplayName() {
       return data;
     },
     onSuccess: () => {
-      // Invalidate the current user query so the Nav updates instantly
       queryClient.invalidateQueries({ queryKey: ["current-user"] });
-      toast.success("Profile updated");
+      toast.success("Name updated");
     },
     onError: (error: unknown) => {
-      const msg = error instanceof Error ? error.message : "Failed to update profile";
+      const msg = error instanceof Error ? error.message : "Failed to update name";
+      toast.error(msg);
+    },
+  });
+}
+
+// ── Update Phone ──────────────────────────────────────────────────────────────
+
+export function useUpdatePhone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (phone: string) => {
+      const { data, error } = await supabase.auth.updateUser({
+        data: { phone },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      toast.success("Phone number updated");
+    },
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : "Failed to update phone";
       toast.error(msg);
     },
   });

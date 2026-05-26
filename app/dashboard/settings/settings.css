@@ -68,18 +68,14 @@
   color: var(--text-muted);
 }
 
-/* ── Profile View ────────────────────────────────────────── */
-.profile-view {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.profile-avatar-block {
+/* ── Profile Header (avatar + identity block) ────────────── */
+.profile-header {
   display: flex;
   align-items: center;
   gap: 20px;
+  padding-bottom: 24px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
 .profile-meta {
@@ -95,8 +91,151 @@
 }
 
 .profile-email {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ── Inline-editable field rows ──────────────────────────── */
+.profile-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+  min-height: 52px;
+}
+
+.profile-field-row:last-of-type {
+  border-bottom: none;
+}
+
+.profile-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  min-width: 100px;
+}
+
+.profile-field-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.profile-field-value.muted {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.profile-field-readonly {
   font-size: 14px;
   color: var(--text-muted);
+  flex: 1;
+}
+
+/* Pencil edit button — appears on hover of the row */
+.profile-field-edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.12s;
+  flex-shrink: 0;
+  min-width: 30px;
+  min-height: 30px;
+  opacity: 0;
+}
+
+.profile-field-row:hover .profile-field-edit-btn {
+  opacity: 1;
+}
+
+.profile-field-edit-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg3);
+}
+
+/* Inline edit state */
+.profile-field-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.profile-field-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+}
+
+.profile-field-input:focus {
+  border-color: var(--accent-green);
+}
+
+.profile-field-confirm-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-green-dim);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--accent-green);
+  cursor: pointer;
+  padding: 7px;
+  min-width: 32px;
+  min-height: 32px;
+  transition: background 0.12s;
+}
+
+.profile-field-confirm-btn:hover {
+  background: rgba(74, 222, 128, 0.2);
+}
+
+.profile-field-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.profile-field-cancel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 7px;
+  min-width: 32px;
+  min-height: 32px;
+  transition: border-color 0.12s;
+}
+
+.profile-field-cancel-btn:hover {
+  border-color: var(--border-hi);
+  color: var(--text-secondary);
+}
+
+.profile-field-error {
+  font-size: 11px;
+  color: var(--accent-red);
+  margin-top: 4px;
 }
 
 /* ── Form Fields ─────────────────────────────────────────── */

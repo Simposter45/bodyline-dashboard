@@ -7,9 +7,20 @@ import { createClient } from "@/lib/supabase/client";
 import { Nav } from "@/components/ui/Nav";
 import { Avatar } from "@/components/ui/Avatar";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useUpdateDisplayName, useChangePassword } from "@/hooks/useOwnerProfileMutation";
-import { profileSchema, passwordSchema, type ProfileFormData, type PasswordFormData } from "@/lib/validations/profile";
-import { Pen, Wrench, LogOut, ChevronDown, ChevronUp, Lock } from "lucide-react";
+import {
+  useUpdateDisplayName,
+  useUpdatePhone,
+  useChangePassword,
+} from "@/hooks/useOwnerProfileMutation";
+import {
+  profileSchema,
+  phoneSchema,
+  passwordSchema,
+  type ProfileFormData,
+  type PhoneFormData,
+  type PasswordFormData,
+} from "@/lib/validations/profile";
+import { Pen, Check, X, Wrench, LogOut, Lock, ChevronDown, ChevronUp } from "lucide-react";
 import "./settings.css";
 
 const supabase = createClient();
@@ -32,7 +43,7 @@ export default function SettingsPage() {
       )}
 
       {error && (
-        <div className="error-screen">Failed to load settings: {error.message}</div>
+        <div className="error-screen">Failed to load: {error.message}</div>
       )}
 
       {!isLoading && !error && userInfo && (
@@ -44,7 +55,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* ── Tabs ── */}
           <div className="settings-tabs">
             <button
               className={`settings-tab ${activeTab === "account" ? "active" : ""}`}
@@ -74,26 +84,17 @@ export default function SettingsPage() {
 // ACCOUNT TAB
 // ============================================================================
 
-function AccountTab({ userInfo }: { userInfo: { userName: string; email: string } }) {
-  const [editingProfile, setEditingProfile] = useState(false);
+interface UserInfo {
+  userName: string;
+  email: string;
+  phone: string;
+}
+
+function AccountTab({ userInfo }: { userInfo: UserInfo }) {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
-  // ── Profile Form ──
-  const {
-    register: regProfile,
-    handleSubmit: submitProfile,
-    formState: { errors: profileErrs },
-  } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: { full_name: userInfo.userName },
-  });
-
   const updateName = useUpdateDisplayName();
-  const onProfileSubmit = (data: ProfileFormData) => {
-    updateName.mutate(data.full_name, {
-      onSuccess: () => setEditingProfile(false),
-    });
-  };
+  const updatePhone = useUpdatePhone();
 
   // ── Password Form ──
   const {
@@ -101,9 +102,7 @@ function AccountTab({ userInfo }: { userInfo: { userName: string; email: string 
     handleSubmit: submitPass,
     reset: resetPass,
     formState: { errors: passErrs },
-  } = useForm<PasswordFormData>({
-    resolver: zodResolver(passwordSchema),
-  });
+  } = useForm<PasswordFormData>({ resolver: zodResolver(passwordSchema) });
 
   const changePass = useChangePassword();
   const onPassSubmit = (data: PasswordFormData) => {
@@ -122,70 +121,52 @@ function AccountTab({ userInfo }: { userInfo: { userName: string; email: string 
 
   return (
     <>
-      {/* ── Profile Card ── */}
+      {/* ── Personal Profile Card ── */}
       <div className="settings-card">
         <div className="settings-card-header">
           <h2 className="settings-card-title">Personal Profile</h2>
-          <p className="settings-card-sub">Your display name and login details</p>
+          <p className="settings-card-sub">Your identity on the Bodyline platform</p>
         </div>
 
-        {!editingProfile ? (
-          <div className="profile-view">
-            <div className="profile-avatar-block">
-              <Avatar name={userInfo.userName} size={72} />
-              <div className="profile-meta">
-                <div className="profile-name">{userInfo.userName}</div>
-                <div className="profile-email">{userInfo.email || "No email provided"}</div>
-              </div>
-            </div>
-            <button className="btn-ghost-sm" onClick={() => setEditingProfile(true)}>
-              <Pen size={14} />
-              Edit
-            </button>
+        {/* Avatar + name identity block */}
+        <div className="profile-header">
+          <Avatar name={userInfo.userName} size={72} />
+          <div className="profile-meta">
+            <div className="profile-name">{userInfo.userName}</div>
+            <div className="profile-email">{userInfo.email || "—"}</div>
           </div>
-        ) : (
-          <form onSubmit={submitProfile(onProfileSubmit)}>
-            <div className="form-grid">
-              <div className="form-field">
-                <label className="form-label">Full Name</label>
-                <input
-                  {...regProfile("full_name")}
-                  className="form-input"
-                  placeholder="Your name"
-                />
-                {profileErrs.full_name && (
-                  <span className="form-error">{profileErrs.full_name.message}</span>
-                )}
-              </div>
+        </div>
 
-              <div className="form-field">
-                <label className="form-label">Email Address</label>
-                <input
-                  type="text"
-                  value={userInfo.email}
-                  readOnly
-                  className="form-input form-input-readonly"
-                  title="Email cannot be changed"
-                />
-              </div>
-            </div>
+        {/* Always-visible field rows with per-field inline pencil edit */}
+        <InlineField
+          label="Full Name"
+          value={userInfo.userName}
+          schema={profileSchema}
+          schemaKey="full_name"
+          placeholder="Your full name"
+          onSave={(val) => updateName.mutate(val)}
+          isSaving={updateName.isPending}
+        />
 
-            <div className="form-actions">
-              <button type="submit" className="btn-solid" disabled={updateName.isPending}>
-                {updateName.isPending ? "Saving..." : "Save Changes"}
-              </button>
-              <button
-                type="button"
-                className="btn-ghost-sm"
-                onClick={() => setEditingProfile(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
+        <div className="profile-field-row">
+          <span className="profile-field-label">Email</span>
+          <span className="profile-field-readonly">{userInfo.email || "—"}</span>
+          {/* Email is read-only — Supabase requires two-step email confirmation */}
+        </div>
 
-        {/* ── Change Password — collapsible, subtle ── */}
+        <InlineField
+          label="Phone"
+          value={userInfo.phone}
+          schema={phoneSchema}
+          schemaKey="phone"
+          placeholder="+91 98765 43210 (optional)"
+          emptyLabel="Not set"
+          onSave={(val) => updatePhone.mutate(val)}
+          isSaving={updatePhone.isPending}
+          inputMode="tel"
+        />
+
+        {/* Change Password — collapsible */}
         <div className="password-toggle-row">
           <button
             className="password-toggle-btn"
@@ -247,10 +228,7 @@ function AccountTab({ userInfo }: { userInfo: { userName: string; email: string 
               <button
                 type="button"
                 className="btn-ghost-sm"
-                onClick={() => {
-                  resetPass();
-                  setShowPasswordForm(false);
-                }}
+                onClick={() => { resetPass(); setShowPasswordForm(false); }}
               >
                 Cancel
               </button>
@@ -271,6 +249,107 @@ function AccountTab({ userInfo }: { userInfo: { userName: string; email: string 
         </button>
       </div>
     </>
+  );
+}
+
+// ============================================================================
+// INLINE FIELD — generic reusable per-field inline edit row
+// ============================================================================
+
+import { z } from "zod";
+
+interface InlineFieldProps {
+  label: string;
+  value: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  schema: z.ZodObject<any>;
+  schemaKey: string;
+  placeholder?: string;
+  emptyLabel?: string;
+  onSave: (value: string) => void;
+  isSaving: boolean;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+}
+
+function InlineField({
+  label,
+  value,
+  schema,
+  schemaKey,
+  placeholder,
+  emptyLabel = "—",
+  onSave,
+  isSaving,
+  inputMode,
+}: InlineFieldProps) {
+  const [editing, setEditing] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: { [schemaKey]: value },
+  });
+
+  const onSubmit = handleSubmit((data) => {
+    const val = data[schemaKey] as string;
+    // Validate locally before firing mutation
+    const result = schema.safeParse({ [schemaKey]: val });
+    if (!result.success) {
+      setLocalError(result.error.issues[0]?.message ?? "Invalid input");
+      return;
+    }
+    setLocalError(null);
+    onSave(val);
+    setEditing(false);
+  });
+
+  const handleCancel = () => {
+    reset({ [schemaKey]: value });
+    setLocalError(null);
+    setEditing(false);
+  };
+
+  const errorMsg = (errors[schemaKey]?.message as string | undefined) ?? localError;
+
+  return (
+    <div className="profile-field-row">
+      <span className="profile-field-label">{label}</span>
+
+      {editing ? (
+        <form onSubmit={onSubmit} className="profile-field-input-wrap" style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+            <input
+              {...register(schemaKey)}
+              className="profile-field-input"
+              placeholder={placeholder}
+              inputMode={inputMode}
+              autoFocus
+            />
+            <button type="submit" className="profile-field-confirm-btn" disabled={isSaving}>
+              <Check size={14} />
+            </button>
+            <button type="button" className="profile-field-cancel-btn" onClick={handleCancel}>
+              <X size={14} />
+            </button>
+          </div>
+          {errorMsg && <span className="profile-field-error">{errorMsg}</span>}
+        </form>
+      ) : (
+        <>
+          <span className={`profile-field-value ${!value ? "muted" : ""}`}>
+            {value || emptyLabel}
+          </span>
+          <button
+            className="profile-field-edit-btn"
+            onClick={() => setEditing(true)}
+            aria-label={`Edit ${label}`}
+            title={`Edit ${label}`}
+          >
+            <Pen size={13} />
+          </button>
+        </>
+      )}
+    </div>
   );
 }
 
