@@ -319,10 +319,24 @@
   color: var(--text-secondary);
 }
 
+.text-desktop {
+  display: inline;
+}
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {
   .settings-card {
     padding: 24px 16px;
+  }
+
+  .text-desktop {
+    display: none;
+  }
+  
+  .edit-profile-btn {
+    padding: 8px;
+    min-width: 36px;
+    justify-content: center;
   }
 
   .profile-field-row {

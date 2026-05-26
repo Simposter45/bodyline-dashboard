@@ -120,15 +120,15 @@ function AccountTab({ userInfo }: { userInfo: UserInfo }) {
     <>
       {/* ── Personal Profile Card ── */}
       <div className="settings-card">
-        <div className="settings-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div className="settings-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}>
           <div>
             <h2 className="settings-card-title">Personal Profile</h2>
             <p className="settings-card-sub">Your identity on the Bodyline platform</p>
           </div>
           {!isEditing && (
-            <button className="btn-ghost-sm" onClick={() => setIsEditing(true)}>
+            <button className="btn-ghost-sm edit-profile-btn" onClick={() => setIsEditing(true)} title="Edit Profile">
               <Pen size={14} />
-              Edit Profile
+              <span className="text-desktop">Edit Profile</span>
             </button>
           )}
         </div>
