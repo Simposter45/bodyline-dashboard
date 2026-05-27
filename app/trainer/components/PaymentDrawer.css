@@ -1,0 +1,183 @@
+/* ============================================================
+   app/trainer/components/PaymentDrawer.css
+   Slide-up sheet for recording payments.
+   ============================================================ */
+
+.pay-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease forwards;
+}
+
+.pay-drawer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 12px 24px 32px;
+  z-index: 1001;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pay-drawer-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--border-hi);
+  border-radius: 4px;
+  margin: 0 auto 16px;
+}
+
+.pay-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.pay-drawer-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.pay-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pay-close-btn:hover {
+  background: var(--bg3);
+  color: var(--text-primary);
+}
+
+/* Payment Info Banner */
+.pay-info-banner {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pay-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pay-info-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pay-info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pay-info-value.amount-due {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--accent-red);
+}
+
+/* Form */
+.pay-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.pay-methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pay-method-btn {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 16px;
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pay-method-btn.selected {
+  background: var(--accent-blue-dim);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.pay-submit-btn {
+  background: var(--accent-blue);
+  color: #000;
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  transition: all 0.2s;
+}
+
+.pay-submit-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.pay-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (min-width: 600px) {
+  .pay-drawer {
+    width: 400px;
+    left: 50%;
+    transform: translate(-50%, 100%);
+    border-radius: 24px 24px 0 0;
+  }
+  
+  @keyframes slideUp {
+    to { transform: translate(-50%, 0); }
+  }
+}

@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import type { AssignedMemberWithDues, Trainer } from "@/types";
 import MemberDrawer from "../components/MemberDrawer";
 import SessionLogSheet from "../components/SessionLogSheet";
+import PaymentDrawer from "../components/PaymentDrawer";
 
 interface MembersTabProps {
   trainer: Trainer;
@@ -34,6 +35,8 @@ export default function MembersTab({
   const [selectedMember, setSelectedMember] = useState<AssignedMemberWithDues | null>(null);
   const [isLogSheetOpen, setIsLogSheetOpen] = useState(false);
   const [logSheetMemberId, setLogSheetMemberId] = useState<string>("");
+  const [isPayDrawerOpen, setIsPayDrawerOpen] = useState(false);
+  const [payMemberId, setPayMemberId] = useState<string>("");
 
   // ── Derived counts ──────────────────────────────────────────
   const counts = useMemo(() => {
@@ -207,8 +210,8 @@ export default function MembersTab({
           setIsLogSheetOpen(true);
         }}
         onRecordPayment={(id) => {
-          // Wiring up to Phase 9
-          console.log("Record payment for:", id);
+          setPayMemberId(id);
+          setIsPayDrawerOpen(true);
         }}
       />
 
@@ -222,6 +225,18 @@ export default function MembersTab({
           onClose={() => {
             setIsLogSheetOpen(false);
             setLogSheetMemberId("");
+          }}
+        />
+      )}
+
+      {/* ── Record Payment Drawer (Triggered from Drawer) ── */}
+      {isPayDrawerOpen && payMemberId && (
+        <PaymentDrawer
+          trainerId={trainer.id}
+          memberInfo={assignedMembers.find(m => m.member.id === payMemberId)!}
+          onClose={() => {
+            setIsPayDrawerOpen(false);
+            setPayMemberId("");
           }}
         />
       )}
