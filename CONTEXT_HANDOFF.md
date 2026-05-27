@@ -7,9 +7,9 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🎯 Current Focus & Active Objective
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
-* **Current Focus**: **FEAT-010 — Trainer Portal Rebuild (Sprint 2)**
-  * **Objective**: With Sprint 1 (Owner Admin Actions) fully completed, the next major milestone is tearing down the monolithic Trainer Portal and rebuilding it with TanStack Query, mobile-first design, and robust self-service features.
-  * **Trajectory Note**: The Member Portal (`FEAT-009`, Sprint 3) will be built *after* the Trainer Portal (`FEAT-010`, Sprint 2) is complete.
+* **Current Focus**: **FEAT-009 — Member Portal Rebuild (Sprint 3) / FEAT-010k (Owner side Trainer Management)**
+  * **Objective**: With Sprint 2 (Trainer Portal Rebuild) fully completed, the next major milestone is either finishing the Owner-side Trainer Management or moving on to Sprint 3 (Member Portal Rebuild).
+  * **Trajectory Note**: The Trainer Portal (`FEAT-010`, Sprint 2) is complete.
 
 ---
 
@@ -113,15 +113,17 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
 
 ---
 
-### 🔴 SPRINT 2 — Trainer Portal Rebuild (`FEAT-010`)
+### 🔴 SPRINT 2 — Trainer Portal Rebuild (`FEAT-010`) : **DONE ✅**
 * **Mobile-First Portal Rebuild**:
-  * Extract the 1,196-line Trainer Portal monolith into clean, modular components driven by TanStack Query hooks.
+  * Extracted the 1,196-line Trainer Portal monolith into clean, modular components driven by TanStack Query hooks.
 * **Trainer Self Check-In / Attendance**:
-  * Clock-in and clock-out mechanisms for trainers to track their own attendance, rendering the historical logs on the owner's Trainers page.
+  * *Design Pivot:* Removed manual trainer clock-in capabilities from the portal in favor of centralized reception tracking.
 * **Session Logging**:
-  * Allow trainers to log workout/PT sessions completed with their assigned members.
+  * Allowed trainers to log workout/PT sessions completed with their assigned members, viewable in a history tab.
 * **Assigned-Member Live Check-in View**:
   * Roster-specific views showing real-time member check-ins and outstanding dues to drive direct trainer accountability on the floor.
+* **Payment Collection**:
+  * Added a Record Payment Drawer for trainers to log Cash/UPI collections on behalf of members.
 
 ---
 
