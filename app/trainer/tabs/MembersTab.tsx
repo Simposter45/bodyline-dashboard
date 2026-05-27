@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import type { AssignedMemberWithDues, Trainer } from "@/types";
 import MemberDrawer from "../components/MemberDrawer";
+import SessionLogSheet from "../components/SessionLogSheet";
 
 interface MembersTabProps {
   trainer: Trainer;
@@ -31,6 +32,8 @@ export default function MembersTab({
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
   const [selectedMember, setSelectedMember] = useState<AssignedMemberWithDues | null>(null);
+  const [isLogSheetOpen, setIsLogSheetOpen] = useState(false);
+  const [logSheetMemberId, setLogSheetMemberId] = useState<string>("");
 
   // ── Derived counts ──────────────────────────────────────────
   const counts = useMemo(() => {
@@ -200,14 +203,28 @@ export default function MembersTab({
         memberInfo={selectedMember}
         onClose={() => setSelectedMember(null)}
         onLogSession={(id) => {
-          // Wiring up to Phase 6
-          console.log("Log session for:", id);
+          setLogSheetMemberId(id);
+          setIsLogSheetOpen(true);
         }}
         onRecordPayment={(id) => {
           // Wiring up to Phase 9
           console.log("Record payment for:", id);
         }}
       />
+
+      {/* ── Log Session Sheet (Triggered from Drawer) ─────── */}
+      {isLogSheetOpen && (
+        <SessionLogSheet
+          trainerId={trainer.id}
+          gymId={trainer.gym_id}
+          assignedMembers={assignedMembers}
+          preselectedMemberId={logSheetMemberId}
+          onClose={() => {
+            setIsLogSheetOpen(false);
+            setLogSheetMemberId("");
+          }}
+        />
+      )}
     </div>
   );
 }
