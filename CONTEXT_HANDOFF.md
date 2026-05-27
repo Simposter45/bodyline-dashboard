@@ -7,9 +7,9 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🎯 Current Focus & Active Objective
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
-* **Current Focus**: **FEAT-014 — Membership Plan Manager**
-  * **Objective**: We just completed FEAT-015 (Owner Personal Profile & Gym Settings) alongside Avatar/Logo bucket uploads. The next step is to implement the Membership Plan Manager.
-  * **Trajectory Note**: The Member Portal (`FEAT-009`, Sprint 3) will be built *after* the Trainer Portal (`FEAT-010`, Sprint 2) is complete. Our immediate focus is finishing Sprint 1.
+* **Current Focus**: **FEAT-010 — Trainer Portal Rebuild (Sprint 2)**
+  * **Objective**: With Sprint 1 (Owner Admin Actions) fully completed, the next major milestone is tearing down the monolithic Trainer Portal and rebuilding it with TanStack Query, mobile-first design, and robust self-service features.
+  * **Trajectory Note**: The Member Portal (`FEAT-009`, Sprint 3) will be built *after* the Trainer Portal (`FEAT-010`, Sprint 2) is complete.
 
 ---
 
@@ -85,6 +85,14 @@ $$ LANGUAGE sql STABLE;
 ### 6. Error Boundaries (`CHORE-005`)
 * Integrated Route-level crash catcher screens using a shared `ErrorFallback` UI wrapper.
 
+### 7. Owner Profile & Gym Settings (`FEAT-015`)
+* Built dedicated profile page for owner credentials and avatar uploads.
+* Implemented Gym Settings tab for dynamic branding colors, WhatsApp config, and UPI details.
+
+### 8. Membership Plan Manager & Operations (`FEAT-014`)
+* Built the Plans tab in Gym Settings for the owner to create, edit, deactivate, and restore membership plans, completely driven by TanStack mutations.
+* Added deep subscription operations (Pause, Extend, Cancel, Resume) inside the `MemberDrawer`, updating the DB correctly and reflecting states with warning banners.
+
 ---
 
 ## 🚀 Strategic Development Trajectory (Sprint Roadmap)
@@ -96,12 +104,12 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
   * Built the core modals (`AddTrainerModal`, `AssignMemberModal`, `EditTrainerModal`) and established the bulk-assignment upsert pattern and RLS gym_id injection. Unblocked complete trainer configuration.
 * **`FEAT-012a` — Send Reminder Backend**: **DONE ✅**
   * Built a secure Next.js Route Handler for the Meta WhatsApp Cloud API and integrated a TanStack mutation hook into the Payment Drawer for instant reminders.
-* **`FEAT-014` — Membership Plan Manager**:
-  * Implement admin dashboard controls for managing membership plans (create, edit, delete pricing options) and direct subscription operations (pausing, resuming, extending, canceling plans) within the `MemberDrawer`.
+* **`FEAT-014` — Membership Plan Manager**: **DONE ✅**
+  * Implemented admin dashboard controls for managing membership plans (create, edit, soft-delete pricing options).
+  * Added direct subscription operations (pausing, resuming, extending, canceling plans) within the `MemberDrawer`.
 * **`FEAT-015` — Owner Profile & Settings Page**: **DONE ✅**
   * Built a dedicated profile page for the gym owner to edit personal details, securely manage account credentials, and upload profile avatars.
   * Implemented the "Gym Settings" tab (Branding, primary colors, Gym Logo uploads, WhatsApp/Email Config, Payments/UPI Integration).
-  * Extracted and refactored highly reusable `.form-*` CSS classes into `globals.css` for future modularity.
 
 ---
 
