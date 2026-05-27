@@ -7,6 +7,7 @@ import { AlertTriangle } from "lucide-react";
 import TrainerNav from "./components/TrainerNav";
 import BottomTabBar, { type TrainerTab } from "./components/BottomTabBar";
 import HomeTab from "./tabs/HomeTab";
+import MembersTab from "./tabs/MembersTab";
 
 import { useTrainerSelf } from "@/hooks/useTrainerSelf";
 import { useGymSettings } from "@/hooks/useGymSettings";
@@ -42,8 +43,8 @@ export default function TrainerPortal() {
   const { data: trainer, isLoading: trainerLoading, error: trainerError } = useTrainerSelf();
   const { data: gymSettings } = useGymSettings();
 
-  // ── Roster (needed for badge + Home stats) ──────────────────
-  const { data: assignedMembers = [] } = useAssignedMembers(trainer?.id);
+  // ── Roster (needed for badge + Home stats + Members Tab) ──
+  const { data: assignedMembers = [], isLoading: isMembersLoading } = useAssignedMembers(trainer?.id);
 
   // ── Overdue badge count for Members tab ─────────────────────
   const overdueCount = useMemo(
@@ -102,7 +103,13 @@ export default function TrainerPortal() {
           />
         );
       case "members":
-        return <ComingSoon label="My Members Tab — Phase 5 (FEAT-010f)" />;
+        return (
+          <MembersTab
+            trainer={trainer!}
+            assignedMembers={assignedMembers}
+            isLoading={isMembersLoading}
+          />
+        );
       case "sessions":
         return <ComingSoon label="Session Logs Tab — Phase 6 (FEAT-010g)" />;
       case "attendance":
