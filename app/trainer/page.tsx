@@ -9,6 +9,7 @@ import BottomTabBar, { type TrainerTab } from "./components/BottomTabBar";
 import HomeTab from "./tabs/HomeTab";
 import MembersTab from "./tabs/MembersTab";
 import SessionsTab from "./tabs/SessionsTab";
+import SettingsTab from "./tabs/SettingsTab";
 
 import { useTrainerSelf } from "@/hooks/useTrainerSelf";
 import { useGymSettings } from "@/hooks/useGymSettings";
@@ -119,7 +120,7 @@ export default function TrainerPortal() {
           />
         );
       case "settings":
-        return <ComingSoon label="Settings Tab — Phase 8 (FEAT-010i)" />;
+        return <SettingsTab trainer={trainer!} />;
       default:
         return null;
     }
