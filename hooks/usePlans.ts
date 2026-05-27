@@ -47,3 +47,35 @@ export function usePlans(gymId?: string | null) {
     enabled: gymId !== null,
   });
 }
+
+/**
+ * Fetches ALL membership plans (active and inactive).
+ * For use in the Plans admin manager.
+ */
+export function useAllPlans(gymId?: string | null) {
+  return useQuery({
+    queryKey: ["plans", "all", gymId ?? "auth"],
+    queryFn: async () => {
+      let query = supabase
+        .from("membership_plans")
+        .select("*")
+        .order("is_active", { ascending: false }) // Active first
+        .order("price", { ascending: true });
+
+      if (gymId) {
+        query = query.eq("gym_id", gymId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data as MembershipPlan[];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    enabled: gymId !== null,
+  });
+}

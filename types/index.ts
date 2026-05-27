@@ -60,6 +60,7 @@ export interface MembershipPlan {
   gym_id: string;
   name: string;
   duration_days: number;
+  max_freeze_days: number;
   price: number;
   description: string | null;
   is_active: boolean;
@@ -90,6 +91,8 @@ export interface MemberMembership {
   amount_paid: number | null;
   payment_status: PaymentStatus;
   payment_method: PaymentMethod | null;
+  paused_at: string | null; // ISO timestamp
+  paused_until: string | null; // ISO date string
   created_at: string;
 }
 

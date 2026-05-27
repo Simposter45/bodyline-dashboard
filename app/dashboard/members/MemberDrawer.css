@@ -187,3 +187,102 @@
 
   /* Info grid stays 2-col — full-screen has ample width on any phone */
 }
+
+/* ── Subscription Action Buttons ──────────────────────────── */
+
+.drawer-sub-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.drawer-sub-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  min-height: 36px;
+  background: var(--bg3);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.drawer-sub-action-btn:hover {
+  border-color: var(--border-hi);
+  color: var(--text-primary);
+  background: var(--bg2);
+}
+
+.drawer-sub-action-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.drawer-sub-action-danger {
+  color: var(--accent-red);
+}
+
+.drawer-sub-action-danger:hover {
+  border-color: rgba(248, 113, 113, 0.35);
+  background: var(--accent-red-dim);
+  color: var(--accent-red);
+}
+
+/* ── Paused Banner ─────────────────────────────────────────── */
+
+.drawer-paused-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--accent-amber-dim);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.drawer-paused-banner-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-amber);
+}
+
+/* ── Resume Confirm Strip ──────────────────────────────────── */
+
+.drawer-resume-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .drawer-sub-actions {
+    flex-direction: column;
+  }
+
+  .drawer-sub-action-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .drawer-resume-confirm {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+

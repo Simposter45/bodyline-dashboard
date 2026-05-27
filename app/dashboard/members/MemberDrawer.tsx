@@ -18,6 +18,14 @@ import { ACCENT } from "@/lib/constants/design";
 import { Avatar } from "@/components/ui/Avatar";
 import { RenewMembershipModal } from "@/components/members/RenewMembershipModal";
 import { RecordPaymentModal } from "@/components/members/RecordPaymentModal";
+import { PauseModal, ExtendModal, CancelModal } from "@/components/members/SubscriptionActionModals";
+import {
+  usePauseSubscription,
+  useResumeSubscription,
+  useExtendSubscription,
+  useCancelSubscription,
+} from "@/hooks/useSubscriptionOperations";
+import { Pause, Play, CalendarPlus, XCircle } from "lucide-react";
 
 interface MemberDrawerProps {
   member: MemberWithMembership;
@@ -27,6 +35,15 @@ interface MemberDrawerProps {
 export function MemberDrawer({ member, onClose }: MemberDrawerProps) {
   const [isRenewOpen, setIsRenewOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isPauseOpen, setIsPauseOpen] = useState(false);
+  const [isExtendOpen, setIsExtendOpen] = useState(false);
+  const [isCancelOpen, setIsCancelOpen] = useState(false);
+  const [showResumeConfirm, setShowResumeConfirm] = useState(false);
+
+  const pauseMutation = usePauseSubscription();
+  const resumeMutation = useResumeSubscription();
+  const extendMutation = useExtendSubscription();
+  const cancelMutation = useCancelSubscription();
 
   const status = getMemberStatus(member);
   const cfg = STATUS_CONFIG[status];
@@ -249,7 +266,7 @@ export function MemberDrawer({ member, onClose }: MemberDrawerProps) {
           </>
         )}
 
-        {/* Actions */}
+        {/* Primary Actions */}
         <div className="drawer-actions">
           <button className="drawer-btn drawer-btn-primary" onClick={() => setIsRenewOpen(true)}>
             Renew membership
@@ -260,6 +277,99 @@ export function MemberDrawer({ member, onClose }: MemberDrawerProps) {
             </button>
           )}
         </div>
+
+        {/* Subscription Actions — only shown when there is an active membership */}
+        {ms && plan && ms.payment_status !== "superseded" && (
+          <>
+            <div className="drawer-divider" style={{ marginTop: 16 }} />
+            <div className="drawer-section">
+              <p className="drawer-section-label">Subscription Actions</p>
+
+              {/* Paused banner */}
+              {ms.paused_at ? (
+                <div className="drawer-paused-banner">
+                  <div className="drawer-paused-banner-row">
+                    <Pause size={14} style={{ flexShrink: 0 }} />
+                    <span>
+                      Paused
+                      {ms.paused_until ? (
+                        <> · Resumes <strong>{ms.paused_until}</strong></>
+                      ) : null}
+                    </span>
+                  </div>
+
+                  {!showResumeConfirm ? (
+                    <button
+                      className="drawer-sub-action-btn"
+                      onClick={() => setShowResumeConfirm(true)}
+                    >
+                      <Play size={13} />
+                      Resume Now
+                    </button>
+                  ) : (
+                    <div className="drawer-resume-confirm">
+                      <span>Resume and extend end date?</span>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button
+                          className="btn-ghost-sm"
+                          onClick={() => setShowResumeConfirm(false)}
+                          disabled={resumeMutation.isPending}
+                        >
+                          No
+                        </button>
+                        <button
+                          className="btn-solid"
+                          style={{ padding: "7px 14px" }}
+                          onClick={() =>
+                            resumeMutation.mutate(
+                              {
+                                membershipId: ms.id,
+                                memberId: member.id,
+                                pausedAt: ms.paused_at!,
+                                currentEndDate: ms.end_date,
+                              },
+                              { onSuccess: () => setShowResumeConfirm(false) }
+                            )
+                          }
+                          disabled={resumeMutation.isPending}
+                        >
+                          {resumeMutation.isPending ? "Resuming..." : "Yes, Resume"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Active — show pause / extend / cancel buttons */
+                <div className="drawer-sub-actions">
+                  <button
+                    className="drawer-sub-action-btn"
+                    onClick={() => setIsPauseOpen(true)}
+                    disabled={plan.max_freeze_days === 0}
+                    title={plan.max_freeze_days === 0 ? "This plan does not allow freezing" : "Pause membership"}
+                  >
+                    <Pause size={13} />
+                    Pause
+                  </button>
+                  <button
+                    className="drawer-sub-action-btn"
+                    onClick={() => setIsExtendOpen(true)}
+                  >
+                    <CalendarPlus size={13} />
+                    Extend
+                  </button>
+                  <button
+                    className="drawer-sub-action-btn drawer-sub-action-danger"
+                    onClick={() => setIsCancelOpen(true)}
+                  >
+                    <XCircle size={13} />
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <RenewMembershipModal
@@ -278,6 +388,50 @@ export function MemberDrawer({ member, onClose }: MemberDrawerProps) {
           currentAmountPaid={ms.amount_paid ?? 0}
         />
       )}
+
+      {ms && plan && (
+        <PauseModal
+          isOpen={isPauseOpen}
+          onClose={() => setIsPauseOpen(false)}
+          isPending={pauseMutation.isPending}
+          maxFreezeDays={plan.max_freeze_days}
+          onConfirm={(pausedUntil) =>
+            pauseMutation.mutate(
+              { membershipId: ms.id, memberId: member.id, pausedUntil },
+              { onSuccess: () => setIsPauseOpen(false) }
+            )
+          }
+        />
+      )}
+
+      {ms && (
+        <ExtendModal
+          isOpen={isExtendOpen}
+          onClose={() => setIsExtendOpen(false)}
+          isPending={extendMutation.isPending}
+          currentEndDate={ms.end_date}
+          onConfirm={(days) =>
+            extendMutation.mutate(
+              { membershipId: ms.id, memberId: member.id, currentEndDate: ms.end_date, daysToAdd: days },
+              { onSuccess: () => setIsExtendOpen(false) }
+            )
+          }
+        />
+      )}
+
+      <CancelModal
+        isOpen={isCancelOpen}
+        onClose={() => setIsCancelOpen(false)}
+        isPending={cancelMutation.isPending}
+        memberName={member.full_name}
+        onConfirm={() => {
+          if (!ms) return;
+          cancelMutation.mutate(
+            { membershipId: ms.id, memberId: member.id },
+            { onSuccess: () => { setIsCancelOpen(false); onClose(); } }
+          );
+        }}
+      />
     </>
   );
 }
