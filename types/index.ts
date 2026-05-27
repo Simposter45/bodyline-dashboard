@@ -39,7 +39,7 @@ export type PaymentStatus = "paid" | "pending" | "overdue" | "superseded";
 
 export type PaymentMethod = "cash" | "upi" | "card" | "other";
 
-export type SessionType = "group" | "personal_training" | "open_gym";
+export type SessionType = "group" | "personal_training" | "rehab" | "open_gym";
 
 export type BookingStatus = "confirmed" | "cancelled" | "completed" | "no_show";
 
@@ -93,6 +93,7 @@ export interface MemberMembership {
   payment_method: PaymentMethod | null;
   paused_at: string | null; // ISO timestamp
   paused_until: string | null; // ISO date string
+  recorded_by_trainer_id: string | null; // NULL = recorded by owner
   created_at: string;
 }
 
@@ -114,6 +115,7 @@ export interface Trainer {
   specialization: string | null;
   branch: string | null;
   is_active: boolean;
+  trainer_auth_user_id: string | null; // Links to Supabase auth.users.id
   created_at: string;
 }
 
@@ -151,6 +153,89 @@ export interface AttendanceWithMember extends Attendance {
 export interface TrainerWithMembers extends Trainer {
   assigned_members: Pick<Member, "id" | "full_name" | "phone">[];
 }
+
+// ------------------------------------------------------------------
+// Trainer Portal Types (FEAT-010)
+// ------------------------------------------------------------------
+
+/** Mirrors the trainer_attendance table. One row per clock-in event. */
+export interface TrainerAttendance {
+  id: string;
+  gym_id: string;
+  trainer_id: string;
+  clock_in: string;       // ISO timestamp (UTC, display in IST)
+  clock_out: string | null; // NULL while trainer is still clocked in
+  date: string;           // ISO date string (IST date)
+  notes: string | null;
+  created_at: string;
+}
+
+/** Mirrors the session_logs table. Immutable once inserted. */
+export interface SessionLog {
+  id: string;
+  gym_id: string;
+  trainer_id: string;
+  member_id: string;
+  session_date: string;   // ISO date string
+  session_type: SessionType;
+  duration_mins: number | null;
+  notes: string | null;
+  created_at: string;
+}
+
+/**
+ * SessionLog enriched with the member's display info.
+ * Returned by useSessionLogs hook.
+ */
+export interface SessionLogWithMember extends SessionLog {
+  member: Pick<Member, "id" | "full_name" | "phone" | "profile_photo_url">;
+}
+
+/**
+ * Enriched assigned member shape used in the trainer's My Members tab.
+ * Includes live membership + payment status for dues tracking.
+ */
+export interface AssignedMemberWithDues {
+  assignment_id: string;
+  assigned_date: string;  // ISO date string
+  member: Member;
+  /** Latest non-superseded membership for this member, or null if none. */
+  current_membership: (MemberMembership & { plan: MembershipPlan }) | null;
+  /** True if member has an open check_in (no check_out) in today's attendance. */
+  is_checked_in_today: boolean;
+}
+
+/**
+ * Summary stats shown on the trainer's Home tab hero row.
+ * Derived client-side from the query results — not a DB shape.
+ */
+export interface TrainerPortalStats {
+  assigned_members: number;
+  checked_in_today: number;    // Assigned members currently in gym today
+  sessions_today: number;      // Session logs logged today by this trainer
+  pending_dues: number;        // Assigned members with payment_status != 'paid'
+}
+
+// ------------------------------------------------------------------
+// Form / Input Types — Trainer Portal
+// ------------------------------------------------------------------
+
+export type LogSessionInput = {
+  member_id: string;
+  session_date: string;   // ISO date string
+  session_type: SessionType;
+  duration_mins?: number;
+  notes?: string;
+};
+
+export type ClockInInput = {
+  notes?: string;
+};
+
+export type ClockOutInput = {
+  attendance_id: string; // The open trainer_attendance row to close
+  notes?: string;
+};
 
 // ------------------------------------------------------------------
 // Dashboard / Analytics Types

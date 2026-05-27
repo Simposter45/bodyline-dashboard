@@ -1,0 +1,157 @@
+/* ============================================================
+   app/trainer/components/TrainerNav.css
+   Compact top navigation for the Trainer Portal.
+   Follows the same .nav token structure as globals.css but
+   uses --accent-blue as the trainer identity color.
+   ============================================================ */
+
+/* ── Nav bar ────────────────────────────────────────────────── */
+.trainer-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  gap: 12px;
+}
+
+/* ── Left: gym logo + name ──────────────────────────────────── */
+.trainer-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.trainer-nav-logo-img {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.trainer-nav-logo-fallback {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-blue-dim);
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent-blue);
+  flex-shrink: 0;
+}
+
+.trainer-nav-gym-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+/* ── Center: role pill ──────────────────────────────────────── */
+.trainer-nav-role-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 99px;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  background: var(--accent-blue-dim);
+  color: var(--accent-blue);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Right: trainer identity + sign-out ─────────────────────── */
+.trainer-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.trainer-nav-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-blue-dim);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent-blue);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.trainer-nav-avatar:hover {
+  border-color: rgba(96, 165, 250, 0.5);
+}
+
+.trainer-nav-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trainer-nav-name {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.trainer-nav-signout {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.trainer-nav-signout:hover {
+  border-color: var(--border-hi);
+  color: var(--text-secondary);
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .trainer-nav {
+    padding: 12px 16px;
+  }
+  .trainer-nav-name {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  /* On mobile: brand (left) + avatar (right only), role pill hidden */
+  .trainer-nav-role-pill {
+    display: none;
+  }
+  .trainer-nav-signout {
+    display: none;
+  }
+  /* Avatar stays visible and acts as settings entry point */
+}
