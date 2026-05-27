@@ -5,11 +5,10 @@ import {
   Home,
   Users,
   ClipboardList,
-  Clock,
   Settings,
 } from "lucide-react";
 
-export type TrainerTab = "home" | "members" | "sessions" | "attendance" | "settings";
+export type TrainerTab = "home" | "members" | "sessions" | "settings";
 
 interface Tab {
   id: TrainerTab;
@@ -21,7 +20,6 @@ const TABS: Tab[] = [
   { id: "home",       label: "Home",       Icon: Home },
   { id: "members",    label: "Members",    Icon: Users },
   { id: "sessions",   label: "Sessions",   Icon: ClipboardList },
-  { id: "attendance", label: "Attendance", Icon: Clock },
   { id: "settings",   label: "Settings",   Icon: Settings },
 ];
 

@@ -4,10 +4,8 @@ import "./HomeTab.css";
 import { useMemo } from "react";
 import { AlertTriangle } from "lucide-react";
 
-import ClockInCard from "../components/ClockInCard";
 import StatsRow from "../components/StatsRow";
 
-import { useTrainerAttendanceToday } from "@/hooks/useTrainerAttendance";
 import { useSessionCountToday } from "@/hooks/useSessionLogs";
 import { formatDateIST } from "@/lib/utils/date";
 
@@ -42,10 +40,6 @@ export default function HomeTab({
   isMembersLoading,
   onNavigateToMembers,
 }: HomeTabProps) {
-  // ── Today's attendance for the clock card ─────────────────
-  const { data: todayAttendance, isLoading: attendanceLoading } =
-    useTrainerAttendanceToday(trainer.id);
-
   // ── Session count today ───────────────────────────────────
   const { data: sessionsToday = 0 } = useSessionCountToday(trainer.id);
 
@@ -85,12 +79,15 @@ export default function HomeTab({
 
   return (
     <div className="home-tab">
-      {/* ── 1. Clock-In Hero Card ─────────────────────────── */}
-      <ClockInCard
-        trainer={trainer}
-        todayAttendance={todayAttendance}
-        isAttendanceLoading={attendanceLoading}
-      />
+      {/* ── 1. Welcome Hero ───────────────────────────────── */}
+      <div className="home-hero">
+        <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: 4 }}>
+          Welcome back, {trainer.full_name.split(' ')[0]}!
+        </h1>
+        <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
+          Here's your overview for today.
+        </p>
+      </div>
 
       {/* ── 2. Stats Row ──────────────────────────────────── */}
       <StatsRow stats={stats} isLoading={isMembersLoading} />
