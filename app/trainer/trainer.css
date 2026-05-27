@@ -5,6 +5,11 @@
    All color tokens come from globals.css :root.
    ============================================================ */
 
+/* ── Spinner utility (used by ClockInCard and other loading states) ── */
+.spin {
+  animation: spin 0.7s linear infinite;
+}
+
 /* ── Page shell ─────────────────────────────────────────────── */
 .trainer-page {
   max-width: 65vw;

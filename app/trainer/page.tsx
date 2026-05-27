@@ -6,6 +6,7 @@ import { AlertTriangle } from "lucide-react";
 
 import TrainerNav from "./components/TrainerNav";
 import BottomTabBar, { type TrainerTab } from "./components/BottomTabBar";
+import HomeTab from "./tabs/HomeTab";
 
 import { useTrainerSelf } from "@/hooks/useTrainerSelf";
 import { useGymSettings } from "@/hooks/useGymSettings";
@@ -34,7 +35,6 @@ function ComingSoon({ label }: { label: string }) {
     </div>
   );
 }
-
 export default function TrainerPortal() {
   const [activeTab, setActiveTab] = useState<TrainerTab>("home");
 
@@ -93,7 +93,14 @@ export default function TrainerPortal() {
   function renderTab() {
     switch (activeTab) {
       case "home":
-        return <ComingSoon label="Home Tab — Phase 4 (FEAT-010e)" />;
+        return (
+          <HomeTab
+            trainer={trainer!}
+            assignedMembers={assignedMembers}
+            isMembersLoading={false}
+            onNavigateToMembers={() => setActiveTab("members")}
+          />
+        );
       case "members":
         return <ComingSoon label="My Members Tab — Phase 5 (FEAT-010f)" />;
       case "sessions":
