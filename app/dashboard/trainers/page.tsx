@@ -3,27 +3,57 @@
 // ============================================================
 // app/dashboard/trainers/page.tsx
 // REFACT-007 — modularised Trainers page.
-//
-// Before: 861 lines, 450-line inline <style>, raw useEffect,
-//   hardcoded nav, hardcoded "Pradeep · Owner", raw SVGs,
-//   local getInitials / formatDate duplicates.
-//
-// After: ~150 lines. TanStack Query via useTrainers,
-//   shared <Nav />, lucide-react icons, shared format utils,
-//   co-located trainers.css for page-specific styles.
+// FEAT-010k — Owner-side trainer management:
+//   - AssignmentPanel gains Members / Attendance tab switcher
+//   - Per-member soft-remove (×) button
+//   - Attendance log from useTrainerAttendanceAdmin
 // ============================================================
 
 import { useState, useMemo } from "react";
-import { Phone, Mail, Plus, MapPin, CalendarDays, Search, SlidersHorizontal, Check } from "lucide-react";
+import { Phone, Mail, Plus, MapPin, CalendarDays, Search, SlidersHorizontal, Check, X, UserMinus } from "lucide-react";
 import { TrainerDrawer } from "./TrainerDrawer";
 import { Nav } from "@/components/ui/Nav";
 import { Avatar } from "@/components/ui/Avatar";
 import { useTrainers, type TrainerWithAssignments } from "@/hooks/useTrainers";
+import { useTrainerAttendanceAdmin } from "@/hooks/useTrainerAttendanceAdmin";
+import { useRemoveAssignment } from "@/hooks/useTrainerMutations";
 import { getInitials, formatDate } from "@/lib/utils/format";
 import { AddTrainerModal } from "@/components/trainers/AddTrainerModal";
 import { EditTrainerModal } from "@/components/trainers/EditTrainerModal";
 import { AssignMemberModal } from "@/components/trainers/AssignMemberModal";
+import type { TrainerAttendance } from "@/types";
 import "./trainers.css";
+
+// ------------------------------------------------------------------
+// Attendance helpers
+// ------------------------------------------------------------------
+
+function formatTimeIST(isoTimestamp: string): string {
+  return new Date(isoTimestamp).toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Kolkata",
+  });
+}
+
+function computeDuration(clockIn: string, clockOut: string | null): string {
+  if (!clockOut) return "";
+  const diffMs = new Date(clockOut).getTime() - new Date(clockIn).getTime();
+  const totalMins = Math.round(diffMs / 60000);
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  if (h === 0) return `${m}m`;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
+function formatAttendanceDate(isoTimestamp: string): string {
+  return new Date(isoTimestamp).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    timeZone: "Asia/Kolkata",
+  });
+}
 
 // ------------------------------------------------------------------
 // Specialization accent colors
@@ -138,8 +168,44 @@ function TrainerCard({
 }
 
 // ------------------------------------------------------------------
-// Assignment panel (right column)
+// Attendance tab content for AssignmentPanel
 // ------------------------------------------------------------------
+
+function AttendanceTab({ trainerId }: { trainerId: string }) {
+  const { data: logs = [], isLoading } = useTrainerAttendanceAdmin(trainerId, 14);
+
+  if (isLoading) {
+    return <div className="ap-att-empty">Loading attendance…</div>;
+  }
+  if (logs.length === 0) {
+    return <div className="ap-att-empty">No attendance records in the last 14 days.</div>;
+  }
+
+  return (
+    <div className="ap-att-list">
+      {(logs as TrainerAttendance[]).map((row) => (
+        <div key={row.id} className="ap-att-row">
+          <span className="ap-att-date">{formatAttendanceDate(row.clock_in)}</span>
+          <span className="ap-att-time">{formatTimeIST(row.clock_in)}</span>
+          <span className="ap-att-time">
+            {row.clock_out ? formatTimeIST(row.clock_out) : "—"}
+          </span>
+          {row.clock_out ? (
+            <span className="ap-att-duration">{computeDuration(row.clock_in, row.clock_out)}</span>
+          ) : (
+            <span className="ap-att-open">In gym</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------
+// Assignment panel (right column) — FEAT-010k tabbed
+// ------------------------------------------------------------------
+
+type PanelTab = "members" | "attendance";
 
 function AssignmentPanel({
   trainer,
@@ -151,11 +217,13 @@ function AssignmentPanel({
   onEdit: () => void;
 }) {
   const specColor = getSpecColor(trainer.specialization);
+  const [panelTab, setPanelTab] = useState<PanelTab>("members");
+  const { mutate: removeAssignment, isPending: isRemoving } = useRemoveAssignment();
 
   return (
     <div className="assignment-panel">
 
-      {/* ── Section A: Profile ── */}
+      {/* ── Profile header (always visible) ── */}
       <div className="ap-header">
         <div className="ap-avatar">{getInitials(trainer.full_name)}</div>
         <div className="ap-info">
@@ -194,22 +262,16 @@ function AssignmentPanel({
         </div>
       )}
 
-      {/* Contact — tappable tel: / mailto: links */}
+      {/* Contact rows */}
       <div className="ap-contact">
         {trainer.phone && (
-          <a
-            href={`tel:${trainer.phone}`}
-            className="ap-contact-item ap-contact-link"
-          >
+          <a href={`tel:${trainer.phone}`} className="ap-contact-item ap-contact-link">
             <Phone size={13} />
             {trainer.phone}
           </a>
         )}
         {trainer.email && (
-          <a
-            href={`mailto:${trainer.email}`}
-            className="ap-contact-item ap-contact-link"
-          >
+          <a href={`mailto:${trainer.email}`} className="ap-contact-item ap-contact-link">
             <Mail size={13} />
             {trainer.email}
           </a>
@@ -233,47 +295,78 @@ function AssignmentPanel({
 
       <div className="ap-divider" />
 
-      {/* ── Section B: Assigned Members ── */}
-      <div className="ap-section-label">
-        Assigned members
-        <span className="ap-count">{trainer.assignments.length}</span>
-      </div>
-
-      {trainer.assignments.length === 0 ? (
-        <div className="ap-empty">No members currently assigned.</div>
-      ) : (
-        <div className="ap-members">
-          {trainer.assignments.map((a) => (
-            <div key={a.id} className="ap-member-row">
-              <Avatar
-                name={a.member.full_name}
-                src={a.member.profile_photo_url}
-                size={32}
-              />
-              <div className="ap-member-info">
-                <div className="ap-member-name">{a.member.full_name}</div>
-                <div className="ap-member-sub">
-                  Assigned {formatDate(a.assigned_date)}
-                </div>
-              </div>
-              {a.member.phone && (
-                <div className="ap-member-phone">{a.member.phone}</div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── Section C: Assign Action ── */}
-      <div className="ap-actions" style={{ marginTop: 12 }}>
+      {/* ── Tab switcher ── */}
+      <div className="ap-tabs">
         <button
-          className="ap-btn ap-btn-primary"
-          onClick={onAssign}
-          id="trainer-panel-assign-btn"
+          className={`ap-tab${panelTab === "members" ? " active" : ""}`}
+          onClick={() => setPanelTab("members")}
+          id="trainer-panel-tab-members"
         >
-          Assign member
+          Members
+          <span className="ap-tab-badge">{trainer.assignments.length}</span>
+        </button>
+        <button
+          className={`ap-tab${panelTab === "attendance" ? " active" : ""}`}
+          onClick={() => setPanelTab("attendance")}
+          id="trainer-panel-tab-attendance"
+        >
+          Attendance
         </button>
       </div>
+
+      {/* ── Members tab ── */}
+      {panelTab === "members" && (
+        <>
+          {trainer.assignments.length === 0 ? (
+            <div className="ap-empty">No members currently assigned.</div>
+          ) : (
+            <div className="ap-members">
+              {trainer.assignments.map((a) => (
+                <div key={a.id} className="ap-member-row">
+                  <Avatar
+                    name={a.member.full_name}
+                    src={a.member.profile_photo_url}
+                    size={32}
+                  />
+                  <div className="ap-member-info">
+                    <div className="ap-member-name">{a.member.full_name}</div>
+                    <div className="ap-member-sub">
+                      Assigned {formatDate(a.assigned_date)}
+                    </div>
+                  </div>
+                  {a.member.phone && (
+                    <div className="ap-member-phone">{a.member.phone}</div>
+                  )}
+                  <button
+                    className="ap-member-remove"
+                    onClick={() => removeAssignment({ assignmentId: a.id })}
+                    disabled={isRemoving}
+                    aria-label={`Unassign ${a.member.full_name}`}
+                    title={`Unassign ${a.member.full_name}`}
+                  >
+                    <UserMinus size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="ap-actions" style={{ marginTop: 12 }}>
+            <button
+              className="ap-btn ap-btn-primary"
+              onClick={onAssign}
+              id="trainer-panel-assign-btn"
+            >
+              Assign member
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ── Attendance tab ── */}
+      {panelTab === "attendance" && (
+        <AttendanceTab trainerId={trainer.id} />
+      )}
     </div>
   );
 }

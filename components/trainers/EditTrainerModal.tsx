@@ -3,19 +3,22 @@
 // ============================================================
 // components/trainers/EditTrainerModal.tsx
 // FEAT-007 — Modal to edit an existing trainer.
-//
-// Pre-populated from the trainer prop. Same field layout as
-// AddTrainerModal. Calls useEditTrainer mutation on submit.
+// FEAT-010k — Added "Trainer Portal Access" section:
+//   - Shows green badge when trainer_auth_user_id is set.
+//   - Shows greyed button with tooltip when email is missing.
+//   - Calls useProvisionTrainerLogin on click; reveals
+//     temp password once in an inline dismissable block.
 // ============================================================
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Modal } from "@/components/ui/Modal";
-import { useEditTrainer } from "@/hooks/useTrainerMutations";
+import { useEditTrainer, useProvisionTrainerLogin } from "@/hooks/useTrainerMutations";
 import { useGymSettings } from "@/hooks/useGymSettings";
 import { editTrainerSchema, type EditTrainerFormData } from "@/lib/validations/trainer";
 import type { TrainerWithAssignments } from "@/hooks/useTrainers";
+import { CheckCircle, Copy, Check } from "lucide-react";
 
 interface EditTrainerModalProps {
   isOpen:  boolean;
@@ -25,7 +28,12 @@ interface EditTrainerModalProps {
 
 export function EditTrainerModal({ isOpen, onClose, trainer }: EditTrainerModalProps) {
   const { mutateAsync: editTrainer, isPending } = useEditTrainer();
+  const { mutateAsync: provisionLogin, isPending: isProvisioning } = useProvisionTrainerLogin();
   const { data: settings } = useGymSettings();
+
+  // One-time temp password reveal — cleared on dismiss or modal close
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const {
     register,
@@ -65,7 +73,26 @@ export function EditTrainerModal({ isOpen, onClose, trainer }: EditTrainerModalP
 
   const handleClose = () => {
     reset();
+    setTempPassword(null);
+    setCopied(false);
     onClose();
+  };
+
+  const handleProvision = async () => {
+    if (!trainer.email) return;
+    const result = await provisionLogin({
+      trainerId: trainer.id,
+      email: trainer.email,
+      fullName: trainer.full_name,
+    });
+    setTempPassword(result.tempPassword);
+  };
+
+  const handleCopy = async () => {
+    if (!tempPassword) return;
+    await navigator.clipboard.writeText(tempPassword);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const onSubmit = async (data: EditTrainerFormData) => {
@@ -165,6 +192,73 @@ export function EditTrainerModal({ isOpen, onClose, trainer }: EditTrainerModalP
               </span>
             </button>
           </div>
+        </div>
+
+        {/* Actions */}
+        {/* ── Trainer Portal Access ── */}
+        <div className="provision-section">
+          <div className="provision-section-label">Trainer Portal Access</div>
+
+          {trainer.trainer_auth_user_id ? (
+            /* Already provisioned */
+            <div className="provision-provisioned">
+              <CheckCircle size={15} />
+              Login provisioned
+            </div>
+          ) : tempPassword ? (
+            /* Show one-time password reveal */
+            <div className="provision-password-reveal">
+              <div className="provision-password-label">Temporary Password — share once</div>
+              <div className="provision-password-row">
+                <span className="provision-password-value">{tempPassword}</span>
+                <button
+                  className="provision-password-copy"
+                  onClick={handleCopy}
+                  type="button"
+                  id="provision-copy-btn"
+                >
+                  {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
+                </button>
+              </div>
+              <div className="provision-password-warn">
+                ⚠ This password will not be shown again. Ask the trainer to change it on first login.
+              </div>
+              <button
+                className="tf-btn-cancel"
+                type="button"
+                onClick={() => { setTempPassword(null); setCopied(false); }}
+                style={{ alignSelf: "flex-start", padding: "6px 14px", fontSize: 12 }}
+              >
+                Done
+              </button>
+            </div>
+          ) : trainer.email ? (
+            /* Has email, not yet provisioned */
+            <button
+              type="button"
+              id="provision-login-btn"
+              className="btn-solid"
+              onClick={handleProvision}
+              disabled={isProvisioning}
+              style={{ alignSelf: "flex-start" }}
+            >
+              {isProvisioning ? "Creating login…" : "Provision Login"}
+            </button>
+          ) : (
+            /* No email — greyed out */
+            <>
+              <button
+                type="button"
+                className="btn-solid"
+                disabled
+                title="Add an email to enable login provisioning"
+                style={{ alignSelf: "flex-start", opacity: 0.4, cursor: "not-allowed" }}
+              >
+                Provision Login
+              </button>
+              <span className="provision-no-email">Add an email address to enable login provisioning.</span>
+            </>
+          )}
         </div>
 
         {/* Actions */}

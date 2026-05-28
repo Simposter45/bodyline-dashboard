@@ -214,3 +214,36 @@ export function useProvisionTrainerLogin() {
     },
   });
 }
+
+// ------------------------------------------------------------------
+// useRemoveAssignment  (FEAT-010k)
+// Owner-only: soft-removes a trainer → member assignment by flipping
+// is_current = false. The row is preserved for history.
+// ------------------------------------------------------------------
+
+interface RemoveAssignmentPayload {
+  assignmentId: string;
+}
+
+export function useRemoveAssignment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ assignmentId }: RemoveAssignmentPayload) => {
+      const { error } = await supabase
+        .from("trainer_assignments")
+        .update({ is_current: false })
+        .eq("id", assignmentId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["trainers"] });
+      toast.success("Member unassigned");
+    },
+    onError: (error: unknown) => {
+      const msg =
+        error instanceof Error ? error.message : "Failed to unassign member.";
+      toast.error(msg);
+    },
+  });
+}

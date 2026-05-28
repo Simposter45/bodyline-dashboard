@@ -447,3 +447,203 @@
   .ap-name              { font-size: 1.1rem; }
   .panel-empty          { padding: 40px 16px; }
 }
+
+/* ── FEAT-010k: AssignmentPanel inline tab switcher ── */
+.ap-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 20px;
+}
+.ap-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  min-height: 36px;
+}
+.ap-tab.active {
+  background: var(--bg2);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.ap-tab-badge {
+  background: rgba(74,222,128,0.2);
+  color: var(--accent-green);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 99px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── FEAT-010k: Per-member remove (×) button ── */
+.ap-member-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  /* Meets 44px touch target via the .ap-member-row padding */
+}
+.ap-member-remove:hover {
+  background: var(--accent-red-dim);
+  border-color: rgba(248,113,113,0.2);
+  color: var(--accent-red);
+}
+
+/* ── FEAT-010k: Attendance log rows ── */
+.ap-att-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 12px 0;
+}
+
+.ap-att-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ap-att-row {
+  display: grid;
+  grid-template-columns: 88px 1fr 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s;
+}
+.ap-att-row:hover { background: var(--bg3); }
+
+.ap-att-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.ap-att-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.ap-att-duration {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+.ap-att-open {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-green);
+  background: var(--accent-green-dim);
+  border: 1px solid rgba(74,222,128,0.2);
+  border-radius: 99px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+/* ── FEAT-010k: Provision Login section in EditTrainerModal ── */
+.provision-section {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.provision-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.provision-provisioned {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--accent-green);
+  font-weight: 500;
+}
+.provision-no-email {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.provision-password-reveal {
+  background: var(--bg3);
+  border: 1px solid rgba(74,222,128,0.25);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.provision-password-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.provision-password-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.provision-password-value {
+  flex: 1;
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent-green);
+  letter-spacing: 0.06em;
+  word-break: break-all;
+}
+.provision-password-copy {
+  background: var(--bg2);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 12px;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+  min-height: 32px;
+}
+.provision-password-copy:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+.provision-password-warn {
+  font-size: 12px;
+  color: var(--text-muted);
+}
