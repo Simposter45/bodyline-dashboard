@@ -1,0 +1,189 @@
+/* ============================================================
+   app/trainer/components/ClockInCard.css
+   The hero card — trainer's primary daily action.
+   Blue trainer identity, live timer, clock-in/out CTA.
+   ============================================================ */
+
+/* ── Card shell ──────────────────────────────────────────────── */
+.clock-card {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 28px 24px;
+  overflow: hidden;
+  transition: border-color 0.25s;
+}
+
+/* Active state — glows blue when clocked in */
+.clock-card.clocked-in {
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+/* Subtle ambient glow — positioned behind card content */
+.clock-card-glow {
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(96, 165, 250, 0.08) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  transition: opacity 0.4s;
+  opacity: 0;
+}
+
+.clock-card.clocked-in .clock-card-glow {
+  opacity: 1;
+}
+
+/* ── Top row: date + status pill ─────────────────────────────── */
+.clock-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.clock-card-date {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.clock-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 99px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.clock-status-pill.in {
+  background: var(--accent-blue-dim);
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  color: var(--accent-blue);
+}
+
+.clock-status-pill.out {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.clock-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ── Center: elapsed timer ───────────────────────────────────── */
+.clock-timer-wrap {
+  margin-bottom: 24px;
+}
+
+.clock-timer {
+  font-family: var(--font-display);
+  font-size: 3.2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--text-primary);
+  transition: color 0.25s;
+}
+
+.clock-card.clocked-in .clock-timer {
+  color: var(--accent-blue);
+}
+
+.clock-timer-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-weight: 400;
+}
+
+/* ── Bottom: CTA button ──────────────────────────────────────── */
+.clock-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.clock-btn:active {
+  transform: scale(0.98);
+}
+
+.clock-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clock-btn.clock-in {
+  background: var(--accent-blue);
+  color: #0d0d0f;
+}
+
+.clock-btn.clock-in:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.clock-btn.clock-out {
+  background: var(--accent-amber-dim);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  color: var(--accent-amber);
+}
+
+.clock-btn.clock-out:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.18);
+}
+
+/* Clock-in time caption below button */
+.clock-in-since {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+.clock-in-since strong {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .clock-card {
+    padding: 22px 18px 20px;
+  }
+
+  .clock-timer {
+    font-size: 2.6rem;
+  }
+
+  .clock-btn {
+    padding: 15px 20px; /* slightly taller for touch */
+    font-size: 14px;
+  }
+}

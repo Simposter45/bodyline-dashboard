@@ -7,9 +7,8 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🎯 Current Focus & Active Objective
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
-* **Current Focus**: **FEAT-010 — Trainer Portal Rebuild (Sprint 2)**
-  * **Objective**: With Sprint 1 (Owner Admin Actions) fully completed, the next major milestone is tearing down the monolithic Trainer Portal and rebuilding it with TanStack Query, mobile-first design, and robust self-service features.
-  * **Trajectory Note**: The Member Portal (`FEAT-009`, Sprint 3) will be built *after* the Trainer Portal (`FEAT-010`, Sprint 2) is complete.
+* **Current Focus**: **Pre-Launch Analytics & Automation** (Before Sprint 3)
+  * **Objective**: Sprint 1 and Sprint 2 are 100% complete (including `FEAT-010k`). Before rebuilding the Member Portal (Sprint 3), we are prioritizing critical pre-launch features: Revenue Analytics (`FEAT-013`), WhatsApp Automations, Razorpay integration, and Auto Status Expiry (`CHORE-002b`).
 
 ---
 
@@ -113,49 +112,46 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
 
 ---
 
-### 🔴 SPRINT 2 — Trainer Portal Rebuild (`FEAT-010`)
+### 🔴 SPRINT 2 — Trainer Portal Rebuild (`FEAT-010`) : **DONE ✅**
 * **Mobile-First Portal Rebuild**:
-  * Extract the 1,196-line Trainer Portal monolith into clean, modular components driven by TanStack Query hooks.
+  * Extracted the 1,196-line Trainer Portal monolith into clean, modular components driven by TanStack Query hooks.
 * **Trainer Self Check-In / Attendance**:
-  * Clock-in and clock-out mechanisms for trainers to track their own attendance, rendering the historical logs on the owner's Trainers page.
+  * *Design Pivot:* Removed manual trainer clock-in capabilities from the portal in favor of centralized reception tracking.
 * **Session Logging**:
-  * Allow trainers to log workout/PT sessions completed with their assigned members.
+  * Allowed trainers to log workout/PT sessions completed with their assigned members, viewable in a history tab.
 * **Assigned-Member Live Check-in View**:
   * Roster-specific views showing real-time member check-ins and outstanding dues to drive direct trainer accountability on the floor.
+* **Payment Collection**:
+  * Added a Record Payment Drawer for trainers to log Cash/UPI collections on behalf of members.
+* **Owner-Side Trainer Management (`FEAT-010k`)**:
+  * Gym owners can provision Supabase Auth credentials for trainers, view their 14-day attendance logs (IST-safe), and soft-unassign members from trainers via the upgraded `AssignmentPanel` and `TrainerDrawer`.
 
 ---
 
-### 🔴 SPRINT 3 — Member Portal Rebuild (`FEAT-009`)
-* **Mobile-First Portal Rebuild**:
-  * Refactor the 1,316-line bespoke Member Portal monolith into modular, hook-driven components with co-located CSS.
-* **Self-Service Renewal Request UI**:
-  * A member-facing request interface allowing members to submit renewal requests directly.
-* **Personal Attendance History**:
-  * Render comprehensive, IST-safe historical check-in logs for individual members.
-* **`FEAT-011` — QR Code Check-In Generation**:
-  * Naturally lands in this sprint. Generates unique, dynamic, and time-restricted QR codes in the Member Portal. When scanned by a desk webcam or tablet scanner, a server-side transaction validates status and logs attendance instantly.
+### 🔴 PRE-LAUNCH FOCUS — Analytics, Automation, & Payments (Immediate Next)
+Before tackling the Member Portal, these operational features are required for a production-ready SaaS launch:
+* **`FEAT-013` — Revenue Health Graph**: Replace the static card on the Payments page with an interactive Recharts line/bar chart (Revenue ₹ vs. Active Members) over Week, Month, 6 Months, and 1 Year scales.
+* **Automated WhatsApp Workflows**: Implement template-based Auto-Expiry Warnings, Payment Receipts, and Birthday Wishes using the existing Meta Cloud API. Include Bulk WhatsApp Reminders for overdue members.
+* **Razorpay Payment Integration**: Architecture planning and implementation for tenant-specific Razorpay key management in `gym_settings` and automated webhook resolution to eliminate cash bottlenecks.
+* **GST Invoice / Receipt PDF**: Client-side generation (e.g., `jsPDF`) of receipts per payment for Indian market compliance.
+* **`CHORE-002b` — Auto Status Transition (CRITICAL)**: Set up a `pg_cron` or Edge Function batch job to automatically transition expired memberships to `overdue` at midnight. (Must be done before Member Portal reads this status).
 
 ---
 
-### 🟡 SPRINT 4 — Analytics & Reporting
-* **`FEAT-013` — Revenue Health Graph**:
-  * Replace the static card on the Payments page with an interactive Recharts line/bar chart displaying collected revenue vs. member counts (dual axis) over Week, Month, 6 Months, and 1 Year scales.
-* **Attendance Heatmap**:
-  * Grid-based peak-hour check-in visualizers for managing floor capacity.
-* **Member Growth Trend**:
-  * Track active vs. expired subscriptions over time.
+### 🟡 SPRINT 3 — Member Portal Rebuild (`FEAT-009`)
+* **Mobile-First Portal Rebuild**: Refactor the 1,316-line bespoke Member Portal monolith into modular, hook-driven components with co-located CSS.
+* **Digital Membership Card**: Hero element showing member details, plan expiry, and a dynamic QR code.
+* **`FEAT-011` — QR Code Check-In Generation**: Dynamic, time-restricted QR codes in the Member Portal to be scanned at the desk.
+* **Self-Service Renewal Request UI**: Interface allowing members to submit renewal requests directly.
+* **Personal Attendance History**: IST-safe historical check-in logs for individual members.
 
 ---
 
 ### 🔵 Ongoing / Non-Blocking Backlog
-* **`CHORE-004` — Branch-Level Attendance**:
-  * Schema update to add a `branch` column to the `attendance` table for location validation.
-* **`CHORE-001` — Atomic Member Creation**:
-  * Refactor the 2-step onboarding sequence (insert member → insert membership) into a single, atomic Supabase RPC.
-* **`CHORE-002b` — Auto Status Transition**:
-  * Set up database batch jobs (using `pg_cron` or Edge Functions) to automatically transition expired memberships from pending to overdue.
-* **`FEAT-008` — Loading Skeletons**:
-  * Add custom CSS skeleton shimmer loading screens to replace basic "Loading..." texts.
+* **`CHORE-004` — Branch-Level Attendance**: Schema update to add a `branch` column to the `attendance` table for location validation.
+* **`CHORE-001` — Atomic Member Creation**: Refactor the 2-step onboarding sequence (insert member → insert membership) into a single, atomic Supabase RPC.
+* **`FEAT-008` — Loading Skeletons**: Add custom CSS skeleton shimmer loading screens to replace basic "Loading..." texts.
+* **Attendance Heatmap**: Grid-based peak-hour check-in visualizers for managing floor capacity.
 
 ---
 
@@ -299,7 +295,5 @@ The following items from the Payments page were raised and need resolution befor
 
 ### 3. Revenue Health Card → Revenue Graph
 * **Current state**: The Revenue Health card on the Payments page is a static UI element with no real data behind it.
-* **Agreed direction**: Replace it with an interactive Recharts line/bar graph.
-  * **Y-axis**: Revenue (₹) and/or Member count (dual axis).
-  * **X-axis**: Time — toggle between Week / Month / 6 Months / Year.
-* **Ticket**: `FEAT-013` — currently in Backlog. Should be promoted to Medium priority once `FEAT-009` and `FEAT-010` are done.
+* **Agreed direction**: Replace it with an interactive Recharts dual-axis graph (Revenue ₹ vs. Member count) across time scales.
+* **Resolution**: Promoted to Immediate Next in the Pre-Launch Focus (`FEAT-013`).

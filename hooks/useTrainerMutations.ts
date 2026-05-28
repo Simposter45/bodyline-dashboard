@@ -162,3 +162,88 @@ export function useAssignMember() {
     },
   });
 }
+
+// ------------------------------------------------------------------
+// useProvisionTrainerLogin  (FEAT-010k)
+// Owner-only: creates a Supabase auth account for a trainer and links
+// the resulting auth user UUID back to the trainers row.
+//
+// Calls POST /api/trainer/provision which uses the service-role key
+// to call supabase.auth.admin.createUser() server-side.
+//
+// Returns { tempPassword } — shown once to the owner, then discarded.
+// ------------------------------------------------------------------
+
+interface ProvisionTrainerPayload {
+  trainerId: string;
+  email: string;
+  fullName: string;
+}
+
+export interface ProvisionTrainerResult {
+  tempPassword: string;
+}
+
+export function useProvisionTrainerLogin() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ProvisionTrainerResult, Error, ProvisionTrainerPayload>({
+    mutationFn: async ({ trainerId, email, fullName }) => {
+      const res = await fetch("/api/trainer/provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trainerId, email, fullName }),
+      });
+
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error ?? "Failed to provision trainer login.");
+      }
+
+      return res.json() as Promise<ProvisionTrainerResult>;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["trainers"] });
+      // Note: success toast is shown by the caller (owner UI)
+      // after displaying the temp password modal — not here.
+    },
+    onError: (error: unknown) => {
+      const msg =
+        error instanceof Error ? error.message : "Failed to create login.";
+      toast.error(msg);
+    },
+  });
+}
+
+// ------------------------------------------------------------------
+// useRemoveAssignment  (FEAT-010k)
+// Owner-only: soft-removes a trainer → member assignment by flipping
+// is_current = false. The row is preserved for history.
+// ------------------------------------------------------------------
+
+interface RemoveAssignmentPayload {
+  assignmentId: string;
+}
+
+export function useRemoveAssignment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ assignmentId }: RemoveAssignmentPayload) => {
+      const { error } = await supabase
+        .from("trainer_assignments")
+        .update({ is_current: false })
+        .eq("id", assignmentId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["trainers"] });
+      toast.success("Member unassigned");
+    },
+    onError: (error: unknown) => {
+      const msg =
+        error instanceof Error ? error.message : "Failed to unassign member.";
+      toast.error(msg);
+    },
+  });
+}

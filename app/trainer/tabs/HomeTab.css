@@ -1,0 +1,168 @@
+/* ============================================================
+   app/trainer/tabs/HomeTab.css
+   Home tab layout — the trainer's daily working station.
+   ClockInCard, StatsRow, and floor roster sections.
+   ============================================================ */
+
+/* ── Tab root ────────────────────────────────────────────────── */
+.home-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Section headers ─────────────────────────────────────────── */
+.home-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ── Dues alert banner ───────────────────────────────────────── */
+.dues-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--accent-amber-dim);
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  animation: trainerTabIn 0.2s ease;
+}
+
+.dues-alert-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.dues-alert-icon {
+  color: var(--accent-amber);
+  flex-shrink: 0;
+}
+
+.dues-alert-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-amber);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dues-alert-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.dues-alert-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-amber);
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.dues-alert-btn:hover {
+  background: rgba(251, 191, 36, 0.2);
+}
+
+/* ── Floor roster — members currently in gym ─────────────────── */
+.floor-list {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.floor-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+}
+
+.floor-item:last-child {
+  border-bottom: none;
+}
+
+.floor-item:hover {
+  background: var(--bg3);
+}
+
+.floor-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.floor-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.floor-item-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.floor-item-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--accent-green-dim);
+  color: var(--accent-green);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.floor-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.floor-empty-icon {
+  font-size: 1.8rem;
+  opacity: 0.35;
+  margin-bottom: 8px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .home-tab {
+    gap: 20px;
+  }
+
+  .dues-alert {
+    padding: 12px 14px;
+  }
+
+  .floor-item {
+    padding: 12px 14px;
+  }
+}

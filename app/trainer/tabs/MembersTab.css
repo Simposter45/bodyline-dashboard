@@ -1,0 +1,241 @@
+/* ============================================================
+   app/trainer/tabs/MembersTab.css
+   Trainer roster view — search, filter, and member list.
+   ============================================================ */
+
+.members-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: trainerTabIn 0.2s ease;
+}
+
+/* ── Search & Filter Row ────────────────────────────────────── */
+.members-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.members-search-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.members-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.members-search-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px 12px 42px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.members-search-input:focus {
+  border-color: var(--accent-blue);
+}
+
+.members-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.members-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.members-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.members-filter-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 8px 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.members-filter-chip:hover {
+  background: var(--bg3);
+  color: var(--text-primary);
+}
+
+.members-filter-chip.active {
+  background: var(--accent-blue-dim);
+  border-color: rgba(96, 165, 250, 0.3);
+  color: var(--accent-blue);
+}
+
+.members-filter-badge {
+  background: var(--bg3);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.members-filter-chip.active .members-filter-badge {
+  background: rgba(96, 165, 250, 0.15);
+  color: var(--accent-blue);
+}
+
+/* ── Roster List ────────────────────────────────────────────── */
+.roster-list {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.roster-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.roster-item:last-child {
+  border-bottom: none;
+}
+
+.roster-item:hover {
+  background: var(--bg3);
+}
+
+.roster-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.roster-item-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.roster-item-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Status dots */
+.roster-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.roster-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.roster-dot.active { background: var(--accent-green); }
+.roster-dot.inactive { background: var(--text-muted); }
+.roster-dot.overdue { background: var(--accent-red); }
+.roster-dot.pending { background: var(--accent-amber); }
+
+/* Right side badges */
+.roster-item-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.roster-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.roster-badge.due {
+  background: var(--accent-amber-dim);
+  color: var(--accent-amber);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.roster-badge.overdue {
+  background: var(--accent-red-dim);
+  color: var(--accent-red);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+.roster-badge.in-gym {
+  background: var(--accent-green-dim);
+  color: var(--accent-green);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+/* Empty state */
+.roster-empty {
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.roster-empty-icon {
+  font-size: 2.5rem;
+  opacity: 0.3;
+  margin-bottom: 12px;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .roster-list {
+    border-radius: var(--radius-sm);
+  }
+  
+  .roster-item {
+    padding: 14px 16px;
+  }
+}

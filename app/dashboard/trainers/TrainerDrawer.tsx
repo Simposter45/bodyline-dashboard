@@ -3,22 +3,52 @@
 // ============================================================
 // app/dashboard/trainers/TrainerDrawer.tsx
 // Mobile bottom-sheet drawer for a selected trainer.
-// Shows two tabs: Profile (contact/branch/since) and Members.
+// Shows three tabs: Profile (contact/branch/since),
+// Members (assigned roster + remove action),
+// Attendance (clock-in/out log — FEAT-010k).
 // ============================================================
 
 import "./TrainerDrawer.css";
 import { useState } from "react";
-import { X, Phone, Mail, MapPin, CalendarDays } from "lucide-react";
+import { X, Phone, Mail, MapPin, CalendarDays, UserMinus } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { getInitials, formatDate } from "@/lib/utils/format";
+import { useTrainerAttendanceAdmin } from "@/hooks/useTrainerAttendanceAdmin";
+import { useRemoveAssignment } from "@/hooks/useTrainerMutations";
 import type { TrainerWithAssignments } from "@/hooks/useTrainers";
+import type { TrainerAttendance } from "@/types";
 
 interface TrainerDrawerProps {
   trainer: TrainerWithAssignments;
   onClose: () => void;
-  defaultTab?: "profile" | "members";
+  defaultTab?: "profile" | "members" | "attendance";
   onAssign?: () => void;
   onEdit?: () => void;
+}
+
+// Attendance display helpers (IST-safe, mirrors page.tsx)
+function formatTimeIST(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Kolkata",
+  });
+}
+function formatAttDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    timeZone: "Asia/Kolkata",
+  });
+}
+function computeDur(clockIn: string, clockOut: string | null): string {
+  if (!clockOut) return "";
+  const mins = Math.round((new Date(clockOut).getTime() - new Date(clockIn).getTime()) / 60000);
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m}m`;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
 }
 
 export function TrainerDrawer({
@@ -28,8 +58,10 @@ export function TrainerDrawer({
   onAssign,
   onEdit,
 }: TrainerDrawerProps) {
-  const [activeTab, setActiveTab] = useState<"profile" | "members">(defaultTab);
+  const [activeTab, setActiveTab] = useState<"profile" | "members" | "attendance">(defaultTab);
   const specColor = getSpecColorDrawer(trainer.specialization);
+  const { data: attLogs = [], isLoading: attLoading } = useTrainerAttendanceAdmin(trainer.id, 14);
+  const { mutate: removeAssignment, isPending: isRemoving } = useRemoveAssignment();
 
   return (
     <>
@@ -93,6 +125,13 @@ export function TrainerDrawer({
           >
             Members
             <span className="tr-drawer-tab-badge">{trainer.assignments.length}</span>
+          </button>
+          <button
+            className={`tr-drawer-tab${activeTab === "attendance" ? " active" : ""}`}
+            onClick={() => setActiveTab("attendance")}
+            id="trainer-drawer-tab-attendance"
+          >
+            Attendance
           </button>
         </div>
 
@@ -162,6 +201,15 @@ export function TrainerDrawer({
                     {a.member.phone && (
                       <div className="ap-member-phone">{a.member.phone}</div>
                     )}
+                    <button
+                      className="ap-member-remove"
+                      onClick={() => removeAssignment({ assignmentId: a.id })}
+                      disabled={isRemoving}
+                      aria-label={`Unassign ${a.member.full_name}`}
+                      title={`Unassign ${a.member.full_name}`}
+                    >
+                      <UserMinus size={13} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -178,6 +226,34 @@ export function TrainerDrawer({
                 Assign member
               </button>
             </div>
+          </div>
+        )}
+
+        {/* ── Attendance tab ── */}
+        {activeTab === "attendance" && (
+          <div className="tr-drawer-tab-content">
+            {attLoading ? (
+              <div className="tr-drawer-empty">Loading attendance…</div>
+            ) : (attLogs as TrainerAttendance[]).length === 0 ? (
+              <div className="tr-drawer-empty">No attendance records in the last 14 days.</div>
+            ) : (
+              <div className="ap-att-list">
+                {(attLogs as TrainerAttendance[]).map((row) => (
+                  <div key={row.id} className="ap-att-row">
+                    <span className="ap-att-date">{formatAttDate(row.clock_in)}</span>
+                    <span className="ap-att-time">{formatTimeIST(row.clock_in)}</span>
+                    <span className="ap-att-time">
+                      {row.clock_out ? formatTimeIST(row.clock_out) : "—"}
+                    </span>
+                    {row.clock_out ? (
+                      <span className="ap-att-duration">{computeDur(row.clock_in, row.clock_out)}</span>
+                    ) : (
+                      <span className="ap-att-open">In gym</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

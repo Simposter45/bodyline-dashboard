@@ -1,0 +1,104 @@
+/* ============================================================
+   app/trainer/components/BottomTabBar.css
+   5-tab fixed bottom navigation for the Trainer Portal.
+   Uses --accent-blue as the active color (trainer identity).
+   Always visible — this is mobile-first so the bar is always
+   present, not toggled by a breakpoint like the owner nav.
+   ============================================================ */
+
+.trainer-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  z-index: 50;
+  /* iOS: push content above home indicator */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Individual tab button */
+.trainer-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+  /* Minimum 44px touch target width */
+  min-width: 44px;
+  transition: color 0.15s;
+  position: relative;
+}
+
+.trainer-tab:hover {
+  color: var(--text-secondary);
+}
+
+/* Active state — blue for trainer identity */
+.trainer-tab.active {
+  color: var(--accent-blue);
+}
+
+/* Active indicator bar at top of tab */
+.trainer-tab.active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: var(--accent-blue);
+  border-radius: 0 0 2px 2px;
+}
+
+/* Tab label text */
+.trainer-tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  line-height: 1;
+  font-family: var(--font-body);
+}
+
+/* Badge on tab (e.g. overdue count, session count) */
+.trainer-tab-badge {
+  position: absolute;
+  top: 8px;
+  right: calc(50% - 18px);
+  background: var(--accent-amber);
+  color: #0d0d0f;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+/* On desktop — keep bar but let it breathe with narrower width */
+@media (min-width: 641px) {
+  .trainer-tab-bar {
+    /* On desktop, constrain to the same max-width as the page content */
+    max-width: 65vw;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-radius: 14px 14px 0 0;
+  }
+}
