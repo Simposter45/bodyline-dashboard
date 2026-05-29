@@ -1,0 +1,229 @@
+/* ============================================================
+   app/dashboard/payments/RevenueHealthGraph.css — FEAT-013
+   Styles for the Revenue Health Graph component only.
+   Shared tokens come from globals.css — not redefined here.
+   ============================================================ */
+
+/* ── Panel — clean card, no accent border ── */
+.rg-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 24px 18px;
+  margin-bottom: 32px;
+}
+
+/* ── Header: left (title + amount) and right (toggles + badge) ── */
+.rg-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.rg-header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.rg-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.rg-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.rg-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ── Time-scale toggle pills ── */
+.rg-scales {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.rg-scale-btn {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 30px;
+  white-space: nowrap;
+}
+.rg-scale-btn:hover {
+  background: var(--bg3);
+  color: var(--text-secondary);
+  border-color: var(--border-hi);
+}
+.rg-scale-btn.active {
+  background: var(--accent-green-dim);
+  color: var(--accent-green);
+  border-color: rgba(74,222,128,0.3);
+}
+
+/* ── Collection rate badge ── */
+.rg-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+}
+.rg-badge-value {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent-green);
+  line-height: 1;
+}
+.rg-badge-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* ── Chart legend ── */
+.rg-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.rg-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.rg-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+/* Line swatch — thin bar to represent the line series */
+.rg-legend-swatch.rg-swatch-line {
+  height: 3px;
+  border-radius: 99px;
+  margin-bottom: 1px;
+}
+.rg-swatch-green { background: var(--accent-green); opacity: 0.8; }
+.rg-swatch-blue  { background: var(--accent-blue); }
+
+/* ── Chart container ── */
+.rg-chart-wrap {
+  width: 100%;
+  height: 240px;
+  margin-bottom: 16px;
+}
+
+/* Loading state inside the chart area */
+.rg-chart-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Custom tooltip ── */
+.rg-tooltip {
+  background: var(--bg3);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  min-width: 160px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.rg-tooltip-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.rg-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+.rg-tooltip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.rg-dot-green { background: var(--accent-green); }
+.rg-dot-blue  { background: var(--accent-blue);  }
+.rg-tooltip-key {
+  color: var(--text-secondary);
+  flex: 1;
+}
+.rg-tooltip-val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+}
+.rg-val-green { color: var(--accent-green); }
+.rg-val-blue  { color: var(--accent-blue);  }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .rg-panel { padding: 16px 14px 14px; position: relative; }
+  .rg-chart-wrap { height: 190px; }
+  /* Header: remove flex to allow absolute badge to sit independently */
+  .rg-header { display: block; margin-bottom: 24px; }
+  .rg-header-right {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    margin-top: 12px;
+  }
+  /* Scale pills: scroll horizontally instead of wrapping */
+  .rg-scales {
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    width: 100%;
+  }
+  .rg-scales::-webkit-scrollbar { display: none; }
+  .rg-scale-btn { font-size: 11px; padding: 4px 10px; min-height: 28px; }
+  
+  /* Badge: absolute top right corner */
+  .rg-badge { 
+    position: absolute;
+    top: 16px;
+    right: 14px;
+    padding: 5px 10px; 
+  }
+  .rg-badge-value { font-size: 0.95rem; }
+}

@@ -10,6 +10,7 @@ import { STATUS_CONFIG } from "@/lib/constants/status";
 import { formatINR, formatDate } from "@/lib/utils/format";
 import { monthStartISTTimestamp, currentMonthName } from "@/lib/utils/date";
 import { PaymentDrawer } from "./PaymentDrawer";
+import { RevenueHealthGraph } from "./RevenueHealthGraph";
 import { RenewMembershipModal } from "@/components/members/RenewMembershipModal";
 import { RecordPaymentModal } from "@/components/members/RecordPaymentModal";
 import type { PaymentStatus } from "@/types";
@@ -79,34 +80,7 @@ const METHOD_LABEL: Record<string, string> = {
 
 const PAGE_SIZE = 25;
 
-// ------------------------------------------------------------------
-// RevenueBar — local sparkline bar (payments-page only, not shared)
-// ------------------------------------------------------------------
-
-function RevenueRow({
-  label,
-  value,
-  total,
-  color,
-}: {
-  label: string;
-  value: number;
-  total: number;
-  color: string;
-}) {
-  const pct = total > 0 ? Math.min(100, (value / total) * 100) : 0;
-  return (
-    <div className="rev-row">
-      <div className="rev-row-meta">
-        <span className="rev-row-label">{label}</span>
-        <span className="rev-row-amount" style={{ color }}>{formatINR(value)}</span>
-      </div>
-      <div className="rev-row-track">
-        <div className="rev-row-fill" style={{ width: `${pct}%`, background: color }} />
-      </div>
-    </div>
-  );
-}
+// RevenueRow helper moved to RevenueHealthGraph.tsx (FEAT-013)
 
 // ------------------------------------------------------------------
 // Page
@@ -369,67 +343,46 @@ export default function PaymentsPage() {
               </button>
             </div>
 
-            {/* Summary stat cards */}
-            <div className="summary-grid">
-              <div className="summary-card">
-                <p className="summary-label">Total collected</p>
-                <p className="summary-value" style={{ color: "var(--accent-green)" }}>
+            {/* Summary stat strip */}
+            <div className="stats-strip">
+              <div className="stat-item">
+                <p className="stat-label">Total collected</p>
+                <p className="stat-value" style={{ color: "var(--accent-green)" }}>
                   {formatINR(summary.totalCollected)}
                 </p>
-                <p className="summary-sub">{counts.paid} payments</p>
+                <p className="stat-sub">{counts.paid} payments</p>
               </div>
-              <div className="summary-card">
-                <p className="summary-label">This month</p>
-                <p className="summary-value">{formatINR(summary.thisMonthCollected)}</p>
-                <p className="summary-sub">collected in {currentMonth}</p>
+              <div className="stat-divider" />
+              <div className="stat-item">
+                <p className="stat-label">This month</p>
+                <p className="stat-value">{formatINR(summary.thisMonthCollected)}</p>
+                <p className="stat-sub">in {currentMonth}</p>
               </div>
-              <div className="summary-card">
-                <p className="summary-label">Pending</p>
-                <p className="summary-value" style={{ color: "var(--accent-amber)" }}>
+              <div className="stat-divider" />
+              <div className="stat-item">
+                <p className="stat-label">Pending</p>
+                <p className="stat-value" style={{ color: "var(--accent-amber)" }}>
                   {formatINR(summary.totalPending)}
                 </p>
-                <p className="summary-sub">{summary.pendingMemberCount} members</p>
+                <p className="stat-sub">{summary.pendingMemberCount} members</p>
               </div>
-              <div className="summary-card">
-                <p className="summary-label">Overdue</p>
-                <p className="summary-value" style={{ color: "var(--accent-red)" }}>
+              <div className="stat-divider" />
+              <div className="stat-item">
+                <p className="stat-label">Overdue</p>
+                <p className="stat-value" style={{ color: "var(--accent-red)" }}>
                   {formatINR(summary.totalOverdue)}
                 </p>
-                <p className="summary-sub">{summary.overdueMemberCount} members</p>
+                <p className="stat-sub">{summary.overdueMemberCount} members</p>
               </div>
             </div>
 
-            {/* Revenue Health panel */}
-            <div className="revenue-panel">
-              <div className="revenue-panel-header">
-                <div>
-                  <p className="revenue-panel-title">Revenue Health</p>
-                  <p className="revenue-panel-amount">{formatINR(summary.totalCollected)}</p>
-                  <p className="revenue-panel-sub">{formatINR(totalRevenue)} total billed</p>
-                </div>
-                <div className="collection-rate-badge">
-                  <span className="collection-rate-value">{collectionRate}%</span>
-                  <span className="collection-rate-label">collected</span>
-                </div>
-              </div>
-
-              <div className="rev-rows">
-                <RevenueRow label="Collected" value={summary.totalCollected} total={totalRevenue} color="var(--accent-green)" />
-                <RevenueRow label="Pending"   value={summary.totalPending}   total={totalRevenue} color="var(--accent-amber)" />
-                <RevenueRow label="Overdue"   value={summary.totalOverdue}   total={totalRevenue} color="var(--accent-red)" />
-              </div>
-
-              <div className="method-chips">
-                <span className="method-chip">
-                  <span className="method-chip-icon">&#8377;</span>
-                  {summary.cashCount} cash payments
-                </span>
-                <span className="method-chip">
-                  <span className="method-chip-icon">&#x2B6F;</span>
-                  {summary.upiCount} UPI payments
-                </span>
-              </div>
-            </div>
+            {/* Revenue Health Graph — FEAT-013 */}
+            <RevenueHealthGraph
+              collectionRate={collectionRate}
+              totalRevenue={totalRevenue}
+              cashCount={summary.cashCount}
+              upiCount={summary.upiCount}
+            />
 
             {/* Toolbar */}
             <div className="toolbar">

@@ -131,10 +131,12 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
 ### 🔴 PRE-LAUNCH FOCUS — Analytics, Automation, & Payments (Immediate Next)
 Before tackling the Member Portal, these operational features are required for a production-ready SaaS launch:
 * **`FEAT-013` — Revenue Health Graph**: Replace the static card on the Payments page with an interactive Recharts line/bar chart (Revenue ₹ vs. Active Members) over Week, Month, 6 Months, and 1 Year scales.
-* **Automated WhatsApp Workflows**: Implement template-based Auto-Expiry Warnings, Payment Receipts, and Birthday Wishes using the existing Meta Cloud API. Include Bulk WhatsApp Reminders for overdue members.
+* **[BLOCKED] Automated WhatsApp Workflows**: *Currently blocked due to Meta template rejection and number ban.* Implement template-based Auto-Expiry Warnings, Payment Receipts, and Birthday Wishes using the existing Meta Cloud API. Include Bulk WhatsApp Reminders for overdue members.
 * **Razorpay Payment Integration**: Architecture planning and implementation for tenant-specific Razorpay key management in `gym_settings` and automated webhook resolution to eliminate cash bottlenecks.
 * **GST Invoice / Receipt PDF**: Client-side generation (e.g., `jsPDF`) of receipts per payment for Indian market compliance.
 * **`CHORE-002b` — Auto Status Transition (CRITICAL)**: Set up a `pg_cron` or Edge Function batch job to automatically transition expired memberships to `overdue` at midnight. (Must be done before Member Portal reads this status).
+* **MoM Trend Tracking (Future)**: Add explicit +5% / -5% month-over-month history tracking metrics to both Members and Payments features.
+* **Reminder ROI Dashboard (Future)**: Add a section demonstrating the ROI of the automated reminders (e.g., "Revenue recovered due to reminders" / "Members retained after warning").
 
 ---
 
@@ -280,6 +282,25 @@ Trainers are accountable staff, not just service providers — their own attenda
 * **Clock In / Clock Out**: Trainers mark their own attendance (likely via the Trainer Portal or a dedicated desk panel).
 * **Owner Visibility**: The Trainers page on the owner dashboard displays daily/weekly trainer attendance logs alongside member assignment data.
 * **Scope**: Part of `FEAT-010` (Trainer Portal Rebuild). Schema may reuse or extend the existing `attendance` table with a `role` discriminator column, or use a separate `trainer_attendance` table — to be decided at implementation time.
+
+---
+
+## 🌍 Product Strategy & Environment Architecture
+
+### Multitenancy via Subdomains
+The platform is designed to isolate gym data using `gym_id`. To provide a seamless SaaS experience, we will implement **subdomain routing** (`[gym_slug].bodyline.app`).
+* **Requirements**: Add a `slug` column to the `gyms` table.
+* **Resolution**: Next.js middleware will read the incoming Vercel wildcard subdomain request, lookup the `gym_slug`, resolve the `gym_id`, and inject it into the session context.
+* **Status**: **PENDING** (Highest priority architectural task before onboarding gym #2).
+
+### Deployment Pipeline (Dev → UAT → Prod)
+To prevent pushing broken code to production, the Git/Vercel pipeline must adhere to the following strict environments:
+1. **Local Dev (`feat/*`)**: Connected to a future Supabase Dev project via `.env.local`.
+2. **UAT (`develop` branch)**: Hosted on Vercel at `uat.bodyline.app`. Connected to the Dev project. Used for testing merged features.
+3. **Production (`main` branch)**: Hosted on Vercel at `bodyline-dashboard.vercel.app`. Connected to the Prod Supabase project. Real client data only.
+
+### Current Demo State
+Due to losing the initial beta client, the current production database (`bodyline-dashboard.vercel.app`) contains only seeded/demo data. This live URL is now the **permanent demo environment** for live, in-person sales pitches to gym owners until the Dev/Prod infrastructure split is completed.
 
 ---
 
