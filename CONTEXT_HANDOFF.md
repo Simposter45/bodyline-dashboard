@@ -293,14 +293,28 @@ The platform is designed to isolate gym data using `gym_id`. To provide a seamle
 * **Resolution**: Next.js middleware will read the incoming Vercel wildcard subdomain request, lookup the `gym_slug`, resolve the `gym_id`, and inject it into the session context.
 * **Status**: **PENDING** (Highest priority architectural task before onboarding gym #2).
 
-### Deployment Pipeline (Dev → UAT → Prod)
-To prevent pushing broken code to production, the Git/Vercel pipeline must adhere to the following strict environments:
-1. **Local Dev (`feat/*`)**: Connected to a future Supabase Dev project via `.env.local`.
-2. **UAT (`develop` branch)**: Hosted on Vercel at `uat.bodyline.app`. Connected to the Dev project. Used for testing merged features.
-3. **Production (`main` branch)**: Hosted on Vercel at `bodyline-dashboard.vercel.app`. Connected to the Prod Supabase project. Real client data only.
+### Deployment Pipeline (Dev → UAT → Prod) ✅ LIVE
+The 3-tier Git/Vercel pipeline is fully operational:
+
+| Layer | Branch | URL | Supabase Project | Purpose |
+|---|---|---|---|---|
+| **Local Dev** | `feat/*` | `localhost:3000` | Dev (`qkgxvbvecjgzykvyzrek`) | Write & test code |
+| **UAT** | `develop` | `bodyline-uat.vercel.app` | Dev (same) | Validate before prod |
+| **Production** | `main` | `bodyline-dashboard.vercel.app` | Prod (`zhdnbrvrmjcxjlfhqlwt`) | Live demo / client |
+
+**Daily workflow:** `feat/*` → merge to `develop` → auto-deploys UAT → merge to `main` → auto-deploys Prod.
+
+**Dev DB Schema Setup:** Run `scripts/00_fresh_schema.sql` on a fresh Supabase project to create all tables + RLS from scratch.
+**Dev DB Seed:** Run `npx tsx scripts/seed-dev.ts` to populate with distinct fake data (FitPeak Pune + Iron Temple Mumbai).
+
+**Dev credentials (UAT / Local only — never use on Prod):**
+- `owner@fitpeak.dev` / `Fitpeak@123` (FitPeak owner — slug: `bodyline`)
+- `owner@irontemple.dev` / `Iron@123456` (Iron Temple owner — slug: `iron-temple`)
+- `trainer1@fitpeak.dev` / `Fitpeak@123`
+- `trainer1@irontemple.dev` / `Iron@123456`
 
 ### Current Demo State
-Due to losing the initial beta client, the current production database (`bodyline-dashboard.vercel.app`) contains only seeded/demo data. This live URL is now the **permanent demo environment** for live, in-person sales pitches to gym owners until the Dev/Prod infrastructure split is completed.
+The production database (`bodyline-dashboard.vercel.app`) contains seeded/demo data and is used as the **permanent demo environment** for live, in-person sales pitches. The Dev/Prod infrastructure split is now complete.
 
 ---
 
