@@ -335,6 +335,7 @@ CREATE POLICY "gyms_service_bypass"
 -- ── gym_settings ──────────────────────────────────────────────────────────────
 ALTER TABLE gym_settings ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "gym_settings_anon_read"    ON gym_settings;
+DROP POLICY IF EXISTS "gym_settings_auth_read"    ON gym_settings;
 DROP POLICY IF EXISTS "gym_settings_owner_update" ON gym_settings;
 DROP POLICY IF EXISTS "gym_settings_service"      ON gym_settings;
 
@@ -342,6 +343,12 @@ CREATE POLICY "gym_settings_anon_read"
   ON gym_settings FOR SELECT
   TO anon
   USING (true);
+
+-- Authenticated users (owners/trainers) read their own gym settings
+CREATE POLICY "gym_settings_auth_read"
+  ON gym_settings FOR SELECT
+  TO authenticated
+  USING (gym_id = current_gym_id());
 
 CREATE POLICY "gym_settings_owner_update"
   ON gym_settings FOR UPDATE
@@ -398,7 +405,7 @@ CREATE POLICY "members_self_read"
   USING (
     gym_id = current_gym_id()
     AND get_my_role() = 'member'
-    AND id IN (SELECT m.id FROM members m WHERE m.email = auth.jwt()->>'email')
+    AND email = auth.jwt()->>'email'
   );
 
 CREATE POLICY "members_owner_write"
@@ -469,9 +476,9 @@ CREATE POLICY "mm_self_read"
     gym_id = current_gym_id()
     AND get_my_role() = 'member'
     AND member_id = (
-      SELECT m.id FROM members m
-      JOIN auth.users u ON u.email = m.email
-      WHERE u.id = auth.uid()
+      SELECT id FROM members
+      WHERE email = auth.jwt()->>'email'
+        AND gym_id = current_gym_id()
       LIMIT 1
     )
   );
@@ -525,9 +532,10 @@ CREATE POLICY "att_self_read"
     gym_id = current_gym_id()
     AND get_my_role() = 'member'
     AND member_id = (
-      SELECT m.id FROM members m
-      JOIN auth.users u ON u.email = m.email
-      WHERE u.id = auth.uid() LIMIT 1
+      SELECT id FROM members
+      WHERE email = auth.jwt()->>'email'
+        AND gym_id = current_gym_id()
+      LIMIT 1
     )
   );
 
