@@ -26,62 +26,87 @@
   background: var(--bg3);
 }
 
-/* ── Summary stat cards row ── */
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2px;
-  margin-bottom: 32px;
-}
-@media (max-width: 800px) {
-  .summary-grid { grid-template-columns: repeat(2, 1fr); }
-  /* Reset the flat edge-to-edge radius and apply 2×2 corner rounding */
-  .summary-card               { border-radius: 0; }
-  .summary-card:nth-child(1)  { border-radius: var(--radius) 0 0 0; }
-  .summary-card:nth-child(2)  { border-radius: 0 var(--radius) 0 0; }
-  .summary-card:nth-child(3)  { border-radius: 0 0 0 var(--radius); }
-  .summary-card:last-child    { border-radius: 0 0 var(--radius) 0; }
-}
-@media (max-width: 640px) {
-  /* min-width: 0 forces grid cells to respect their column track width.
-     clamp() on .summary-value handles the font scaling — no overflow rules needed. */
-  .summary-card  { min-width: 0; padding: 16px 12px; }
-  .summary-label { font-size: 10px; }
-  .summary-sub   { font-size: 11px; }
-}
-
-
-.summary-card {
+/* ── Stats strip — single row with dividers (replaces heavy card grid) ── */
+.stats-strip {
+  display: flex;
+  align-items: stretch;
   background: var(--bg2);
   border: 1px solid var(--border);
-  padding: 24px;
-  transition: border-color 0.2s;
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  overflow: hidden;
 }
-.summary-card:first-child { border-radius: var(--radius) 0 0 var(--radius); }
-.summary-card:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
-.summary-card:hover { border-color: var(--border-hi); }
 
-.summary-label {
-  font-size: 11px;
+.stat-item {
+  flex: 1;
+  padding: 18px 20px;
+  min-width: 0;
+  transition: background 0.15s;
+}
+.stat-item:hover { background: var(--bg3); }
+
+.stat-divider {
+  width: 1px;
+  background: var(--border);
+  flex-shrink: 0;
+  margin: 12px 0;
+}
+
+.stat-label {
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 10px;
+  margin-bottom: 7px;
+  white-space: nowrap;
 }
-.summary-value {
+
+.stat-value {
   font-family: var(--font-display);
-  /* clamp() gives fluid scaling: full 1.8rem on desktop → ~1rem on a 390px phone.
-     No ellipsis needed — the value always renders at a size that fits its column. */
-  font-size: clamp(1rem, 4.5vw, 1.8rem);
-  font-weight: 700;
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1;
-  margin-bottom: 6px;
+  color: var(--text-primary);
+  margin-bottom: 5px;
 }
-.summary-sub {
-  font-size: 12px;
-  color: var(--text-secondary);
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tablet — still one row but tighter padding */
+@media (max-width: 800px) {
+  .stat-item { padding: 14px 14px; }
+  .stat-label { font-size: 9px; }
+}
+
+/* Mobile — 2×2 grid, dividers become grid gaps */
+@media (max-width: 640px) {
+  .stats-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border); /* border shows as gaps between cells */
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+  }
+  .stat-item {
+    background: var(--bg2);
+    padding: 14px 14px;
+  }
+  /* stat-items are at odd positions (1,3,5,7) because dividers sit between them */
+  .stat-item:nth-child(1) { border-radius: var(--radius) 0 0 0; }
+  .stat-item:nth-child(3) { border-radius: 0 var(--radius) 0 0; }
+  .stat-item:nth-child(5) { border-radius: 0 0 0 var(--radius); }
+  .stat-item:nth-child(7) { border-radius: 0 0 var(--radius) 0; }
+  .stat-divider { display: none; }
+  .stat-value { font-size: clamp(1rem, 5vw, 1.3rem); }
 }
 
 /* ── Revenue Health panel ── */

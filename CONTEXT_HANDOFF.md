@@ -135,6 +135,8 @@ Before tackling the Member Portal, these operational features are required for a
 * **Razorpay Payment Integration**: Architecture planning and implementation for tenant-specific Razorpay key management in `gym_settings` and automated webhook resolution to eliminate cash bottlenecks.
 * **GST Invoice / Receipt PDF**: Client-side generation (e.g., `jsPDF`) of receipts per payment for Indian market compliance.
 * **`CHORE-002b` — Auto Status Transition (CRITICAL)**: Set up a `pg_cron` or Edge Function batch job to automatically transition expired memberships to `overdue` at midnight. (Must be done before Member Portal reads this status).
+* **MoM Trend Tracking (Future)**: Add explicit +5% / -5% month-over-month history tracking metrics to both Members and Payments features.
+* **Reminder ROI Dashboard (Future)**: Add a section demonstrating the ROI of the automated reminders (e.g., "Revenue recovered due to reminders" / "Members retained after warning").
 
 ---
 
