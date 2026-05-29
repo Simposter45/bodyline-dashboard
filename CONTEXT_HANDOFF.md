@@ -131,7 +131,7 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
 ### 🔴 PRE-LAUNCH FOCUS — Analytics, Automation, & Payments (Immediate Next)
 Before tackling the Member Portal, these operational features are required for a production-ready SaaS launch:
 * **`FEAT-013` — Revenue Health Graph**: Replace the static card on the Payments page with an interactive Recharts line/bar chart (Revenue ₹ vs. Active Members) over Week, Month, 6 Months, and 1 Year scales.
-* **Automated WhatsApp Workflows**: Implement template-based Auto-Expiry Warnings, Payment Receipts, and Birthday Wishes using the existing Meta Cloud API. Include Bulk WhatsApp Reminders for overdue members.
+* **[BLOCKED] Automated WhatsApp Workflows**: *Currently blocked due to Meta template rejection and number ban.* Implement template-based Auto-Expiry Warnings, Payment Receipts, and Birthday Wishes using the existing Meta Cloud API. Include Bulk WhatsApp Reminders for overdue members.
 * **Razorpay Payment Integration**: Architecture planning and implementation for tenant-specific Razorpay key management in `gym_settings` and automated webhook resolution to eliminate cash bottlenecks.
 * **GST Invoice / Receipt PDF**: Client-side generation (e.g., `jsPDF`) of receipts per payment for Indian market compliance.
 * **`CHORE-002b` — Auto Status Transition (CRITICAL)**: Set up a `pg_cron` or Edge Function batch job to automatically transition expired memberships to `overdue` at midnight. (Must be done before Member Portal reads this status).
