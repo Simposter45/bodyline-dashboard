@@ -287,3 +287,29 @@ const { data } = await supabase.from("table").select("*");
 ### Icons
 - Use `lucide-react` for all icons. Never write custom inline SVG unless the icon genuinely does not exist in lucide.
 - Import only what you use: `import { Search, X } from "lucide-react"`.
+
+---
+
+## 10. DEPLOYMENT & ENVIRONMENT RULES (DEV → UAT → PROD)
+
+The SaaS platform operates on a strict 3-tier pipeline. **Never** test directly on Production or mix environment configurations.
+
+### The 3 Environments
+1. **Local Dev (`feat/*` branches)**: Uses the **Dev Supabase Database** (`qkgxvbvecjgzykvyzrek`). Running `npm run dev` connects to this database via `.env.local`.
+2. **UAT (`develop` branch)**: Auto-deployed to Vercel at `bodyline-uat.vercel.app`. Uses the **Dev Supabase Database**. This is the staging ground for QA before production.
+3. **Production (`main` branch)**: Auto-deployed to Vercel at `bodyline-dashboard.vercel.app`. Uses the **Prod Supabase Database**. Used for live client demos.
+
+### Schema & Data Management Rules
+- **Schema Updates**: Any new tables, columns, or RLS policies MUST be written into `scripts/00_fresh_schema.sql` so that new Dev environments can be spun up from scratch.
+- **Data Seeding**: Do not use the production database for dummy testing. The Dev database is populated via `npx tsx scripts/seed-dev.ts` with distinct multi-tenant test data (FitPeak & Iron Temple).
+- **Environment Variables**:
+  - `.env.local` contains Dev keys (for local development).
+  - Vercel `develop` branch is configured with Dev keys.
+  - Vercel `main` branch is configured with Prod keys.
+
+### Branching & Merge Strategy
+1. Create a `feat/*`, `bug/*`, or `chore/*` branch for your task.
+2. Develop and verify locally against the Dev database.
+3. Commit and push to origin.
+4. (Optional) Create a PR or merge directly into `develop` to trigger a UAT build. Verify on `bodyline-uat.vercel.app`.
+5. Once UAT is approved, merge `develop` into `main` to ship to Production.

@@ -7,8 +7,9 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🎯 Current Focus & Active Objective
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
+* **Environment Pipeline Setup**: **COMPLETE (Dev → UAT → Prod)** ✅
 * **Current Focus**: **Pre-Launch Analytics & Automation** (Before Sprint 3)
-  * **Objective**: Sprint 1 and Sprint 2 are 100% complete (including `FEAT-010k`). Before rebuilding the Member Portal (Sprint 3), we are prioritizing critical pre-launch features: Revenue Analytics (`FEAT-013`), WhatsApp Automations, Razorpay integration, and Auto Status Expiry (`CHORE-002b`).
+  * **Objective**: Sprint 1 and Sprint 2 are 100% complete. The multi-environment deployment pipeline is live and the Dev database schema and seeded data are verified. We are now prioritizing critical pre-launch operational features: Auto Status Expiry (`CHORE-002b`), GST Invoices, Razorpay integration, and Revenue Analytics (`FEAT-013`).
 
 ---
 
