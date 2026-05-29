@@ -101,10 +101,12 @@ CREATE TABLE IF NOT EXISTS members (
   phone         TEXT,
   email         TEXT,
   date_of_birth DATE,
-  joined_date   DATE NOT NULL DEFAULT CURRENT_DATE,
-  is_active     BOOLEAN NOT NULL DEFAULT true,
-  avatar_url    TEXT,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+  joined_date       DATE NOT NULL DEFAULT CURRENT_DATE,
+  is_active         BOOLEAN NOT NULL DEFAULT true,
+  profile_photo_url TEXT,
+  id_proof_url      TEXT,
+  branch            TEXT,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_members_gym ON members(gym_id);
@@ -122,8 +124,8 @@ CREATE TABLE IF NOT EXISTS trainers (
   phone                 TEXT,
   email                 TEXT,
   specialization        TEXT,
+  branch                TEXT,
   is_active             BOOLEAN NOT NULL DEFAULT true,
-  avatar_url            TEXT,
   trainer_auth_user_id  UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at            TIMESTAMPTZ NOT NULL DEFAULT now()
 );
