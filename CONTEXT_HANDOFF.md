@@ -285,6 +285,25 @@ Trainers are accountable staff, not just service providers — their own attenda
 
 ---
 
+## 🌍 Product Strategy & Environment Architecture
+
+### Multitenancy via Subdomains
+The platform is designed to isolate gym data using `gym_id`. To provide a seamless SaaS experience, we will implement **subdomain routing** (`[gym_slug].bodyline.app`).
+* **Requirements**: Add a `slug` column to the `gyms` table.
+* **Resolution**: Next.js middleware will read the incoming Vercel wildcard subdomain request, lookup the `gym_slug`, resolve the `gym_id`, and inject it into the session context.
+* **Status**: **PENDING** (Highest priority architectural task before onboarding gym #2).
+
+### Deployment Pipeline (Dev → UAT → Prod)
+To prevent pushing broken code to production, the Git/Vercel pipeline must adhere to the following strict environments:
+1. **Local Dev (`feat/*`)**: Connected to a future Supabase Dev project via `.env.local`.
+2. **UAT (`develop` branch)**: Hosted on Vercel at `uat.bodyline.app`. Connected to the Dev project. Used for testing merged features.
+3. **Production (`main` branch)**: Hosted on Vercel at `bodyline-dashboard.vercel.app`. Connected to the Prod Supabase project. Real client data only.
+
+### Current Demo State
+Due to losing the initial beta client, the current production database (`bodyline-dashboard.vercel.app`) contains only seeded/demo data. This live URL is now the **permanent demo environment** for live, in-person sales pitches to gym owners until the Dev/Prod infrastructure split is completed.
+
+---
+
 ## 🚧 Open / Deferred Decisions (Payments Page)
 
 The following items from the Payments page were raised and need resolution before the next agent picks them up:
