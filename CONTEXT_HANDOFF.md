@@ -295,17 +295,29 @@ The platform is designed to isolate gym data using `gym_id`. To provide a seamle
 * **Status**: **PENDING** (Highest priority architectural task before onboarding gym #2).
 
 ### Deployment Pipeline (Dev → UAT → Prod) ✅ LIVE
-The 3-tier Git/Vercel pipeline is fully operational:
+
+The 3-tier Git/Vercel pipeline is fully operational with a **GitFlow-Lite** release model:
 
 | Layer | Branch | URL | Supabase Project | Purpose |
 |---|---|---|---|---|
-| **Local Dev** | `feat/*` | `localhost:3000` | Dev (`qkgxvbvecjgzykvyzrek`) | Write & test code |
+| **Local Dev** | `feat/*`, `bug/*`, `chore/*` | `localhost:3000` | Dev (`qkgxvbvecjgzykvyzrek`) | Write & test code |
 | **UAT** | `develop` | `bodyline-uat.vercel.app` | Dev (same) | Validate before prod |
 | **Production** | `main` | `bodyline-dashboard.vercel.app` | Prod (`zhdnbrvrmjcxjlfhqlwt`) | Live demo / client |
 
-**Daily workflow:** `feat/*` → merge to `develop` → auto-deploys UAT → merge to `main` → auto-deploys Prod.
+**Day-to-day workflow:**
+```
+feat/* → merge to develop → auto-deploy UAT → verify → release queue
+```
 
-**Dev DB Schema Setup:** Run `scripts/00_fresh_schema.sql` on a fresh Supabase project to create all tables + RLS from scratch.
+**Production release (2× per week, batch):**
+```
+develop (UAT verified) → prod-deploy/YYYY-MM-DD → merge to main → tag release/YYYY-MM-DD
+```
+- `prod-deploy/*` branches are the **controlled release gate** — they bundle one or more UAT-approved features into a single production shipment.
+- Every `main` merge is **tagged** (`release/YYYY-MM-DD`) for rollback traceability.
+- Release decisions (what ships and when) are made by the product owner.
+
+**Dev DB Schema Setup:** Run `scripts/00_fresh_schema.sql` on a fresh Supabase project to create all tables + RLS from scratch.  
 **Dev DB Seed:** Run `npx tsx scripts/seed-dev.ts` to populate with distinct fake data (FitPeak Pune + Iron Temple Mumbai).
 
 **Dev credentials (UAT / Local only — never use on Prod):**

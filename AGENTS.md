@@ -307,9 +307,48 @@ The SaaS platform operates on a strict 3-tier pipeline. **Never** test directly 
   - Vercel `develop` branch is configured with Dev keys.
   - Vercel `main` branch is configured with Prod keys.
 
-### Branching & Merge Strategy
-1. Create a `feat/*`, `bug/*`, or `chore/*` branch for your task.
-2. Develop and verify locally against the Dev database.
-3. Commit and push to origin.
-4. (Optional) Create a PR or merge directly into `develop` to trigger a UAT build. Verify on `bodyline-uat.vercel.app`.
-5. Once UAT is approved, merge `develop` into `main` to ship to Production.
+### Branching & Merge Strategy (GitFlow-Lite)
+
+#### Day-to-Day Development
+1. **Always branch from `develop`** — never from `main`.
+   ```
+   git checkout develop
+   git pull origin develop
+   git checkout -b feat/FEAT-XXX-short-description
+   ```
+2. Make your changes and test locally against the **Dev database** (`localhost:3000`).
+3. Commit using the standard convention and push:
+   ```
+   git push origin feat/FEAT-XXX-short-description
+   ```
+4. **Merge into `develop`** (directly or via PR). This auto-triggers a UAT deployment to `bodyline-uat.vercel.app`.
+5. **Verify on UAT.** The feature is now in the release queue — it does NOT go to Production yet.
+
+#### Production Release (2× per week, batch release)
+On a scheduled release date, one or more features that have been verified on UAT are promoted together:
+
+1. **Create a `prod-deploy` branch from `develop`** — this is the release snapshot:
+   ```
+   git checkout develop
+   git pull origin develop
+   git checkout -b prod-deploy/YYYY-MM-DD
+   ```
+2. **Merge `prod-deploy/YYYY-MM-DD` into `main`**:
+   ```
+   git checkout main
+   git merge prod-deploy/YYYY-MM-DD --no-ff -m "release: YYYY-MM-DD — [list features e.g. FEAT-013, CHORE-002b]"
+   git push origin main
+   ```
+3. **Tag the release** for rollback traceability:
+   ```
+   git tag release/YYYY-MM-DD
+   git push origin release/YYYY-MM-DD
+   ```
+4. Delete the `prod-deploy` branch after merging.
+
+#### Rules
+- ❌ Never push directly to `main`.
+- ❌ Never branch your feature work from `main`.
+- ❌ Never merge a feature that has not been verified on `bodyline-uat.vercel.app` first.
+- ✅ `develop` is always UAT-ready and deployable.
+- ✅ `main` only receives code via `prod-deploy/*` release branches on scheduled release dates.
