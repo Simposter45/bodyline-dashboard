@@ -10,7 +10,7 @@ import { STATUS_CONFIG } from "@/lib/constants/status";
 import { formatINR, formatDate } from "@/lib/utils/format";
 import { monthStartISTTimestamp, currentMonthName } from "@/lib/utils/date";
 import { PaymentDrawer } from "./PaymentDrawer";
-import { RevenueHealthGraph } from "./RevenueHealthGraph";
+import { RevenueHealthGraph } from "@/components/ui/RevenueHealthGraph";
 import { RenewMembershipModal } from "@/components/members/RenewMembershipModal";
 import { RecordPaymentModal } from "@/components/members/RecordPaymentModal";
 import type { PaymentStatus } from "@/types";

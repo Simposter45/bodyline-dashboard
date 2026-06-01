@@ -10,6 +10,7 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { formatINR, formatTime, getGreeting } from "@/lib/utils/format";
 import { todayFormatted } from "@/lib/utils/date";
+import { RevenueHealthGraph } from "@/components/ui/RevenueHealthGraph";
 
 // ------------------------------------------------------------------
 // Page
@@ -98,6 +99,16 @@ export default function DashboardPage() {
               value={formatINR(stats.revenue.totalOverdue)}
               accent="red"
               sub={`${stats.revenue.overdueCount} members`}
+            />
+          </div>
+
+          {/* Revenue Health Graph — FEAT-014 */}
+          <div style={{ marginBottom: 32 }}>
+            <RevenueHealthGraph
+              collectionRate={stats.revenue.collectionRate}
+              totalRevenue={stats.revenue.totalCollected + stats.revenue.totalPending + stats.revenue.totalOverdue}
+              cashCount={stats.revenue.cashCount}
+              upiCount={stats.revenue.upiCount}
             />
           </div>
 
