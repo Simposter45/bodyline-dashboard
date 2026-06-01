@@ -9,7 +9,7 @@ const PROTECTED: Record<string, string[]> = {
 };
 
 // Public routes — never redirect
-const PUBLIC = ["/", "/login", "/onboarding", "/checkin"];
+const PUBLIC = ["/", "/login", "/onboarding", "/checkin", "/api/cron"];
 
 export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
