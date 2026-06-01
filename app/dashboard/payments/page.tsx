@@ -262,7 +262,7 @@ export default function PaymentsPage() {
     if (r.payment_status === "overdue") {
       actions.push({
         id: "renew",
-        // label: "Renew",
+        label: "Renew",
         icon: <RefreshCw size={13} />,
         variant: "primary",
         onClick: (e) => { e.stopPropagation(); setRenewTarget(r); },
