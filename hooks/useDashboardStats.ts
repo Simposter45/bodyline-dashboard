@@ -127,13 +127,12 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
   const amountDue = (m: MembershipRow): number =>
     Math.max(0, (m.plan?.price ?? 0) - (m.amount_paid ?? 0));
 
-  // totalCollected: every rupee actually received, across ALL non-superseded
-  // membership rows. Includes partial payments on pending/overdue memberships
-  // because that money has been physically collected even if the plan isn't
-  // fully settled yet. Superseded rows (tombstones) are excluded — their
-  // amount_paid was already rolled into the renewal row's amount_paid.
+  // totalCollected: cumulative money received across ALL membership rows.
+  // MUST use allMMPayloads (not deduplicated) — a renewed member has
+  // multiple paid rows and each represents real money collected.
+  // Uses payment_status === "paid" — the original correct semantics.
   const totalCollected = allMMPayloads
-    .filter((m) => m.payment_status !== "superseded")
+    .filter((m) => m.payment_status === "paid")
     .reduce((sum, m) => sum + (m.amount_paid ?? 0), 0);
 
   // totalPending / totalOverdue: outstanding balance on CURRENT memberships.

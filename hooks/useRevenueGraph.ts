@@ -35,6 +35,7 @@ interface PaidRow {
   member_id: string;
   amount_paid: number | null;
   created_at: string;
+  payment_status: string;
 }
 
 // ── IST offset helper (mirrors lib/utils/date.ts pattern) ───
@@ -153,8 +154,9 @@ function aggregate(rows: PaidRow[], scale: TimeScale): RevenueDataPoint[] {
 }
 
 // ── Fetch function ───────────────────────────────────────────
-
-async function fetchPaidRows(): Promise<PaidRow[]> {
+// Renamed from fetchPaidRows: now fetches ALL non-superseded records so
+// partial payments (still "pending" or "overdue") are included in the graph.
+async function fetchCollectionRows(): Promise<PaidRow[]> {
   // Trailing 12 months in IST — covers all scales including "year"
   const cutoff = new Date();
   cutoff.setFullYear(cutoff.getFullYear() - 1);
@@ -164,8 +166,8 @@ async function fetchPaidRows(): Promise<PaidRow[]> {
 
   const { data, error } = await supabase
     .from("member_memberships")
-    .select("member_id, amount_paid, created_at")
-    .eq("payment_status", "paid")
+    .select("member_id, amount_paid, created_at, payment_status")
+    .neq("payment_status", "superseded")  // exclude tombstone rows only
     .gte("created_at", cutoffISO)
     .order("created_at", { ascending: true });
 
@@ -186,8 +188,11 @@ async function fetchPaidRows(): Promise<PaidRow[]> {
 export function useRevenueGraph(scale: TimeScale) {
   return useQuery<PaidRow[], Error, RevenueDataPoint[]>({
     queryKey: ["revenue-graph"],
-    queryFn: fetchPaidRows,
-    staleTime: 2 * 60 * 1000,
+    queryFn: fetchCollectionRows,
+    // staleTime: 0 — always re-fetch after cache invalidation (which happens
+    // immediately when useRecordPayment succeeds) so the graph reflects the
+    // newly recorded payment without waiting for a stale window to expire.
+    staleTime: 0,
     gcTime: 10 * 60 * 1000,
     select: (rows: PaidRow[]) => aggregate(rows, scale),
   });
