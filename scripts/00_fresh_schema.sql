@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS member_memberships (
   end_date                DATE NOT NULL,
   amount_paid             NUMERIC(10,2) NOT NULL DEFAULT 0,
   payment_status          TEXT NOT NULL DEFAULT 'pending'
-                            CHECK (payment_status IN ('paid', 'pending', 'overdue')),
+                            CHECK (payment_status IN ('paid', 'pending', 'overdue', 'superseded')),
   payment_method          TEXT CHECK (payment_method IN ('cash', 'upi', 'card', 'online')),
   recorded_by_trainer_id  UUID REFERENCES trainers(id) ON DELETE SET NULL,
   paused_at               TIMESTAMPTZ DEFAULT NULL,
