@@ -27,7 +27,10 @@ export function useRecordPayment() {
         .update({
           amount_paid: newTotalPaid,
           payment_status: newStatus,
-          payment_method: data.payment_method, 
+          payment_method: data.payment_method,
+          // Stamp the collection timestamp so "This month" and the Revenue
+          // Graph bucket by WHEN money was collected, not membership start date.
+          last_payment_at: new Date().toISOString(),
         })
         .eq("id", data.membership_id);
 

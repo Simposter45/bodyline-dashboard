@@ -36,6 +36,8 @@ interface PaidRow {
   amount_paid: number | null;
   created_at: string;
   payment_status: string;
+  /** Set by useRecordPayment; null for pre-migration or zero-payment rows. */
+  last_payment_at: string | null;
 }
 
 // ── IST offset helper (mirrors lib/utils/date.ts pattern) ───
@@ -142,7 +144,9 @@ function aggregate(rows: PaidRow[], scale: TimeScale): RevenueDataPoint[] {
     let revenue = 0;
 
     for (const row of rows) {
-      const ts = new Date(row.created_at);
+      // Use last_payment_at (actual collection date) when available;
+      // fall back to created_at for pre-migration rows.
+      const ts = new Date(row.last_payment_at ?? row.created_at);
       if (ts >= start && ts <= end) {
         revenue += row.amount_paid ?? 0;
         memberSet.add(row.member_id);
@@ -166,7 +170,7 @@ async function fetchCollectionRows(): Promise<PaidRow[]> {
 
   const { data, error } = await supabase
     .from("member_memberships")
-    .select("member_id, amount_paid, created_at, payment_status")
+    .select("member_id, amount_paid, created_at, payment_status, last_payment_at")
     .neq("payment_status", "superseded")  // exclude tombstone rows only
     .gte("created_at", cutoffISO)
     .order("created_at", { ascending: true });

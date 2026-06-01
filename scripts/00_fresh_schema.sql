@@ -153,6 +153,10 @@ CREATE TABLE IF NOT EXISTS member_memberships (
   recorded_by_trainer_id  UUID REFERENCES trainers(id) ON DELETE SET NULL,
   paused_at               TIMESTAMPTZ DEFAULT NULL,
   paused_until            DATE DEFAULT NULL,
+  -- Tracks WHEN money was last collected (set/updated by useRecordPayment).
+  -- Distinct from created_at (membership start date) so "This month" tallies
+  -- and the Revenue Graph bucket by collection date, not membership creation date.
+  last_payment_at         TIMESTAMPTZ DEFAULT NULL,
   created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

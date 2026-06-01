@@ -94,6 +94,9 @@ export interface MemberMembership {
   paused_at: string | null; // ISO timestamp
   paused_until: string | null; // ISO date string
   recorded_by_trainer_id: string | null; // NULL = recorded by owner
+  /** Set/updated every time a payment is recorded via useRecordPayment.
+   *  Null for memberships created before 2026-06-01 migration or with no payment. */
+  last_payment_at: string | null; // ISO timestamp
   created_at: string;
 }
 
