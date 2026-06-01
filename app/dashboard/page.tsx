@@ -10,7 +10,6 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { formatINR, formatTime, getGreeting } from "@/lib/utils/format";
 import { todayFormatted } from "@/lib/utils/date";
-import { DashboardGrowthGraph } from "@/components/ui/DashboardGrowthGraph";
 
 // ------------------------------------------------------------------
 // Page
@@ -102,10 +101,6 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Dashboard Growth Graph — FEAT-015 */}
-          <div style={{ marginBottom: 32 }}>
-            <DashboardGrowthGraph />
-          </div>
 
           {/* Today panels */}
           <p className="section-label">Today</p>

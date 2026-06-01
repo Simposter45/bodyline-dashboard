@@ -733,6 +733,7 @@ td:last-child { text-align: right; }
     gap: 12px;
     /* override the global td:last-child right-align (already text-align:right above) */
     border: none;
+    min-width: 0;
   }
 
   /* Field label injected from data-label attribute */
