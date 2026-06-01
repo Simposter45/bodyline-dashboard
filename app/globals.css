@@ -774,7 +774,11 @@ td:last-child { text-align: right; }
 @media (max-width: 480px) {
   .page { padding: 20px 16px 60px; }
   .page-title { font-size: 1.6rem; }
-  .page-header { margin-bottom: 24px; }
+  .page-header { 
+    margin-bottom: 24px; 
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
 }
 
 /* ── Nav — wraps to 2-row scrollable layout on tablet (≤768px)
