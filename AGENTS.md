@@ -350,5 +350,6 @@ On a scheduled release date, one or more features that have been verified on UAT
 - ❌ Never push directly to `main`.
 - ❌ Never branch your feature work from `main`.
 - ❌ Never merge a feature that has not been verified on `bodyline-uat.vercel.app` first.
+- ❌ **Never directly merge any branch into `develop` or `main`.** Always push the feature branch and let the USER raise the PR and perform the merge.
 - ✅ `develop` is always UAT-ready and deployable.
 - ✅ `main` only receives code via `prod-deploy/*` release branches on scheduled release dates.
