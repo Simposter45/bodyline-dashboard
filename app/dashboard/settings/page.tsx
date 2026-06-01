@@ -372,7 +372,7 @@ function SupportCard() {
         <p className="settings-card-sub">Get assistance with your Bodyline platform</p>
       </div>
       
-      <div className="form-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+      <div className="support-card-grid">
         <a 
           href="https://wa.me/919876543210?text=Hi+Bodyline+Support" 
           target="_blank" 

@@ -422,6 +422,13 @@
   margin-left: 4px;
 }
 
+/* ── Support Card Grid ───────────────────────────────────── */
+.support-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {
   .settings-card {
@@ -451,6 +458,10 @@
   }
 
   .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .support-card-grid {
     grid-template-columns: 1fr;
   }
 
