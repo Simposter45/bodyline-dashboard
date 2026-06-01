@@ -640,7 +640,18 @@ export default function PaymentsPage() {
 
       {/* Payment detail drawer */}
       {selected && (
-        <PaymentDrawer record={selected} onClose={() => setSelected(null)} />
+        <PaymentDrawer
+          record={selected}
+          onClose={() => setSelected(null)}
+          onRecordPayment={() => {
+            setSelected(null);
+            setRecordTarget(selected);
+          }}
+          onRenew={() => {
+            setSelected(null);
+            setRenewTarget(selected);
+          }}
+        />
       )}
 
       {/* Renew Membership modal — overdue records */}
