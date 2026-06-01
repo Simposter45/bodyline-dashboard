@@ -10,7 +10,7 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { formatINR, formatTime, getGreeting } from "@/lib/utils/format";
 import { todayFormatted } from "@/lib/utils/date";
-import { RevenueHealthGraph } from "@/components/ui/RevenueHealthGraph";
+import { DashboardGrowthGraph } from "@/components/ui/DashboardGrowthGraph";
 
 // ------------------------------------------------------------------
 // Page
@@ -102,14 +102,9 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Revenue Health Graph — FEAT-014 */}
+          {/* Dashboard Growth Graph — FEAT-015 */}
           <div style={{ marginBottom: 32 }}>
-            <RevenueHealthGraph
-              collectionRate={stats.revenue.collectionRate}
-              totalRevenue={stats.revenue.totalCollected + stats.revenue.totalPending + stats.revenue.totalOverdue}
-              cashCount={stats.revenue.cashCount}
-              upiCount={stats.revenue.upiCount}
-            />
+            <DashboardGrowthGraph />
           </div>
 
           {/* Today panels */}
