@@ -131,7 +131,8 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
 
 ### 🔴 PRE-LAUNCH FOCUS — Analytics, Automation, & Payments (Immediate Next)
 Before tackling the Member Portal, these operational features are required for a production-ready SaaS launch:
-* **`FEAT-013` — Revenue Health Graph**: Replace the static card on the Payments page with an interactive Recharts line/bar chart (Revenue ₹ vs. Active Members) over Week, Month, 6 Months, and 1 Year scales.
+* **`FEAT-013` & `FEAT-014` — Revenue & Growth Analytics**: **DONE ✅**
+  * Replaced the static cards with interactive Recharts components. Added the Revenue Health Graph (collection rates) to the Payments page and a Cumulative Growth Graph (revenue vs. members) to the Dashboard.
 * **[BLOCKED] Automated WhatsApp Workflows**: *Currently blocked due to Meta template rejection and number ban.* Implement template-based Auto-Expiry Warnings, Payment Receipts, and Birthday Wishes using the existing Meta Cloud API. Include Bulk WhatsApp Reminders for overdue members.
 * **Razorpay Payment Integration**: Architecture planning and implementation for tenant-specific Razorpay key management in `gym_settings` and automated webhook resolution to eliminate cash bottlenecks.
 * **GST Invoice / Receipt PDF**: Client-side generation (e.g., `jsPDF`) of receipts per payment for Indian market compliance.
@@ -155,6 +156,9 @@ Before tackling the Member Portal, these operational features are required for a
 * **`CHORE-001` — Atomic Member Creation**: Refactor the 2-step onboarding sequence (insert member → insert membership) into a single, atomic Supabase RPC.
 * **`FEAT-008` — Loading Skeletons**: Add custom CSS skeleton shimmer loading screens to replace basic "Loading..." texts.
 * **Attendance Heatmap**: Grid-based peak-hour check-in visualizers for managing floor capacity.
+* **Trainer Onboarding**: Automated/guided onboarding flows for new trainers joining the platform.
+* **Hardware Attendance System**: Integration with hardware locks or physical QR scanner devices for automated turnstile access.
+* **Cross-Platform Mobile App**: Build native or cross-platform (React Native/Flutter) mobile apps for all users (Far Backlog — to be tackled post-launch of the web platform).
 
 ---
 
