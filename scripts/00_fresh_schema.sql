@@ -631,7 +631,54 @@ CREATE POLICY "sl_service"
 
 
 -- ==============================================================================
--- SECTION 13: Verification
+-- SECTION 13: Scheduled Jobs (CHORE-002b — Auto Status Transition)
+-- ==============================================================================
+--
+-- PRE-REQUISITE: pg_cron extension must be enabled.
+--   Dashboard → Database → Extensions → pg_cron → Enable
+--
+-- expire_overdue_memberships()
+--   Sweeps ALL gyms in one atomic UPDATE: any membership whose end_date has
+--   passed and is still 'paid' or 'pending' (and not paused) → 'overdue'.
+--   SECURITY DEFINER runs as postgres, bypassing RLS — correct for a
+--   background maintenance function that intentionally touches all tenants.
+
+CREATE OR REPLACE FUNCTION expire_overdue_memberships()
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  updated_count INTEGER;
+BEGIN
+  UPDATE member_memberships
+  SET    payment_status = 'overdue'
+  WHERE  end_date < (NOW() AT TIME ZONE 'Asia/Kolkata')::DATE
+    AND  payment_status IN ('paid', 'pending')
+    AND  paused_at IS NULL;
+
+  GET DIAGNOSTICS updated_count = ROW_COUNT;
+  RETURN updated_count;
+END;
+$$;
+
+-- Schedule nightly at 19:00 UTC = 00:30 IST (30-minute buffer past IST midnight).
+-- Remove any pre-existing registration first so this block is safe to re-run.
+SELECT cron.unschedule('expire-overdue-memberships')
+  WHERE EXISTS (
+    SELECT 1 FROM cron.job WHERE jobname = 'expire-overdue-memberships'
+  );
+
+SELECT cron.schedule(
+  'expire-overdue-memberships',
+  '0 19 * * *',
+  'SELECT expire_overdue_memberships();'
+);
+
+
+-- ==============================================================================
+-- SECTION 14: Verification
 -- ==============================================================================
 
 -- Check all tables exist
@@ -645,3 +692,7 @@ WHERE schemaname = 'public' ORDER BY tablename;
 
 -- Check both demo gyms are seeded
 SELECT id, name, slug FROM gyms;
+
+-- Check the cron job is registered
+SELECT jobid, jobname, schedule, active FROM cron.job
+WHERE  jobname = 'expire-overdue-memberships';
