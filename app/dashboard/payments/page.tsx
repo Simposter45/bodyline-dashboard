@@ -180,8 +180,10 @@ export default function PaymentsPage() {
       totalOverdue: latestRecords
         .filter((r) => r.payment_status === "overdue")
         .reduce((s, r) => s + amountDue(r), 0),
+      // All records created this month — including partial payments on pending/overdue
+      // memberships. usePayments already excludes superseded rows so no extra filter needed.
       thisMonthCollected: records
-        .filter((r) => r.payment_status === "paid" && r.created_at >= monthStart)
+        .filter((r) => r.created_at >= monthStart)
         .reduce((s, r) => s + (r.amount_paid ?? 0), 0),
       cashCount: records.filter((r) => r.payment_method === "cash").length,
       upiCount:  records.filter((r) => r.payment_method === "upi").length,

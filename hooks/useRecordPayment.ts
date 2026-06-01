@@ -39,6 +39,8 @@ export function useRecordPayment() {
       queryClient.invalidateQueries({ queryKey: ["members"] });
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      // Keep the Revenue Health Graph on the Payments page in sync
+      queryClient.invalidateQueries({ queryKey: ["revenue-graph"] });
     },
   });
 }
