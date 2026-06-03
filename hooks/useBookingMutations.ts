@@ -16,15 +16,16 @@ export function useBookingMutations() {
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: BookingStatus }) => {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("bookings")
         .update({ status })
         .eq("id", id)
-        .select()
-        .single();
+        .eq("trainer_id", (await supabase.auth.getUser()).data.user?.id ?? "");
 
+      // Note: we filter by trainer_id as a safety check, but the
+      // actual authorization is enforced by the bookings_trainer_update RLS policy.
       if (error) throw error;
-      return data;
+      return { id, status };
     },
     onSuccess: (data, variables) => {
       // Invalidate relevant queries for both member and trainer views
