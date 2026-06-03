@@ -2,7 +2,7 @@
 
 import "./SessionsTab.css";
 import { useState, useMemo } from "react";
-import { Plus, Clock, FileText, Check, X } from "lucide-react";
+import { Plus, Clock, FileText, Check, X, CalendarCheck } from "lucide-react";
 import { useSessionLogs } from "@/hooks/useSessionLogs";
 import { useTrainerBookings } from "@/hooks/useTrainerBookings";
 import { useBookingMutations } from "@/hooks/useBookingMutations";
@@ -23,6 +23,7 @@ export default function SessionsTab({ trainer, assignedMembers }: SessionsTabPro
   const [isLogSheetOpen, setIsLogSheetOpen] = useState(false);
 
   const pendingBookings = bookings.filter(b => b.status === "pending");
+  const confirmedBookings = bookings.filter(b => b.status === "confirmed");
 
   // Group logs by date (YYYY-MM-DD)
   const groupedLogs = useMemo(() => {
@@ -116,6 +117,59 @@ export default function SessionsTab({ trainer, assignedMembers }: SessionsTabPro
         </div>
       )}
 
+      {/* ── Upcoming Confirmed Sessions ── */}
+      {confirmedBookings.length > 0 && (
+        <div className="upcoming-section">
+          <div className="sessions-header" style={{ marginBottom: 16 }}>
+            <div>
+              <h2 className="sessions-title" style={{ fontSize: '1.25rem' }}>Upcoming Sessions</h2>
+              <p className="sessions-sub">{confirmedBookings.length} confirmed {confirmedBookings.length === 1 ? 'session' : 'sessions'} scheduled</p>
+            </div>
+          </div>
+          <div className="sessions-list" style={{ marginBottom: 32 }}>
+            {confirmedBookings.map((booking) => (
+              <div key={booking.id} className="session-card confirmed-card">
+                <div className="session-card-top">
+                  <div className="session-card-member">
+                    {booking.member?.profile_photo_url ? (
+                      <div className="avatar" style={{ width: 32, height: 32 }}>
+                        <img
+                          src={booking.member.profile_photo_url}
+                          alt={booking.member.full_name}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="avatar" style={{ width: 32, height: 32, fontSize: 12 }}>
+                        {booking.member?.full_name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="session-card-name">{booking.member?.full_name}</span>
+                  </div>
+                  <span className="booking-status-confirmed">
+                    <CalendarCheck size={12} /> Confirmed
+                  </span>
+                </div>
+
+                <div className="session-card-meta">
+                  <div className="session-meta-item">
+                    <Clock size={14} />
+                    <span>{formatDateIST(booking.session_date)} at {booking.session_time.substring(0, 5)}</span>
+                  </div>
+                </div>
+
+                {booking.notes && (
+                  <div className="session-card-notes">
+                    &ldquo;{booking.notes}&rdquo;
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Session Logs ── */}
       <div className="sessions-header">
         <div>
           <h1 className="sessions-title">Session Logs</h1>
