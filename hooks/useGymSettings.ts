@@ -56,7 +56,7 @@ export function useGymSettings(options?: { gymSlug?: string }) {
 
       return settings;
     },
-    staleTime: 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
