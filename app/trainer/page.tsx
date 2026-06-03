@@ -14,6 +14,7 @@ import SettingsTab from "./tabs/SettingsTab";
 import { useTrainerSelf } from "@/hooks/useTrainerSelf";
 import { useGymSettings } from "@/hooks/useGymSettings";
 import { useAssignedMembers } from "@/hooks/useAssignedMembers";
+import { useTrainerBookings } from "@/hooks/useTrainerBookings";
 
 // Tab content components — imported lazily via normal imports for now.
 // Will be replaced with next/dynamic if bundle size warrants it.
@@ -57,6 +58,13 @@ export default function TrainerPortal() {
           m.current_membership?.payment_status === "pending",
       ).length,
     [assignedMembers],
+  );
+
+  // ── Pending Requests badge count for Sessions tab ─────────────
+  const { data: bookings = [] } = useTrainerBookings(trainer?.id ?? null);
+  const pendingRequestsCount = useMemo(
+    () => bookings.filter((b) => b.status === "pending").length,
+    [bookings]
   );
 
   // ── Loading ──────────────────────────────────────────────────
@@ -144,6 +152,7 @@ export default function TrainerPortal() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         overdueCount={overdueCount}
+        pendingRequestsCount={pendingRequestsCount}
       />
     </>
   );

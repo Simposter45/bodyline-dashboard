@@ -294,6 +294,7 @@ CREATE INDEX IF NOT EXISTS idx_bookings_gym_date
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "bookings_member_self_rw"  ON bookings;
 DROP POLICY IF EXISTS "bookings_trainer_read"    ON bookings;
+DROP POLICY IF EXISTS "bookings_trainer_update"  ON bookings;
 DROP POLICY IF EXISTS "bookings_owner_all"       ON bookings;
 DROP POLICY IF EXISTS "bookings_service"         ON bookings;
 
@@ -327,6 +328,27 @@ CREATE POLICY "bookings_trainer_read"
   USING (
     gym_id = current_gym_id()
     AND get_my_role() = 'trainer'
+    AND trainer_id = (
+      SELECT id FROM trainers
+      WHERE trainer_auth_user_id = auth.uid()
+      LIMIT 1
+    )
+  );
+
+-- Trainers can update status (confirm / cancel) on their own assigned bookings
+CREATE POLICY "bookings_trainer_update"
+  ON bookings FOR UPDATE
+  USING (
+    gym_id = current_gym_id()
+    AND get_my_role() = 'trainer'
+    AND trainer_id = (
+      SELECT id FROM trainers
+      WHERE trainer_auth_user_id = auth.uid()
+      LIMIT 1
+    )
+  )
+  WITH CHECK (
+    gym_id = current_gym_id()
     AND trainer_id = (
       SELECT id FROM trainers
       WHERE trainer_auth_user_id = auth.uid()

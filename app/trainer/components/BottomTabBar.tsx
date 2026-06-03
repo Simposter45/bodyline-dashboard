@@ -28,18 +28,31 @@ interface BottomTabBarProps {
   onTabChange: (tab: TrainerTab) => void;
   /** Number badge on Members tab — count of assigned members with overdue dues */
   overdueCount?: number;
+  /** Number badge on Sessions tab — count of pending booking requests */
+  pendingRequestsCount?: number;
 }
 
 export default function BottomTabBar({
   activeTab,
   onTabChange,
   overdueCount = 0,
+  pendingRequestsCount = 0,
 }: BottomTabBarProps) {
   return (
     <nav className="trainer-tab-bar" role="tablist" aria-label="Trainer portal navigation">
       {TABS.map(({ id, label, Icon }) => {
         const isActive = activeTab === id;
-        const showBadge = id === "members" && overdueCount > 0;
+        
+        let showBadge = false;
+        let badgeCount = 0;
+        
+        if (id === "members" && overdueCount > 0) {
+          showBadge = true;
+          badgeCount = overdueCount;
+        } else if (id === "sessions" && pendingRequestsCount > 0) {
+          showBadge = true;
+          badgeCount = pendingRequestsCount;
+        }
 
         return (
           <button
@@ -51,8 +64,8 @@ export default function BottomTabBar({
             onClick={() => onTabChange(id)}
           >
             {showBadge && (
-              <span className="trainer-tab-badge" aria-label={`${overdueCount} overdue`}>
-                {overdueCount > 9 ? "9+" : overdueCount}
+              <span className="trainer-tab-badge" aria-label={`${badgeCount} items`}>
+                {badgeCount > 9 ? "9+" : badgeCount}
               </span>
             )}
             <Icon size={20} />
