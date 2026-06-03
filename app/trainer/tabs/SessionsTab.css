@@ -31,6 +31,12 @@
   margin-top: 2px;
 }
 
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* Day Grouping */
 .session-day-group {
   display: flex;
