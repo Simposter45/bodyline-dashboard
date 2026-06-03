@@ -292,15 +292,27 @@ async function provisionAuthUsers() {
         app_metadata: { role: spec.role, gym_id: spec.gym_id },
         user_metadata: { full_name: spec.full_name, role: spec.role },
       });
+      
+      // If it's a trainer, link the auth ID to the trainers table
+      if (spec.role === "trainer") {
+        await supabase.from("trainers").update({ trainer_auth_user_id: existing.id }).eq("email", spec.email);
+      }
+      
       results.push({ email: spec.email, status: "updated" });
     } else {
-      const { error } = await supabase.auth.admin.createUser({
+      const { data, error } = await supabase.auth.admin.createUser({
         email: spec.email,
         password: spec.password,
         email_confirm: true,
         app_metadata: { role: spec.role, gym_id: spec.gym_id },
         user_metadata: { full_name: spec.full_name, role: spec.role },
       });
+      
+      // If it's a trainer, link the auth ID to the trainers table
+      if (!error && data.user && spec.role === "trainer") {
+        await supabase.from("trainers").update({ trainer_auth_user_id: data.user.id }).eq("email", spec.email);
+      }
+      
       results.push({ email: spec.email, status: error ? `❌ ${error.message}` : "created" });
     }
   }

@@ -81,16 +81,22 @@ export default function MemberPortalOrchestrator() {
 
   // Error State (e.g., profile not found)
   if (profileError || !profile) {
+    const handleForceSignOut = async () => {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.replace("/login");
+    };
+
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--bg)", gap: "16px", padding: "24px", textAlign: "center" }}>
         <p style={{ color: "var(--text-primary)", fontSize: "16px" }}>
           Member profile not found.
         </p>
         <button
-          onClick={() => router.push("/login")}
+          onClick={handleForceSignOut}
           style={{ background: "var(--bg2)", color: "var(--text-primary)", border: "1px solid var(--border)", padding: "10px 20px", borderRadius: "8px", cursor: "pointer" }}
         >
-          Return to Login
+          Sign Out & Return to Login
         </button>
       </div>
     );

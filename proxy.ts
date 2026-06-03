@@ -11,7 +11,7 @@ const PROTECTED: Record<string, string[]> = {
 // Public routes — never redirect
 const PUBLIC = ["/", "/login", "/onboarding", "/checkin", "/api/cron"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
 
   let supabaseResponse = NextResponse.next({
@@ -150,6 +150,6 @@ export const config = {
      * - favicon.ico
      * - public files with extensions
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|js|webmanifest)$).*)",
   ],
 };
