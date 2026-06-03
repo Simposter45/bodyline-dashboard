@@ -16,14 +16,15 @@ export function useBookingMutations() {
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: BookingStatus }) => {
+      // RLS policy bookings_trainer_update ensures trainers can only
+      // update bookings where trainer_id matches their own trainer record.
+      // No need to filter by trainer_id here — that would require fetching
+      // the trainer's row UUID which differs from auth.uid().
       const { error } = await supabase
         .from("bookings")
         .update({ status })
-        .eq("id", id)
-        .eq("trainer_id", (await supabase.auth.getUser()).data.user?.id ?? "");
+        .eq("id", id);
 
-      // Note: we filter by trainer_id as a safety check, but the
-      // actual authorization is enforced by the bookings_trainer_update RLS policy.
       if (error) throw error;
       return { id, status };
     },
