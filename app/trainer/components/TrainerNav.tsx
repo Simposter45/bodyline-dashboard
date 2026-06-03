@@ -29,8 +29,18 @@ export default function TrainerNav({
   gymSettings,
   onAvatarClick,
 }: TrainerNavProps) {
-  const [cachedName, setCachedName] = useState<string | null>(null);
-  const [cachedLogo, setCachedLogo] = useState<string | null>(null);
+  const [cachedName, setCachedName] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("pwa_gym_name");
+    }
+    return null;
+  });
+  const [cachedLogo, setCachedLogo] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("pwa_gym_logo");
+    }
+    return null;
+  });
 
   useEffect(() => {
     if (gymSettings) {
@@ -38,11 +48,6 @@ export default function TrainerNav({
       if (gymSettings.logo_url) sessionStorage.setItem("pwa_gym_logo", gymSettings.logo_url);
       setCachedName(gymSettings.gym_display_name);
       setCachedLogo(gymSettings.logo_url || null);
-    } else {
-      const name = sessionStorage.getItem("pwa_gym_name");
-      const logo = sessionStorage.getItem("pwa_gym_logo");
-      if (name) setCachedName(name);
-      if (logo) setCachedLogo(logo);
     }
   }, [gymSettings]);
 
