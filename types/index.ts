@@ -41,7 +41,7 @@ export type PaymentMethod = "cash" | "upi" | "card" | "other";
 
 export type SessionType = "group" | "personal_training" | "rehab" | "open_gym";
 
-export type BookingStatus = "confirmed" | "cancelled" | "completed" | "no_show";
+export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
 
 export type NotificationType =
   | "payment_due"
@@ -109,6 +109,18 @@ export interface Attendance {
   notes: string | null;
 }
 
+export interface Booking {
+  id: string;
+  gym_id: string;
+  member_id: string;
+  trainer_id: string;
+  session_date: string;   // ISO date string (YYYY-MM-DD)
+  session_time: string;   // Time string (HH:MM:SS)
+  status: BookingStatus;
+  notes: string | null;
+  created_at: string;
+}
+
 export interface Trainer {
   id: string;
   gym_id: string;
@@ -155,6 +167,40 @@ export interface AttendanceWithMember extends Attendance {
 
 export interface TrainerWithMembers extends Trainer {
   assigned_members: Pick<Member, "id" | "full_name" | "phone">[];
+}
+
+// ------------------------------------------------------------------
+// Member Portal Types (FEAT-009)
+// ------------------------------------------------------------------
+
+/**
+ * Lean member profile shape used by the Member Portal.
+ * Subset of Member — only the fields the portal needs to display.
+ */
+export interface MemberProfilePortal {
+  id: string;
+  gym_id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  joined_date: string;          // ISO date string
+  profile_photo_url: string | null;
+}
+
+/**
+ * Member's current (latest non-superseded) membership enriched with plan.
+ * Returned by useMemberMembership.
+ */
+export type MemberCurrentMembership = MemberMembership & {
+  plan: Pick<MembershipPlan, "id" | "name" | "price" | "duration_days">;
+};
+
+/**
+ * Booking enriched with the assigned trainer's display info.
+ * Returned by useBookings.
+ */
+export interface BookingWithTrainer extends Booking {
+  trainer: Pick<Trainer, "id" | "full_name" | "specialization">;
 }
 
 // ------------------------------------------------------------------
