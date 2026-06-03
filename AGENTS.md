@@ -110,7 +110,7 @@ The auth system is **complete and working**. The 3-client pattern is intentional
 lib/supabase/
   client.ts     → Browser client (createBrowserClient from @supabase/ssr)
   server.ts     → Server client (createServerClient, reads cookies)
-  middleware.ts → Root middleware, role-based route protection
+  proxy.ts      → Root proxy, role-based route protection
 ```
 
 **Role Storage:** `user_metadata.role` in Supabase Auth.
@@ -135,7 +135,7 @@ Every decision must align with this target architecture:
 ┌─────────────────────────────────────────────────────┐
 │  subdomain routing: [gym_slug].bodyline.in          │
 │                                                     │
-│  middleware.ts                                      │
+│  proxy.ts                                           │
 │    → reads hostname                                 │
 │    → resolves gym_id from gyms table               │
 │    → injects gym_id into request headers           │
@@ -208,7 +208,7 @@ The agent must **never** do any of the following:
 2. ❌ Hard-code gym-specific data (names, phone numbers, UPI IDs) outside the `gym_settings` table
 3. ❌ Import from `@supabase/auth-helpers-nextjs`
 4. ❌ Use `any` TypeScript type — including `catch (error: any)`. Use `unknown` and narrow it.
-5. ❌ Drop or alter the `middleware.ts` logic without a structural review comment
+5. ❌ Drop or alter the `proxy.ts` logic without a structural review comment
 6. ❌ Remove `"use client"` from page files
 7. ❌ Change color hex values
 8. ❌ Use `<style jsx>` — styled-jsx is not installed. Use plain `<style>` tags or co-located `.css` files.

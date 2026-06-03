@@ -1,0 +1,83 @@
+/* ============================================================
+   app/member/components/MemberBottomTabBar.css
+   4-tab fixed bottom navigation for the Member Portal.
+   Uses --accent-amber as the active color (member identity).
+   Always visible — mobile-first, always present.
+   ============================================================ */
+
+.member-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  z-index: 50;
+  /* iOS: push content above home indicator */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Individual tab button */
+.member-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+  /* Minimum 44px touch target */
+  min-width: 44px;
+  transition: color 0.15s;
+  position: relative;
+}
+
+.member-tab:hover {
+  color: var(--text-secondary);
+}
+
+/* Active state — amber for member identity */
+.member-tab.active {
+  color: var(--accent-amber);
+}
+
+/* Active indicator bar at top of tab */
+.member-tab.active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: var(--accent-amber);
+  border-radius: 0 0 2px 2px;
+}
+
+/* Tab label text */
+.member-tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  line-height: 1;
+  font-family: var(--font-body);
+}
+
+/* On desktop — constrain width to match page content */
+@media (min-width: 641px) {
+  .member-tab-bar {
+    max-width: 65vw;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-radius: 14px 14px 0 0;
+  }
+}

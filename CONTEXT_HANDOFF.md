@@ -8,8 +8,8 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
 * **Environment Pipeline Setup**: **COMPLETE (Dev → UAT → Prod)** ✅
-* **Current Focus**: **Pre-Launch Analytics & Automation** (Before Sprint 3)
-  * **Objective**: Sprint 1 and Sprint 2 are 100% complete. The multi-environment deployment pipeline is live and the Dev database schema and seeded data are verified. We are now prioritizing critical pre-launch operational features: Auto Status Expiry (`CHORE-002b`), GST Invoices, Razorpay integration, and Revenue Analytics (`FEAT-013`).
+* **Current Focus**: **Pre-Launch — Payments & QR Scanners**
+  * **Objective**: The Member Portal Rebuild (`FEAT-009`) and Trainer Portal Rebuild (`FEAT-010`) are now 100% complete, including Progressive Web App (PWA) offline installation support. The final steps before production launch are the Razorpay Payment Integration and the QR Scanner desk interface for check-ins.
 
 ---
 
@@ -18,11 +18,11 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 * **Framework**: Next.js 16.2.1 (App Router) + Supabase SSR. (Pages Router is forbidden).
 * **Multi-Tenancy Resolution**:
   * Scoped via the `gym_id` column present across all 8 tables.
-  * Resolved at the request level via Next.js middleware using subdomain headers.
+  * Resolved at the request level via Next.js proxy using subdomain headers.
   * Local Dev: resolves subdomains like `[slug].localhost` or falls back to the `?gym=slug` query parameter bypass.
 * **Security & Row Level Security (RLS)**:
   * PostgreSQL RLS is active, verified, and hardened across all tables.
-  * Tenant boundaries are enforced via `current_gym_id()` which extracts the middleware-injected tenant context.
+  * Tenant boundaries are enforced via `current_gym_id()` which extracts the proxy-injected tenant context.
   * Direct client-side gym-filtering is prohibited; all scoping must go through authenticated, RLS-enforced database queries.
 * **Data Fetching**: TanStack Query v5 is the project standard. Raw client-side `useEffect` data fetching is prohibited. Custom hooks live in `hooks/`.
 * **State & Styling**:
@@ -36,7 +36,7 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🗄️ Database & RLS Infrastructure
 
 ### Multi-Tenant Helper Functions
-The tenant identifier is automatically resolved in middleware and injected into the database session context. The following PostgreSQL RLS helper is the source of truth for all query policies:
+The tenant identifier is automatically resolved in proxy and injected into the database session context. The following PostgreSQL RLS helper is the source of truth for all query policies:
 ```sql
 CREATE OR REPLACE FUNCTION current_gym_id()
 RETURNS UUID AS $$
@@ -129,25 +129,28 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
 
 ---
 
-### 🔴 PRE-LAUNCH FOCUS — Analytics, Automation, & Payments (Immediate Next)
+### 🔴 PRE-LAUNCH FOCUS — Analytics, Automation, & Payments (PAUSED / PARTIAL)
 Before tackling the Member Portal, these operational features are required for a production-ready SaaS launch:
 * **`FEAT-013` & `FEAT-014` — Revenue & Growth Analytics**: **DONE ✅**
   * Replaced the static cards with interactive Recharts components. Added the Revenue Health Graph (collection rates) to the Payments page and a Cumulative Growth Graph (revenue vs. members) to the Dashboard.
 * **[BLOCKED] Automated WhatsApp Workflows**: *Currently blocked due to Meta template rejection and number ban.* Implement template-based Auto-Expiry Warnings, Payment Receipts, and Birthday Wishes using the existing Meta Cloud API. Include Bulk WhatsApp Reminders for overdue members.
-* **Razorpay Payment Integration**: Architecture planning and implementation for tenant-specific Razorpay key management in `gym_settings` and automated webhook resolution to eliminate cash bottlenecks.
+* **[PAUSED] Razorpay Payment Integration**: **PLAN READY ⏸️**
+  * Architecture planning complete and saved to `RAZORPAY_PLAN.md`. Ready for implementation later.
 * **GST Invoice / Receipt PDF**: Client-side generation (e.g., `jsPDF`) of receipts per payment for Indian market compliance.
-* **`CHORE-002b` — Auto Status Transition (CRITICAL)**: Set up a `pg_cron` or Edge Function batch job to automatically transition expired memberships to `overdue` at midnight. (Must be done before Member Portal reads this status).
+* **`CHORE-002b` — Auto Status Transition (CRITICAL)**: **DONE ✅**
+  * Configured a `pg_cron` job running nightly at 00:30 IST to automatically transition expired active/pending memberships to `overdue` across all tenants. Added `/api/cron/expire-memberships` as a secure manual trigger.
 * **MoM Trend Tracking (Future)**: Add explicit +5% / -5% month-over-month history tracking metrics to both Members and Payments features.
 * **Reminder ROI Dashboard (Future)**: Add a section demonstrating the ROI of the automated reminders (e.g., "Revenue recovered due to reminders" / "Members retained after warning").
 
 ---
 
-### 🟡 SPRINT 3 — Member Portal Rebuild (`FEAT-009`)
-* **Mobile-First Portal Rebuild**: Refactor the 1,316-line bespoke Member Portal monolith into modular, hook-driven components with co-located CSS.
+### 🔴 SPRINT 3 — Member Portal Rebuild (`FEAT-009`) : **DONE ✅**
+* **Mobile-First Portal Rebuild**: Refactored the 1,316-line bespoke Member Portal monolith into modular, hook-driven components with co-located CSS.
 * **Digital Membership Card**: Hero element showing member details, plan expiry, and a dynamic QR code.
 * **`FEAT-011` — QR Code Check-In Generation**: Dynamic, time-restricted QR codes in the Member Portal to be scanned at the desk.
 * **Self-Service Renewal Request UI**: Interface allowing members to submit renewal requests directly.
 * **Personal Attendance History**: IST-safe historical check-in logs for individual members.
+* **Progressive Web App (PWA) Support**: Configured manifest and service workers for both Member and Trainer portals for native iOS/Android "Add to Home Screen" support.
 
 ---
 
@@ -295,7 +298,7 @@ Trainers are accountable staff, not just service providers — their own attenda
 ### Multitenancy via Subdomains
 The platform is designed to isolate gym data using `gym_id`. To provide a seamless SaaS experience, we will implement **subdomain routing** (`[gym_slug].bodyline.app`).
 * **Requirements**: Add a `slug` column to the `gyms` table.
-* **Resolution**: Next.js middleware will read the incoming Vercel wildcard subdomain request, lookup the `gym_slug`, resolve the `gym_id`, and inject it into the session context.
+* **Resolution**: Next.js proxy will read the incoming Vercel wildcard subdomain request, lookup the `gym_slug`, resolve the `gym_id`, and inject it into the session context.
 * **Status**: **PENDING** (Highest priority architectural task before onboarding gym #2).
 
 ### Deployment Pipeline (Dev → UAT → Prod) ✅ LIVE
