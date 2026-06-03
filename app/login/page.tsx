@@ -43,8 +43,14 @@ function LoginContent() {
   const { data: settings, isLoading: isSettingsLoading } = useGymSettings(gymSlug ? { gymSlug } : undefined);
 
   // Micro-cache for fast reload
-  const [cachedName, setCachedName] = useState<string | null>(null);
-  const [cachedColor, setCachedColor] = useState<string | null>(null);
+  const [cachedName, setCachedName] = useState<string | null>(() => {
+    if (typeof window !== "undefined") return sessionStorage.getItem("pwa_gym_name");
+    return null;
+  });
+  const [cachedColor, setCachedColor] = useState<string | null>(() => {
+    if (typeof window !== "undefined") return sessionStorage.getItem("pwa_gym_color");
+    return null;
+  });
 
   useEffect(() => {
     if (settings) {
@@ -52,11 +58,6 @@ function LoginContent() {
       if (settings.primary_color) sessionStorage.setItem("pwa_gym_color", settings.primary_color);
       setCachedName(settings.gym_display_name);
       setCachedColor(settings.primary_color);
-    } else {
-      const name = sessionStorage.getItem("pwa_gym_name");
-      const color = sessionStorage.getItem("pwa_gym_color");
-      if (name) setCachedName(name);
-      if (color) setCachedColor(color);
     }
   }, [settings]);
 
@@ -126,6 +127,14 @@ function LoginContent() {
 
   const accentColor = cfg.accent;
 
+  if (isBrandingLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner" />
+      </div>
+    );
+  }
+
   return (
     <div
       className="login-root"
@@ -134,11 +143,7 @@ function LoginContent() {
       {/* ── Left decorative panel ── */}
       <div className="login-left">
         <Link href="/" className="left-logo">
-          {isBrandingLoading ? (
-            <div className="skeleton-bar" style={{ width: 120, height: 26 }} />
-          ) : (
-            <>{displayName ? displayName.split(" ")[0] : "Gym"}<span>.</span></>
-          )}
+          <>{displayName ? displayName.split(" ")[0] : "Gym"}<span>.</span></>
         </Link>
 
         <div className="left-visual">
@@ -162,12 +167,12 @@ function LoginContent() {
           </p>
           <p className="left-sub">
             Manage members, trainers, payments and bookings from one place —
-            built for {isBrandingLoading ? <span className="skeleton-bar" style={{ display: "inline-block", width: 80, height: 16, verticalAlign: "middle" }} /> : (displayName || "your gym")}.
+            built for {displayName || "your gym"}.
           </p>
           <div className="left-stats">
             <div>
               <div className="left-stat-val">
-                {isBrandingLoading ? <div className="skeleton-bar" style={{ width: 40, height: 24, margin: "0 auto" }} /> : (settings?.branches?.length ?? "—")}
+                {settings?.branches?.length ?? "—"}
               </div>
               <div className="left-stat-label">
                 {(settings?.branches?.length ?? 0) === 1 ? "Location" : "Locations"}
@@ -193,11 +198,7 @@ function LoginContent() {
       <div className="login-right">
         <div className="login-form-wrap">
           <Link href="/" className="mobile-logo">
-            {isBrandingLoading ? (
-              <div className="skeleton-bar" style={{ width: 100, height: 24, marginBottom: 8 }} />
-            ) : (
-              <>{displayName ? displayName.split(" ")[0] : "Gym"}<span>.</span></>
-            )}
+            <>{displayName ? displayName.split(" ")[0] : "Gym"}<span>.</span></>
           </Link>
 
           <p className="form-eyebrow">Welcome back</p>
