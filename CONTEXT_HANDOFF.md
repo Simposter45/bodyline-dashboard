@@ -8,8 +8,12 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
 * **Environment Pipeline Setup**: **COMPLETE (Dev → UAT → Prod)** ✅
-* **Current Focus**: **Pre-Launch — Payments & QR Scanners**
-  * **Objective**: The Member Portal Rebuild (`FEAT-009`) and Trainer Portal Rebuild (`FEAT-010`) are now 100% complete, including Progressive Web App (PWA) offline installation support. The final steps before production launch are the Razorpay Payment Integration and the QR Scanner desk interface for check-ins.
+* **Current Focus**: **Pre-Launch — Bug Fixes, Device Fingerprinting & QR Scanners**
+  * **Objective**: The Member Portal Rebuild (`FEAT-009`) and Trainer Portal Rebuild (`FEAT-010`) are now 100% complete, including Progressive Web App (PWA) offline installation support. The immediate next steps before production launch are:
+    1. **Bug Fixes**: Address any UAT/QA bugs found during deployment.
+    2. **Device Fingerprinting (Anti-Fraud)**: Tag a member's specific mobile device in the database upon first login to prevent credential sharing for QR attendance.
+    3. **QR Scanner Desk Interface**: Build the staff-facing scanner.
+    4. **Razorpay Integration**: (Planned).
 
 ---
 

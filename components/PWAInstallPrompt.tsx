@@ -13,6 +13,11 @@ export default function PWAInstallPrompt() {
       return;
     }
 
+    const dismissed = localStorage.getItem("pwa_prompt_dismissed");
+    if (dismissed === "true") {
+      return;
+    }
+
     const handleBeforeInstallPrompt = (e: any) => {
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
@@ -46,6 +51,11 @@ export default function PWAInstallPrompt() {
     
     // We've used the prompt, and can't use it again, throw it away
     setDeferredPrompt(null);
+    setShowPrompt(false);
+  };
+
+  const handleDismiss = () => {
+    localStorage.setItem("pwa_prompt_dismissed", "true");
     setShowPrompt(false);
   };
 
@@ -104,7 +114,7 @@ export default function PWAInstallPrompt() {
           Install
         </button>
         <button 
-          onClick={() => setShowPrompt(false)}
+          onClick={handleDismiss}
           style={{
             background: "transparent",
             border: "none",
