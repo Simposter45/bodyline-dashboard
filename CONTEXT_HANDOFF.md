@@ -97,6 +97,12 @@ $$ LANGUAGE sql STABLE;
 * Built the Plans tab in Gym Settings for the owner to create, edit, deactivate, and restore membership plans, completely driven by TanStack mutations.
 * Added deep subscription operations (Pause, Extend, Cancel, Resume) inside the `MemberDrawer`, updating the DB correctly and reflecting states with warning banners.
 
+### 9. Pre-Launch Bug Fixes & UX Polish
+* **`BUG-007` — PWA Icons & iOS Install**: Fixed Android adaptive icon masking by generating proper square `maskable` safe-zone icons. Implemented a custom iOS guidance banner ("Share → Add to Home Screen") since Apple blocks programmatic install prompts.
+* **`BUG-005` — iOS Safari Auto-Zoom**: Prevented form input auto-zoom on iPhones by enforcing `maximum-scale=1` and `16px` font-sizes on inputs.
+* **`BUG-004` — Gym Branding Flicker**: Eliminated layout shift on page reloads by synchronously initializing `sessionStorage` states and adding CSS skeleton loaders for the initial React Query fetch cycle in `TrainerNav` and `MemberNav`.
+* **`BUG-006` — Trainer PT Bookings**: Fixed silent `PGRST116` errors by granting trainers `UPDATE` RLS permission on their assigned `bookings`. Overhauled the Sessions tab UI to split out **Pending Requests**, **Upcoming Sessions** (Confirmed), and completed **Session Logs**.
+
 ---
 
 ## 🚀 Strategic Development Trajectory (Sprint Roadmap)
