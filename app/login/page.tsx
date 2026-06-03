@@ -40,7 +40,29 @@ function LoginContent() {
     }
   }, [searchParams]);
 
-  const { data: settings } = useGymSettings(gymSlug ? { gymSlug } : undefined);
+  const { data: settings, isLoading: isSettingsLoading } = useGymSettings(gymSlug ? { gymSlug } : undefined);
+
+  // Micro-cache for fast reload
+  const [cachedName, setCachedName] = useState<string | null>(null);
+  const [cachedColor, setCachedColor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (settings) {
+      if (settings.gym_display_name) sessionStorage.setItem("pwa_gym_name", settings.gym_display_name);
+      if (settings.primary_color) sessionStorage.setItem("pwa_gym_color", settings.primary_color);
+      setCachedName(settings.gym_display_name);
+      setCachedColor(settings.primary_color);
+    } else {
+      const name = sessionStorage.getItem("pwa_gym_name");
+      const color = sessionStorage.getItem("pwa_gym_color");
+      if (name) setCachedName(name);
+      if (color) setCachedColor(color);
+    }
+  }, [settings]);
+
+  const displayName = settings?.gym_display_name || cachedName;
+  const displayColor = settings?.primary_color || cachedColor;
+  const isBrandingLoading = !displayName && isSettingsLoading;
 
   // null = settings still loading (query held); string = ready to fetch
   const { data: gymStats } = usePublicGymStats(settings?.gym_id ?? null);
@@ -51,13 +73,13 @@ function LoginContent() {
   > = {
     owner: {
       label: "Owner",
-      placeholder: `owner@${settings?.gym_display_name?.toLowerCase().replace(/\s+/g, "") || "example"}.in`,
+      placeholder: `owner@${displayName?.toLowerCase().replace(/\s+/g, "") || "example"}.in`,
       hint: "Full dashboard access",
-      accent: settings?.primary_color || "#4ade80",
+      accent: displayColor || "#4ade80",
     },
     trainer: {
       label: "Trainer",
-      placeholder: `trainer@${settings?.gym_display_name?.toLowerCase().replace(/\s+/g, "") || "example"}.in`,
+      placeholder: `trainer@${displayName?.toLowerCase().replace(/\s+/g, "") || "example"}.in`,
       hint: "View your schedule & members",
       accent: "#60a5fa",
     },
@@ -112,7 +134,11 @@ function LoginContent() {
       {/* ── Left decorative panel ── */}
       <div className="login-left">
         <Link href="/" className="left-logo">
-          {settings?.gym_display_name ? settings.gym_display_name.split(" ")[0] : "Gym"}<span>.</span>
+          {isBrandingLoading ? (
+            <div className="skeleton-bar" style={{ width: 120, height: 26 }} />
+          ) : (
+            <>{displayName ? displayName.split(" ")[0] : "Gym"}<span>.</span></>
+          )}
         </Link>
 
         <div className="left-visual">
@@ -136,11 +162,13 @@ function LoginContent() {
           </p>
           <p className="left-sub">
             Manage members, trainers, payments and bookings from one place —
-            built for {settings?.gym_display_name || "your gym"}.
+            built for {isBrandingLoading ? <span className="skeleton-bar" style={{ display: "inline-block", width: 80, height: 16, verticalAlign: "middle" }} /> : (displayName || "your gym")}.
           </p>
           <div className="left-stats">
             <div>
-              <div className="left-stat-val">{settings?.branches?.length ?? "—"}</div>
+              <div className="left-stat-val">
+                {isBrandingLoading ? <div className="skeleton-bar" style={{ width: 40, height: 24, margin: "0 auto" }} /> : (settings?.branches?.length ?? "—")}
+              </div>
               <div className="left-stat-label">
                 {(settings?.branches?.length ?? 0) === 1 ? "Location" : "Locations"}
               </div>
@@ -165,7 +193,11 @@ function LoginContent() {
       <div className="login-right">
         <div className="login-form-wrap">
           <Link href="/" className="mobile-logo">
-            {settings?.gym_display_name ? settings.gym_display_name.split(" ")[0] : "Gym"}<span>.</span>
+            {isBrandingLoading ? (
+              <div className="skeleton-bar" style={{ width: 100, height: 24, marginBottom: 8 }} />
+            ) : (
+              <>{displayName ? displayName.split(" ")[0] : "Gym"}<span>.</span></>
+            )}
           </Link>
 
           <p className="form-eyebrow">Welcome back</p>
@@ -253,7 +285,7 @@ function LoginContent() {
 
           {/* Footer */}
           <div className="form-footer">
-            <Link href="/">← Back to {settings?.gym_display_name ? settings.gym_display_name.toLowerCase().replace(/\s+/g, "") + ".in" : "gym website"}</Link>
+            <Link href="/">← Back to {displayName ? displayName.toLowerCase().replace(/\s+/g, "") + ".in" : "gym website"}</Link>
             &nbsp;·&nbsp;
             <Link href="/onboarding">New member? Join now</Link>
           </div>

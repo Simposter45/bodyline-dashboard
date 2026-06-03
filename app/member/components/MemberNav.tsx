@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import "./MemberNav.css";
 import { createClient } from "@/lib/supabase/client";
 import type { GymSettings, MemberProfilePortal } from "@/types";
@@ -25,8 +26,27 @@ interface MemberNavProps {
 // ── Component ─────────────────────────────────────────────────────────
 
 export default function MemberNav({ member, gymSettings }: MemberNavProps) {
-  const gymName = gymSettings?.gym_display_name ?? "Bodyline";
-  const logoUrl = gymSettings?.logo_url ?? null;
+  const [cachedName, setCachedName] = useState<string | null>(null);
+  const [cachedLogo, setCachedLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (gymSettings) {
+      if (gymSettings.gym_display_name) sessionStorage.setItem("pwa_gym_name", gymSettings.gym_display_name);
+      if (gymSettings.logo_url) sessionStorage.setItem("pwa_gym_logo", gymSettings.logo_url);
+      setCachedName(gymSettings.gym_display_name);
+      setCachedLogo(gymSettings.logo_url || null);
+    } else {
+      const name = sessionStorage.getItem("pwa_gym_name");
+      const logo = sessionStorage.getItem("pwa_gym_logo");
+      if (name) setCachedName(name);
+      if (logo) setCachedLogo(logo);
+    }
+  }, [gymSettings]);
+
+  const gymName = gymSettings?.gym_display_name || cachedName;
+  const logoUrl = gymSettings?.logo_url || cachedLogo;
+  const isBrandingLoading = !gymName;
+
   const firstName = member.full_name.split(" ")[0];
   const initials = getInitials(member.full_name);
   const avatarUrl = member.profile_photo_url ?? null;
@@ -41,18 +61,24 @@ export default function MemberNav({ member, gymSettings }: MemberNavProps) {
     <nav className="member-nav">
       {/* Left: gym brand */}
       <div className="member-nav-brand">
-        {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt={gymName}
-            className="member-nav-logo-img"
-          />
+        {isBrandingLoading ? (
+          <div className="skeleton-bar" style={{ width: 120, height: 24 }} />
         ) : (
-          <div className="member-nav-logo-fallback">
-            {gymName.charAt(0).toUpperCase()}
-          </div>
+          <>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={gymName!}
+                className="member-nav-logo-img"
+              />
+            ) : (
+              <div className="member-nav-logo-fallback">
+                {gymName!.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="member-nav-gym-name">{gymName}</span>
+          </>
         )}
-        <span className="member-nav-gym-name">{gymName}</span>
       </div>
 
       {/* Center: role pill */}
