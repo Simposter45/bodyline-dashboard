@@ -261,6 +261,93 @@ CREATE INDEX IF NOT EXISTS idx_session_logs_gym_date
 
 
 -- ==============================================================================
+-- SECTION 10.5: Bookings (Member-Requested PT Sessions)
+-- Members request a future Personal Training slot with their assigned trainer.
+-- Trainer confirms or cancels. Distinct from session_logs (which are completed,
+-- trainer-logged sessions). Scoped per gym via gym_id.
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS bookings (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  gym_id        UUID NOT NULL REFERENCES gyms(id) ON DELETE CASCADE,
+  member_id     UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  trainer_id    UUID NOT NULL REFERENCES trainers(id) ON DELETE CASCADE,
+  session_date  DATE NOT NULL,
+  session_time  TIME NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'pending'
+                  CHECK (status IN ('pending', 'confirmed', 'cancelled')),
+  notes         TEXT,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_member_date
+  ON bookings(member_id, session_date DESC);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_trainer_date
+  ON bookings(trainer_id, session_date DESC);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_gym_date
+  ON bookings(gym_id, session_date DESC);
+
+
+-- ── bookings RLS ──────────────────────────────────────────────────────────────
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "bookings_member_self_rw"  ON bookings;
+DROP POLICY IF EXISTS "bookings_trainer_read"    ON bookings;
+DROP POLICY IF EXISTS "bookings_owner_all"       ON bookings;
+DROP POLICY IF EXISTS "bookings_service"         ON bookings;
+
+-- Members can insert and read their own bookings within the gym
+CREATE POLICY "bookings_member_self_rw"
+  ON bookings FOR ALL
+  USING (
+    gym_id = current_gym_id()
+    AND get_my_role() = 'member'
+    AND member_id = (
+      SELECT id FROM members
+      WHERE email = auth.jwt()->>'email'
+        AND gym_id = current_gym_id()
+      LIMIT 1
+    )
+  )
+  WITH CHECK (
+    gym_id = current_gym_id()
+    AND get_my_role() = 'member'
+    AND member_id = (
+      SELECT id FROM members
+      WHERE email = auth.jwt()->>'email'
+        AND gym_id = current_gym_id()
+      LIMIT 1
+    )
+  );
+
+-- Trainers can read bookings assigned to them
+CREATE POLICY "bookings_trainer_read"
+  ON bookings FOR SELECT
+  USING (
+    gym_id = current_gym_id()
+    AND get_my_role() = 'trainer'
+    AND trainer_id = (
+      SELECT id FROM trainers
+      WHERE trainer_auth_user_id = auth.uid()
+      LIMIT 1
+    )
+  );
+
+-- Owners have full access within their gym
+CREATE POLICY "bookings_owner_all"
+  ON bookings FOR ALL
+  USING (gym_id = current_gym_id() AND get_my_role() = 'owner')
+  WITH CHECK (gym_id = current_gym_id());
+
+-- Service role bypass
+CREATE POLICY "bookings_service"
+  ON bookings FOR ALL
+  TO service_role
+  USING (true) WITH CHECK (true);
+
+
+-- ==============================================================================
 -- SECTION 11: Seed Demo Gyms
 -- ==============================================================================
 
