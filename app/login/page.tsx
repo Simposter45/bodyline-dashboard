@@ -209,6 +209,12 @@ function LoginContent() {
 
           {/* Role tabs */}
           <div className="role-tabs">
+            <div 
+              className="role-tab-active-bg" 
+              style={{
+                transform: `translateX(${["owner", "trainer", "member"].indexOf(role) * 100}%)`
+              }}
+            />
             {(["owner", "trainer", "member"] as Role[]).map((r) => (
               <button
                 key={r}

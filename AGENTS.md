@@ -9,7 +9,8 @@ Before writing any code or modifying files, you MUST adhere to the following wor
 1.  **Develop a Plan First**: Always develop a plan before creating a feature or a refactor, define exactly what is to be done.
 2.  **Ask Permission**: Always ask for permission from the USER to start writing the code. Do not write a single line of code until approved.
 3.  **Atomic/Incremental Steps**: Break down complex developments into the smallest possible logical steps. Execute only **one step at a time**, verify it, and then proceed to the next.
-4.  **No Over-Scope**: Only perform the exact task currently being addressed. Avoid "fixing" or "improving" unrelated code unless specified in the approved plan.
+4.  **Wait for Confirmation**: Do not proceed with the next step of a session until the previous step is well tested and confirmed to move from the user. Doing multiple complex steps at a time creates bugs. Wait for explicit signal before moving to the next step.
+5.  **No Over-Scope**: Only perform the exact task currently being addressed. Avoid "fixing" or "improving" unrelated code unless specified in the approved plan.
 
 ---
 
