@@ -19,6 +19,7 @@ const dmSans = DM_Sans({
 
 
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 export const metadata: Metadata = {
   title: "The Gym",
@@ -41,6 +42,7 @@ export default function RootLayout({
           body { margin: 0; padding: 0; }
         `}} />
         <ServiceWorkerRegister />
+        <PWAInstallPrompt />
         <QueryProvider>
           {children}
           <Toaster 

@@ -9,6 +9,9 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "Trainer",
   },
+  icons: {
+    apple: "/icons/member-icon-192x192.png",
+  },
 };
 
 export default function TrainerLayout({
