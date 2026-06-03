@@ -1,0 +1,238 @@
+/* ============================================================
+   app/member/components/RenewalRequestModal.css
+   Slide-up bottom-sheet modal for member self-service renewal.
+   Mirrors PaymentDrawer.css pattern with amber accent.
+   ============================================================ */
+
+/* ── Overlay ──────────────────────────────────────────────── */
+.renewal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  animation: renewalFadeIn 0.2s ease forwards;
+}
+
+/* ── Sheet ────────────────────────────────────────────────── */
+.renewal-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 12px 24px 40px;
+  z-index: 1001;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4);
+  animation: renewalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* Drag handle */
+.renewal-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--border-hi);
+  border-radius: 4px;
+  margin: 0 auto 20px;
+  flex-shrink: 0;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.renewal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.renewal-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.renewal-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.renewal-close-btn:hover {
+  background: var(--bg3);
+  color: var(--text-primary);
+}
+
+/* ── Subtitle ─────────────────────────────────────────────── */
+.renewal-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+/* ── Plan Grid ────────────────────────────────────────────── */
+.renewal-plan-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.renewal-plan-option {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px; /* Touch target */
+}
+
+.renewal-plan-option:hover {
+  border-color: var(--border-hi);
+}
+
+.renewal-plan-option.selected {
+  background: var(--accent-amber-dim);
+  border-color: var(--accent-amber);
+}
+
+.renewal-plan-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.renewal-plan-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.renewal-plan-duration {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.renewal-plan-price {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--accent-amber);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Disclaimer ───────────────────────────────────────────── */
+.renewal-disclaimer {
+  background: var(--accent-amber-dim);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+/* ── Submit Button ────────────────────────────────────────── */
+.renewal-submit-btn {
+  background: var(--accent-amber);
+  color: #0d0d0f;
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  transition: filter 0.2s, transform 0.2s;
+  flex-shrink: 0;
+  min-height: 52px;
+}
+
+.renewal-submit-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.renewal-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Empty Plans State ────────────────────────────────────── */
+.renewal-no-plans {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ── Animations ───────────────────────────────────────────── */
+@keyframes renewalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes renewalSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* ── Desktop: constrain width ─────────────────────────────── */
+@media (min-width: 600px) {
+  .renewal-sheet {
+    width: 440px;
+    left: 50%;
+    transform: translate(-50%, 100%);
+    border-radius: 24px 24px 0 0;
+  }
+
+  @keyframes renewalSlideUp {
+    to { transform: translate(-50%, 0); }
+  }
+}
+
+/* Spin animation used by Loader2 icon */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 0.7s linear infinite;
+}
