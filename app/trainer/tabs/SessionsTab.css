@@ -157,3 +157,27 @@
 .fab.log-fab:hover {
   box-shadow: 0 6px 28px rgba(96, 165, 250, 0.45), 0 2px 10px rgba(0,0,0,0.4);
 }
+
+/* Request Cards */
+.request-card {
+  border-color: rgba(96, 165, 250, 0.4);
+  background: linear-gradient(180deg, var(--bg2) 0%, rgba(96, 165, 250, 0.05) 100%);
+}
+
+.request-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.request-confirm {
+  background: var(--accent-blue);
+  color: #0d0d0f;
+  flex: 1;
+  justify-content: center;
+}
+
+.request-cancel {
+  flex: 1;
+  justify-content: center;
+}

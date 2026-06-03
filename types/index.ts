@@ -203,6 +203,14 @@ export interface BookingWithTrainer extends Booking {
   trainer: Pick<Trainer, "id" | "full_name" | "specialization">;
 }
 
+/**
+ * Booking enriched with the member's display info.
+ * Returned by useTrainerBookings.
+ */
+export interface BookingWithMember extends Booking {
+  member: Pick<Member, "id" | "full_name" | "phone" | "profile_photo_url">;
+}
+
 // ------------------------------------------------------------------
 // Trainer Portal Types (FEAT-010)
 // ------------------------------------------------------------------

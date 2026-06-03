@@ -2,8 +2,10 @@
 
 import "./SessionsTab.css";
 import { useState, useMemo } from "react";
-import { Plus, Clock, FileText } from "lucide-react";
+import { Plus, Clock, FileText, Check, X } from "lucide-react";
 import { useSessionLogs } from "@/hooks/useSessionLogs";
+import { useTrainerBookings } from "@/hooks/useTrainerBookings";
+import { useBookingMutations } from "@/hooks/useBookingMutations";
 import { formatDateIST } from "@/lib/utils/date";
 import type { Trainer, AssignedMemberWithDues } from "@/types";
 import SessionLogSheet from "../components/SessionLogSheet";
@@ -15,7 +17,12 @@ interface SessionsTabProps {
 
 export default function SessionsTab({ trainer, assignedMembers }: SessionsTabProps) {
   const { data: logs = [], isLoading } = useSessionLogs(trainer.id);
+  const { data: bookings = [], isLoading: isBookingsLoading } = useTrainerBookings(trainer.id);
+  const { updateStatus } = useBookingMutations();
+
   const [isLogSheetOpen, setIsLogSheetOpen] = useState(false);
+
+  const pendingBookings = bookings.filter(b => b.status === "pending");
 
   // Group logs by date (YYYY-MM-DD)
   const groupedLogs = useMemo(() => {
@@ -41,6 +48,74 @@ export default function SessionsTab({ trainer, assignedMembers }: SessionsTabPro
 
   return (
     <div className="sessions-tab">
+      {pendingBookings.length > 0 && (
+        <div className="pending-requests-section">
+          <div className="sessions-header" style={{ marginBottom: 16 }}>
+            <div>
+              <h2 className="sessions-title" style={{ fontSize: '1.25rem' }}>Pending Requests</h2>
+              <p className="sessions-sub">{pendingBookings.length} member {pendingBookings.length === 1 ? 'request' : 'requests'} waiting</p>
+            </div>
+          </div>
+          <div className="sessions-list" style={{ marginBottom: 32 }}>
+            {pendingBookings.map((booking) => (
+              <div key={booking.id} className="session-card request-card">
+                <div className="session-card-top">
+                  <div className="session-card-member">
+                    {booking.member?.profile_photo_url ? (
+                      <div className="avatar" style={{ width: 32, height: 32 }}>
+                        <img 
+                          src={booking.member.profile_photo_url} 
+                          alt={booking.member.full_name} 
+                          style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="avatar" style={{ width: 32, height: 32, fontSize: 12 }}>
+                        {booking.member?.full_name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="session-card-name">{booking.member?.full_name}</span>
+                  </div>
+                  <span className="session-card-type pt">
+                    PT Session
+                  </span>
+                </div>
+
+                <div className="session-card-meta">
+                  <div className="session-meta-item">
+                    <Clock size={14} />
+                    <span>{formatDateIST(booking.session_date)} at {booking.session_time.substring(0, 5)}</span>
+                  </div>
+                </div>
+
+                {booking.notes && (
+                  <div className="session-card-notes">
+                    "{booking.notes}"
+                  </div>
+                )}
+
+                <div className="request-actions">
+                  <button 
+                    className="btn-solid request-confirm" 
+                    onClick={() => updateStatus.mutate({ id: booking.id, status: "confirmed" })}
+                    disabled={updateStatus.isPending}
+                  >
+                    <Check size={16} /> Confirm
+                  </button>
+                  <button 
+                    className="btn-ghost-sm request-cancel" 
+                    onClick={() => updateStatus.mutate({ id: booking.id, status: "cancelled" })}
+                    disabled={updateStatus.isPending}
+                  >
+                    <X size={16} /> Cancel
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="sessions-header">
         <div>
           <h1 className="sessions-title">Session Logs</h1>
