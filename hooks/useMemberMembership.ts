@@ -13,7 +13,8 @@
 // Scoped via RLS — mm_self_read policy gates the query.
 // ============================================================
 
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { MemberCurrentMembership, MemberMembership, MembershipPlan } from "@/types";
 
@@ -62,6 +63,33 @@ async function fetchMemberMembership(
  * Stale after 30s — status can change via the nightly cron job.
  */
 export function useMemberMembership(memberId: string | null) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!memberId) return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`member-membership-${memberId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "member_memberships",
+          filter: `member_id=eq.${memberId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["member-membership", memberId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [memberId, queryClient]);
+
   return useQuery<MemberCurrentMembership | null, Error>({
     queryKey: ["member-membership", memberId],
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

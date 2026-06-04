@@ -7,7 +7,8 @@
 // Automatically scoped to the calling user's gym via RLS.
 // ============================================================
 
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import type { AttendanceWithMember, Trainer } from "@/types";
 import {
@@ -233,6 +234,26 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
  * Automatically scoped to the user's gym via RLS — no gym_id needed client-side.
  */
 export function useDashboardStats() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel("dashboard-memberships")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "member_memberships" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery<DashboardStats, Error>({
     queryKey: ["dashboard-stats"],
     queryFn: fetchDashboardStats,

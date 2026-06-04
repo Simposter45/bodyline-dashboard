@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import "./dashboard.css";
 import { Nav } from "@/components/ui/Nav";
 import { StatCard } from "@/components/ui/StatCard";
@@ -13,6 +14,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { formatINR, formatTime, getGreeting } from "@/lib/utils/format";
 import { todayFormatted } from "@/lib/utils/date";
 import { RefreshCw, X } from "lucide-react";
+import { RecordPaymentModal } from "@/components/members/RecordPaymentModal";
 
 // ------------------------------------------------------------------
 // Page
@@ -25,6 +27,8 @@ export default function DashboardPage() {
 
   const userName = userInfo?.userName ?? "";
   const todayStr = todayFormatted();
+
+  const [recordTarget, setRecordTarget] = useState<PendingRenewalRequest | null>(null);
 
   function handleDecline(req: PendingRenewalRequest) {
     if (!window.confirm(`Decline renewal request for ${req.memberName}?`)) return;
@@ -162,13 +166,13 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="renewal-row-actions">
-                        <a
-                          href="/dashboard/payments"
+                        <button
                           className="renewal-approve-btn"
                           title="Record payment to approve"
+                          onClick={() => setRecordTarget(req)}
                         >
                           <RefreshCw size={13} />
-                        </a>
+                        </button>
                         <button
                           className="renewal-decline-btn"
                           onClick={() => handleDecline(req)}
@@ -206,6 +210,18 @@ export default function DashboardPage() {
 
           </div>
         </div>
+      )}
+
+      {/* Record Payment Modal for Inline Approvals */}
+      {recordTarget && (
+        <RecordPaymentModal
+          isOpen={!!recordTarget}
+          onClose={() => setRecordTarget(null)}
+          membershipId={recordTarget.id}
+          planPrice={recordTarget.planPrice}
+          remainingBalance={recordTarget.planPrice}
+          currentAmountPaid={0} // pending requests have 0 paid
+        />
       )}
     </>
   );
