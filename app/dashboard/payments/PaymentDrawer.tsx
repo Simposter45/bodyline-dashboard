@@ -21,9 +21,11 @@ interface PaymentDrawerProps {
   onClose: () => void;
   onRecordPayment?: () => void;
   onRenew?: () => void;
+  onDecline?: () => void;
+  isDeclineDisabled?: boolean;
 }
 
-export function PaymentDrawer({ record, onClose, onRecordPayment, onRenew }: PaymentDrawerProps) {
+export function PaymentDrawer({ record, onClose, onRecordPayment, onRenew, onDecline, isDeclineDisabled }: PaymentDrawerProps) {
   const { data: gymSettings } = useGymSettings();
   const { mutate: sendReminder, isPending: isSending } = useSendReminder();
 
@@ -161,6 +163,16 @@ export function PaymentDrawer({ record, onClose, onRecordPayment, onRenew }: Pay
               style={{ color: "var(--accent-blue)" }}
             >
               &#x21BA; Renew
+            </button>
+          )}
+          {statusKey === "pending" && onDecline && (
+            <button
+              className="payment-drawer-btn payment-drawer-btn-ghost"
+              onClick={onDecline}
+              disabled={isDeclineDisabled}
+              style={{ color: "var(--accent-red)", borderColor: "rgba(248,113,113,0.25)" }}
+            >
+              &#x2715; Decline Request
             </button>
           )}
           <button 

@@ -2,8 +2,9 @@
 
 import "./payments.css";
 import { useMemo, useState, useEffect } from "react";
-import { SlidersHorizontal, Check, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Bell, RefreshCw, IndianRupee } from "lucide-react";
+import { SlidersHorizontal, Check, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Bell, RefreshCw, IndianRupee, X } from "lucide-react";
 import { usePayments, type PaymentRecord } from "@/hooks/usePayments";
+import { useDeclineRenewal } from "@/hooks/useDeclineRenewal";
 import { Nav } from "@/components/ui/Nav";
 import { Avatar } from "@/components/ui/Avatar";
 import { STATUS_CONFIG } from "@/lib/constants/status";
@@ -137,6 +138,7 @@ function SortDropdown({
 
 export default function PaymentsPage() {
   const { data: records = [], isLoading, error } = usePayments();
+  const { mutate: declineRenewal, isPending: isDeclining } = useDeclineRenewal();
 
   // Filter state — status only (separate from sort)
   type FilterValues = { status: PaymentFilter };
@@ -155,6 +157,15 @@ export default function PaymentsPage() {
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [pendingFilters, setPendingFilters] = useState<FilterValues>(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
+
+  // Decline handler — confirm before mutating
+  function handleDecline(r: PaymentRecord) {
+    if (!window.confirm(`Decline renewal request for ${r.member.full_name}?`)) return;
+    declineRenewal(
+      { membershipId: r.id, memberName: r.member.full_name },
+      { onSuccess: () => { if (selected?.id === r.id) setSelected(null); } }
+    );
+  }
 
   // ── Revenue summary ─────────────────────────────────────────────
   const summary = useMemo(() => {
@@ -276,6 +287,17 @@ export default function PaymentsPage() {
         icon: <IndianRupee size={13} />,
         variant: r.payment_status === "overdue" ? "ghost" : "primary",
         onClick: (e) => { e.stopPropagation(); setRecordTarget(r); },
+      });
+    }
+
+    // Decline — only for pending requests (no money collected yet)
+    if (r.payment_status === "pending") {
+      actions.push({
+        id: "decline",
+        label: "Decline",
+        icon: <X size={13} />,
+        variant: "ghost",
+        onClick: (e) => { e.stopPropagation(); handleDecline(r); },
       });
     }
 
@@ -651,6 +673,10 @@ export default function PaymentsPage() {
             setSelected(null);
             setRenewTarget(selected);
           }}
+          onDecline={selected.payment_status === "pending" ? () => {
+            handleDecline(selected);
+          } : undefined}
+          isDeclineDisabled={isDeclining}
         />
       )}
 

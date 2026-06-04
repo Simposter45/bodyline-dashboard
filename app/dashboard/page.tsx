@@ -7,9 +7,12 @@ import { Panel } from "@/components/ui/Panel";
 import { Avatar } from "@/components/ui/Avatar";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import type { PendingRenewalRequest } from "@/hooks/useDashboardStats";
+import { useDeclineRenewal } from "@/hooks/useDeclineRenewal";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { formatINR, formatTime, getGreeting } from "@/lib/utils/format";
 import { todayFormatted } from "@/lib/utils/date";
+import { RefreshCw, X } from "lucide-react";
 
 // ------------------------------------------------------------------
 // Page
@@ -18,9 +21,15 @@ import { todayFormatted } from "@/lib/utils/date";
 export default function DashboardPage() {
   const { data: stats, isLoading, error } = useDashboardStats();
   const { data: userInfo } = useCurrentUser();
+  const { mutate: declineRenewal, isPending: isDeclining } = useDeclineRenewal();
 
   const userName = userInfo?.userName ?? "";
   const todayStr = todayFormatted();
+
+  function handleDecline(req: PendingRenewalRequest) {
+    if (!window.confirm(`Decline renewal request for ${req.memberName}?`)) return;
+    declineRenewal({ membershipId: req.id, memberName: req.memberName });
+  }
 
   return (
     <>
@@ -127,7 +136,54 @@ export default function DashboardPage() {
                   ))}
                   {stats.today.attendance.length > 5 && (
                     <a href="/dashboard/attendance" className="view-all-link">
-                      View all {stats.today.todayCheckins} check-ins →
+                      View all {stats.today.todayCheckins} check-ins &rarr;
+                    </a>
+                  )}
+                </>
+              )}
+            </Panel>
+
+            {/* Pending Renewals panel */}
+            <Panel
+              title="Pending Renewals"
+              badge={stats.pendingRenewals.length}
+            >
+              {stats.pendingRenewals.length === 0 ? (
+                <div className="panel-empty">No pending renewal requests.</div>
+              ) : (
+                <>
+                  {stats.pendingRenewals.slice(0, 5).map((req) => (
+                    <div key={req.id} className="row-item">
+                      <Avatar name={req.memberName} size={36} accent="amber" />
+                      <div className="row-info">
+                        <div className="row-name">{req.memberName}</div>
+                        <div className="row-sub">
+                          {req.planName} &middot; {formatINR(req.planPrice)}
+                        </div>
+                      </div>
+                      <div className="renewal-row-actions">
+                        <a
+                          href="/dashboard/payments"
+                          className="renewal-approve-btn"
+                          title="Record payment to approve"
+                        >
+                          <RefreshCw size={13} />
+                        </a>
+                        <button
+                          className="renewal-decline-btn"
+                          onClick={() => handleDecline(req)}
+                          disabled={isDeclining}
+                          title="Decline request"
+                          aria-label={`Decline renewal for ${req.memberName}`}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {stats.pendingRenewals.length > 5 && (
+                    <a href="/dashboard/payments" className="view-all-link">
+                      View all {stats.pendingRenewals.length} pending &rarr;
                     </a>
                   )}
                 </>

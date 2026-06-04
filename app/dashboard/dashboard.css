@@ -72,10 +72,10 @@
 .stats-grid > div:first-child { border-radius: var(--radius) 0 0 var(--radius) !important; }
 .stats-grid > div:last-child  { border-radius: 0 var(--radius) var(--radius) 0 !important; }
 
-/* ── Bottom two-panel grid (Check-ins / Trainers) ── */
+/* ── Bottom three-panel grid (Check-ins / Pending Renewals / Trainers) ── */
 .bottom-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
   margin-top: 0.5rem;
 }
@@ -109,7 +109,7 @@
 @media (max-width: 900px) {
   .stats-grid-members { grid-template-columns: repeat(2, 1fr); }
   .stats-grid-revenue { grid-template-columns: repeat(2, 1fr); }
-  .bottom-grid        { grid-template-columns: 1fr; }
+  .bottom-grid        { grid-template-columns: 1fr; } /* 3-panel → stacked */
 }
 
 /* ─────────────────────────────────────────────────────
@@ -205,4 +205,54 @@
 
 @media (max-width: 360px) {
   .greeting { font-size: 1.25rem; }
+}
+
+/* ── Pending Renewals panel: per-row action buttons ── */
+.renewal-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Approve: green tinted icon link — navigates to payments page */
+.renewal-approve-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-green-dim);
+  color: var(--accent-green);
+  border: 1px solid rgba(74,222,128,0.2);
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.renewal-approve-btn:hover {
+  background: rgba(74,222,128,0.22);
+  border-color: rgba(74,222,128,0.35);
+}
+
+/* Decline: red tinted icon button — calls decline mutation */
+.renewal-decline-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-red-dim);
+  color: var(--accent-red);
+  border: 1px solid rgba(248,113,113,0.2);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.renewal-decline-btn:hover:not(:disabled) {
+  background: rgba(248,113,113,0.22);
+  border-color: rgba(248,113,113,0.35);
+}
+.renewal-decline-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

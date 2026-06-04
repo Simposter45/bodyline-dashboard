@@ -21,6 +21,17 @@ import {
 // Exported so page.tsx can reference it without re-defining.
 // Mirrors the shape consumed by the dashboard JSX — single source of truth.
 
+// A single pending renewal request row for the dashboard panel
+export interface PendingRenewalRequest {
+  id: string; // member_memberships.id — used for the decline mutation
+  memberId: string;
+  memberName: string;
+  memberPhone: string;
+  planName: string;
+  planPrice: number;
+  submittedAt: string; // created_at ISO string
+}
+
 export interface DashboardStats {
   members: {
     totalActive: number;
@@ -42,6 +53,7 @@ export interface DashboardStats {
     attendance: AttendanceWithMember[];
   };
   trainers: Trainer[];
+  pendingRenewals: PendingRenewalRequest[];
 }
 
 // ── Fetcher (private to this module) ────────────────────────────────
@@ -49,7 +61,7 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
   const supabase = createClient();
   const { start: todayStart, end: todayEnd } = todayRangeIST();
 
-  const [activeRes, newRes, mmRes, attRes, trainerRes, expiringRes] =
+  const [activeRes, newRes, mmRes, attRes, trainerRes, expiringRes, pendingRenewalsRes] =
     await Promise.all([
       // 1. Total active members
       supabase
@@ -92,15 +104,24 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
         .gte("end_date", todayISO())
         .lte("end_date", sevenDaysFromNow())
         .eq("payment_status", "paid"),
+
+      // 7. Pending renewal requests — member-submitted renewals awaiting owner action
+      //    Joins member (name, phone) and plan (name, price) for the dashboard panel.
+      supabase
+        .from("member_memberships")
+        .select("id, member_id, created_at, member:members(full_name, phone), plan:membership_plans(name, price)")
+        .eq("payment_status", "pending")
+        .order("created_at", { ascending: false }),
     ]);
 
   // Throw on any query error — TanStack Query catches and exposes via .error
-  if (activeRes.error)   throw activeRes.error;
-  if (newRes.error)      throw newRes.error;
-  if (mmRes.error)       throw mmRes.error;
-  if (attRes.error)      throw attRes.error;
-  if (trainerRes.error)  throw trainerRes.error;
-  if (expiringRes.error) throw expiringRes.error;
+  if (activeRes.error)          throw activeRes.error;
+  if (newRes.error)             throw newRes.error;
+  if (mmRes.error)              throw mmRes.error;
+  if (attRes.error)             throw attRes.error;
+  if (trainerRes.error)         throw trainerRes.error;
+  if (expiringRes.error)        throw expiringRes.error;
+  if (pendingRenewalsRes.error) throw pendingRenewalsRes.error;
 
   // ── Revenue calculations ─────────────────────────────────────────
   // Supabase returns `plan` as a single object for this many-to-one
@@ -159,6 +180,27 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
   // ── Attendance ───────────────────────────────────────────────────
   const attendance = (attRes.data ?? []) as AttendanceWithMember[];
 
+  // ── Pending Renewals — typed inline; the join returns nested objects ──
+  type PendingRenewalRow = {
+    id: string;
+    member_id: string;
+    created_at: string;
+    member: { full_name: string; phone: string } | null;
+    plan: { name: string; price: number } | null;
+  };
+
+  const pendingRenewals: PendingRenewalRequest[] = (
+    (pendingRenewalsRes.data ?? []) as unknown as PendingRenewalRow[]
+  ).map((row) => ({
+    id: row.id,
+    memberId: row.member_id,
+    memberName: row.member?.full_name ?? "Unknown",
+    memberPhone: row.member?.phone ?? "",
+    planName: row.plan?.name ?? "Unknown Plan",
+    planPrice: row.plan?.price ?? 0,
+    submittedAt: row.created_at,
+  }));
+
   return {
     members: {
       totalActive:      activeRes.data?.length ?? 0,
@@ -180,6 +222,7 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
       attendance,
     },
     trainers: (trainerRes.data ?? []) as Trainer[],
+    pendingRenewals,
   };
 }
 
