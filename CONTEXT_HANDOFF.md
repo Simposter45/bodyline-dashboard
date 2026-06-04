@@ -7,8 +7,13 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🎯 Current Focus & Active Objective
 
 * **SaaS Migration Status**: **MIGRATION COMPLETE & MERGED TO `main`** ✅
-* **Current Focus**: **Pre-Launch Analytics & Automation** (Before Sprint 3)
-  * **Objective**: Sprint 1 and Sprint 2 are 100% complete (including `FEAT-010k`). Before rebuilding the Member Portal (Sprint 3), we are prioritizing critical pre-launch features: Revenue Analytics (`FEAT-013`), WhatsApp Automations, Razorpay integration, and Auto Status Expiry (`CHORE-002b`).
+* **Environment Pipeline Setup**: **COMPLETE (Dev → UAT → Prod)** ✅
+* **Current Focus**: **Pre-Launch — Bug Fixes, Device Fingerprinting & QR Scanners**
+  * **Objective**: The Member Portal Rebuild (`FEAT-009`) and Trainer Portal Rebuild (`FEAT-010`) are now 100% complete, including Progressive Web App (PWA) offline installation support. The immediate next steps before production launch are:
+    1. **Bug Fixes**: Address any UAT/QA bugs found during deployment.
+    2. **Device Fingerprinting (Anti-Fraud)**: Tag a member's specific mobile device in the database upon first login to prevent credential sharing for QR attendance.
+    3. **QR Scanner Desk Interface**: Build the staff-facing scanner.
+    4. **Razorpay Integration**: (Planned).
 
 ---
 
@@ -17,11 +22,11 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 * **Framework**: Next.js 16.2.1 (App Router) + Supabase SSR. (Pages Router is forbidden).
 * **Multi-Tenancy Resolution**:
   * Scoped via the `gym_id` column present across all 8 tables.
-  * Resolved at the request level via Next.js middleware using subdomain headers.
+  * Resolved at the request level via Next.js proxy using subdomain headers.
   * Local Dev: resolves subdomains like `[slug].localhost` or falls back to the `?gym=slug` query parameter bypass.
 * **Security & Row Level Security (RLS)**:
   * PostgreSQL RLS is active, verified, and hardened across all tables.
-  * Tenant boundaries are enforced via `current_gym_id()` which extracts the middleware-injected tenant context.
+  * Tenant boundaries are enforced via `current_gym_id()` which extracts the proxy-injected tenant context.
   * Direct client-side gym-filtering is prohibited; all scoping must go through authenticated, RLS-enforced database queries.
 * **Data Fetching**: TanStack Query v5 is the project standard. Raw client-side `useEffect` data fetching is prohibited. Custom hooks live in `hooks/`.
 * **State & Styling**:
@@ -35,7 +40,7 @@ This document is the absolute **single source of truth** for the multi-tenant Sa
 ## 🗄️ Database & RLS Infrastructure
 
 ### Multi-Tenant Helper Functions
-The tenant identifier is automatically resolved in middleware and injected into the database session context. The following PostgreSQL RLS helper is the source of truth for all query policies:
+The tenant identifier is automatically resolved in proxy and injected into the database session context. The following PostgreSQL RLS helper is the source of truth for all query policies:
 ```sql
 CREATE OR REPLACE FUNCTION current_gym_id()
 RETURNS UUID AS $$
@@ -92,6 +97,12 @@ $$ LANGUAGE sql STABLE;
 * Built the Plans tab in Gym Settings for the owner to create, edit, deactivate, and restore membership plans, completely driven by TanStack mutations.
 * Added deep subscription operations (Pause, Extend, Cancel, Resume) inside the `MemberDrawer`, updating the DB correctly and reflecting states with warning banners.
 
+### 9. Pre-Launch Bug Fixes & UX Polish
+* **`BUG-007` — PWA Icons & iOS Install**: Fixed Android adaptive icon masking by generating proper square `maskable` safe-zone icons. Implemented a custom iOS guidance banner ("Share → Add to Home Screen") since Apple blocks programmatic install prompts.
+* **`BUG-005` — iOS Safari Auto-Zoom**: Prevented form input auto-zoom on iPhones by enforcing `maximum-scale=1` and `16px` font-sizes on inputs.
+* **`BUG-004` — Gym Branding Flicker**: Eliminated layout shift on page reloads by synchronously initializing `sessionStorage` states and adding CSS skeleton loaders for the initial React Query fetch cycle in `TrainerNav` and `MemberNav`.
+* **`BUG-006` — Trainer PT Bookings**: Fixed silent `PGRST116` errors by granting trainers `UPDATE` RLS permission on their assigned `bookings`. Overhauled the Sessions tab UI to split out **Pending Requests**, **Upcoming Sessions** (Confirmed), and completed **Session Logs**.
+
 ---
 
 ## 🚀 Strategic Development Trajectory (Sprint Roadmap)
@@ -128,24 +139,28 @@ We structure our near-term roadmap into four high-focus Sprints, separating owne
 
 ---
 
-### 🔴 PRE-LAUNCH FOCUS — Analytics, Automation, & Payments (Immediate Next)
+### 🔴 PRE-LAUNCH FOCUS — Analytics, Automation, & Payments (PAUSED / PARTIAL)
 Before tackling the Member Portal, these operational features are required for a production-ready SaaS launch:
-* **`FEAT-013` — Revenue Health Graph**: Replace the static card on the Payments page with an interactive Recharts line/bar chart (Revenue ₹ vs. Active Members) over Week, Month, 6 Months, and 1 Year scales.
+* **`FEAT-013` & `FEAT-014` — Revenue & Growth Analytics**: **DONE ✅**
+  * Replaced the static cards with interactive Recharts components. Added the Revenue Health Graph (collection rates) to the Payments page and a Cumulative Growth Graph (revenue vs. members) to the Dashboard.
 * **[BLOCKED] Automated WhatsApp Workflows**: *Currently blocked due to Meta template rejection and number ban.* Implement template-based Auto-Expiry Warnings, Payment Receipts, and Birthday Wishes using the existing Meta Cloud API. Include Bulk WhatsApp Reminders for overdue members.
-* **Razorpay Payment Integration**: Architecture planning and implementation for tenant-specific Razorpay key management in `gym_settings` and automated webhook resolution to eliminate cash bottlenecks.
+* **[PAUSED] Razorpay Payment Integration**: **PLAN READY ⏸️**
+  * Architecture planning complete and saved to `RAZORPAY_PLAN.md`. Ready for implementation later.
 * **GST Invoice / Receipt PDF**: Client-side generation (e.g., `jsPDF`) of receipts per payment for Indian market compliance.
-* **`CHORE-002b` — Auto Status Transition (CRITICAL)**: Set up a `pg_cron` or Edge Function batch job to automatically transition expired memberships to `overdue` at midnight. (Must be done before Member Portal reads this status).
+* **`CHORE-002b` — Auto Status Transition (CRITICAL)**: **DONE ✅**
+  * Configured a `pg_cron` job running nightly at 00:30 IST to automatically transition expired active/pending memberships to `overdue` across all tenants. Added `/api/cron/expire-memberships` as a secure manual trigger.
 * **MoM Trend Tracking (Future)**: Add explicit +5% / -5% month-over-month history tracking metrics to both Members and Payments features.
 * **Reminder ROI Dashboard (Future)**: Add a section demonstrating the ROI of the automated reminders (e.g., "Revenue recovered due to reminders" / "Members retained after warning").
 
 ---
 
-### 🟡 SPRINT 3 — Member Portal Rebuild (`FEAT-009`)
-* **Mobile-First Portal Rebuild**: Refactor the 1,316-line bespoke Member Portal monolith into modular, hook-driven components with co-located CSS.
+### 🔴 SPRINT 3 — Member Portal Rebuild (`FEAT-009`) : **DONE ✅**
+* **Mobile-First Portal Rebuild**: Refactored the 1,316-line bespoke Member Portal monolith into modular, hook-driven components with co-located CSS.
 * **Digital Membership Card**: Hero element showing member details, plan expiry, and a dynamic QR code.
 * **`FEAT-011` — QR Code Check-In Generation**: Dynamic, time-restricted QR codes in the Member Portal to be scanned at the desk.
 * **Self-Service Renewal Request UI**: Interface allowing members to submit renewal requests directly.
 * **Personal Attendance History**: IST-safe historical check-in logs for individual members.
+* **Progressive Web App (PWA) Support**: Configured manifest and service workers for both Member and Trainer portals for native iOS/Android "Add to Home Screen" support.
 
 ---
 
@@ -154,6 +169,9 @@ Before tackling the Member Portal, these operational features are required for a
 * **`CHORE-001` — Atomic Member Creation**: Refactor the 2-step onboarding sequence (insert member → insert membership) into a single, atomic Supabase RPC.
 * **`FEAT-008` — Loading Skeletons**: Add custom CSS skeleton shimmer loading screens to replace basic "Loading..." texts.
 * **Attendance Heatmap**: Grid-based peak-hour check-in visualizers for managing floor capacity.
+* **Trainer Onboarding**: Automated/guided onboarding flows for new trainers joining the platform.
+* **Hardware Attendance System**: Integration with hardware locks or physical QR scanner devices for automated turnstile access.
+* **Cross-Platform Mobile App**: Build native or cross-platform (React Native/Flutter) mobile apps for all users (Far Backlog — to be tackled post-launch of the web platform).
 
 ---
 
@@ -290,17 +308,43 @@ Trainers are accountable staff, not just service providers — their own attenda
 ### Multitenancy via Subdomains
 The platform is designed to isolate gym data using `gym_id`. To provide a seamless SaaS experience, we will implement **subdomain routing** (`[gym_slug].bodyline.app`).
 * **Requirements**: Add a `slug` column to the `gyms` table.
-* **Resolution**: Next.js middleware will read the incoming Vercel wildcard subdomain request, lookup the `gym_slug`, resolve the `gym_id`, and inject it into the session context.
+* **Resolution**: Next.js proxy will read the incoming Vercel wildcard subdomain request, lookup the `gym_slug`, resolve the `gym_id`, and inject it into the session context.
 * **Status**: **PENDING** (Highest priority architectural task before onboarding gym #2).
 
-### Deployment Pipeline (Dev → UAT → Prod)
-To prevent pushing broken code to production, the Git/Vercel pipeline must adhere to the following strict environments:
-1. **Local Dev (`feat/*`)**: Connected to a future Supabase Dev project via `.env.local`.
-2. **UAT (`develop` branch)**: Hosted on Vercel at `uat.bodyline.app`. Connected to the Dev project. Used for testing merged features.
-3. **Production (`main` branch)**: Hosted on Vercel at `bodyline-dashboard.vercel.app`. Connected to the Prod Supabase project. Real client data only.
+### Deployment Pipeline (Dev → UAT → Prod) ✅ LIVE
+
+The 3-tier Git/Vercel pipeline is fully operational with a **GitFlow-Lite** release model:
+
+| Layer | Branch | URL | Supabase Project | Purpose |
+|---|---|---|---|---|
+| **Local Dev** | `feat/*`, `bug/*`, `chore/*` | `localhost:3000` | Dev (`qkgxvbvecjgzykvyzrek`) | Write & test code |
+| **UAT** | `develop` | `bodyline-uat.vercel.app` | Dev (same) | Validate before prod |
+| **Production** | `main` | `bodyline-dashboard.vercel.app` | Prod (`zhdnbrvrmjcxjlfhqlwt`) | Live demo / client |
+
+**Day-to-day workflow:**
+```
+feat/* → merge to develop → auto-deploy UAT → verify → release queue
+```
+
+**Production release (2× per week, batch):**
+```
+develop (UAT verified) → prod-deploy/YYYY-MM-DD → merge to main → tag release/YYYY-MM-DD
+```
+- `prod-deploy/*` branches are the **controlled release gate** — they bundle one or more UAT-approved features into a single production shipment.
+- Every `main` merge is **tagged** (`release/YYYY-MM-DD`) for rollback traceability.
+- Release decisions (what ships and when) are made by the product owner.
+
+**Dev DB Schema Setup:** Run `scripts/00_fresh_schema.sql` on a fresh Supabase project to create all tables + RLS from scratch.  
+**Dev DB Seed:** Run `npx tsx scripts/seed-dev.ts` to populate with distinct fake data (FitPeak Pune + Iron Temple Mumbai).
+
+**Dev credentials (UAT / Local only — never use on Prod):**
+- `owner@fitpeak.dev` / `Fitpeak@123` (FitPeak owner — slug: `bodyline`)
+- `owner@irontemple.dev` / `Iron@123456` (Iron Temple owner — slug: `iron-temple`)
+- `trainer1@fitpeak.dev` / `Fitpeak@123`
+- `trainer1@irontemple.dev` / `Iron@123456`
 
 ### Current Demo State
-Due to losing the initial beta client, the current production database (`bodyline-dashboard.vercel.app`) contains only seeded/demo data. This live URL is now the **permanent demo environment** for live, in-person sales pitches to gym owners until the Dev/Prod infrastructure split is completed.
+The production database (`bodyline-dashboard.vercel.app`) contains seeded/demo data and is used as the **permanent demo environment** for live, in-person sales pitches. The Dev/Prod infrastructure split is now complete.
 
 ---
 

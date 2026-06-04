@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import "./TrainerNav.css";
 import { createClient } from "@/lib/supabase/client";
 import type { Trainer } from "@/types";
@@ -28,8 +29,32 @@ export default function TrainerNav({
   gymSettings,
   onAvatarClick,
 }: TrainerNavProps) {
-  const gymName = gymSettings?.gym_display_name ?? "Bodyline";
-  const logoUrl = gymSettings?.logo_url ?? null;
+  const [cachedName, setCachedName] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("pwa_gym_name");
+    }
+    return null;
+  });
+  const [cachedLogo, setCachedLogo] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("pwa_gym_logo");
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (gymSettings) {
+      if (gymSettings.gym_display_name) sessionStorage.setItem("pwa_gym_name", gymSettings.gym_display_name);
+      if (gymSettings.logo_url) sessionStorage.setItem("pwa_gym_logo", gymSettings.logo_url);
+      setCachedName(gymSettings.gym_display_name);
+      setCachedLogo(gymSettings.logo_url || null);
+    }
+  }, [gymSettings]);
+
+  const gymName = gymSettings?.gym_display_name || cachedName;
+  const logoUrl = gymSettings?.logo_url || cachedLogo;
+  const isBrandingLoading = !gymName;
+
   const initials = getInitials(trainer.full_name);
 
   async function handleSignOut() {
@@ -41,18 +66,24 @@ export default function TrainerNav({
     <nav className="trainer-nav">
       {/* Left: gym brand */}
       <div className="trainer-nav-brand">
-        {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt={gymName}
-            className="trainer-nav-logo-img"
-          />
+        {isBrandingLoading ? (
+          <div className="skeleton-bar" style={{ width: 120, height: 24 }} />
         ) : (
-          <div className="trainer-nav-logo-fallback">
-            {gymName.charAt(0).toUpperCase()}
-          </div>
+          <>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={gymName!}
+                className="trainer-nav-logo-img"
+              />
+            ) : (
+              <div className="trainer-nav-logo-fallback">
+                {gymName!.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="trainer-nav-gym-name">{gymName}</span>
+          </>
         )}
-        <span className="trainer-nav-gym-name">{gymName}</span>
       </div>
 
       {/* Center: role pill */}

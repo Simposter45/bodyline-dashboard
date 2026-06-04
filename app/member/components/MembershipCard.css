@@ -1,0 +1,214 @@
+/* ============================================================
+   app/member/components/MembershipCard.css
+   Hero Digital ID card with QR code.
+   Premium design with gradient, micro-animations, and dynamic
+   urgency states (green -> amber -> red).
+   ============================================================ */
+
+.membership-card-wrapper {
+  perspective: 1000px;
+  width: 100%;
+}
+
+.membership-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
+}
+
+.membership-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hi);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Top Accent Bar ── */
+.membership-card-accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--accent-amber);
+  transition: background-color 0.3s ease;
+}
+
+.membership-card-accent-bar.urgent {
+  background: var(--accent-red);
+}
+
+.membership-card-accent-bar.active {
+  background: var(--accent-green);
+}
+
+/* ── Left Column: Details ── */
+.membership-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.membership-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.membership-card-member-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.membership-card-plan-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.membership-card-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.membership-card-date-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.membership-card-date-val {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* ── Status Row ── */
+.membership-card-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto; /* Push to bottom */
+  flex-wrap: wrap;
+}
+
+.membership-card-days-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: var(--accent-green-dim);
+  color: var(--accent-green);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.membership-card-days-badge.warning {
+  background: var(--accent-amber-dim);
+  color: var(--accent-amber);
+  border-color: rgba(251, 191, 36, 0.25);
+}
+
+.membership-card-days-badge.critical {
+  background: var(--accent-red-dim);
+  color: var(--accent-red);
+  border-color: rgba(248, 113, 113, 0.25);
+}
+
+/* ── Right Column: QR Code ── */
+.membership-card-qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.membership-card-qr-wrapper {
+  background: #ffffff; /* QR code must be black on white for reliable scanning */
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.membership-card-qr-wrapper svg {
+  display: block; /* Remove baseline gap */
+}
+
+.membership-card-qr-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Empty State ── */
+.membership-card-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+  background: var(--bg2);
+  border: 1px dashed var(--border-hi);
+  border-radius: var(--radius-lg);
+  gap: 12px;
+}
+
+.membership-card-empty-icon {
+  color: var(--text-muted);
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+
+.membership-card-empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.membership-card-empty-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 260px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .membership-card {
+    padding: 20px;
+    gap: 16px;
+  }
+  .membership-card-member-name {
+    font-size: 20px;
+  }
+  .membership-card-qr-wrapper {
+    padding: 8px;
+  }
+  /* On very small screens, stack slightly if needed, though side-by-side is usually better for ID cards */
+}

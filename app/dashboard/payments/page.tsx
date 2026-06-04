@@ -10,7 +10,7 @@ import { STATUS_CONFIG } from "@/lib/constants/status";
 import { formatINR, formatDate } from "@/lib/utils/format";
 import { monthStartISTTimestamp, currentMonthName } from "@/lib/utils/date";
 import { PaymentDrawer } from "./PaymentDrawer";
-import { RevenueHealthGraph } from "./RevenueHealthGraph";
+import { RevenueHealthGraph } from "@/components/ui/RevenueHealthGraph";
 import { RenewMembershipModal } from "@/components/members/RenewMembershipModal";
 import { RecordPaymentModal } from "@/components/members/RecordPaymentModal";
 import type { PaymentStatus } from "@/types";
@@ -180,8 +180,11 @@ export default function PaymentsPage() {
       totalOverdue: latestRecords
         .filter((r) => r.payment_status === "overdue")
         .reduce((s, r) => s + amountDue(r), 0),
+      // Use last_payment_at (when money was collected) as the date anchor.
+      // Falls back to created_at for memberships created before the migration
+      // or for first-time payments on new memberships.
       thisMonthCollected: records
-        .filter((r) => r.payment_status === "paid" && r.created_at >= monthStart)
+        .filter((r) => (r.last_payment_at ?? r.created_at) >= monthStart)
         .reduce((s, r) => s + (r.amount_paid ?? 0), 0),
       cashCount: records.filter((r) => r.payment_method === "cash").length,
       upiCount:  records.filter((r) => r.payment_method === "upi").length,
@@ -259,7 +262,7 @@ export default function PaymentsPage() {
     if (r.payment_status === "overdue") {
       actions.push({
         id: "renew",
-        // label: "Renew",
+        label: "Renew",
         icon: <RefreshCw size={13} />,
         variant: "primary",
         onClick: (e) => { e.stopPropagation(); setRenewTarget(r); },
@@ -637,7 +640,18 @@ export default function PaymentsPage() {
 
       {/* Payment detail drawer */}
       {selected && (
-        <PaymentDrawer record={selected} onClose={() => setSelected(null)} />
+        <PaymentDrawer
+          record={selected}
+          onClose={() => setSelected(null)}
+          onRecordPayment={() => {
+            setSelected(null);
+            setRecordTarget(selected);
+          }}
+          onRenew={() => {
+            setSelected(null);
+            setRenewTarget(selected);
+          }}
+        />
       )}
 
       {/* Renew Membership modal — overdue records */}

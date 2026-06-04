@@ -32,5 +32,5 @@ You are currently on Phase 3 Phase 4 of the `MIGRATION_PROGRESS.md` tracker.
 
 **Immediate Priorities for This Next Session:**
 1. **Refactor the Onboarding Page (`app/onboarding/page.tsx`)**: This is the very last legacy file remaining that hardcodes "Bodyline" text. Apply the exact same `useGymSettings` (React Query) pattern to make it dynamically change UI based on the `?gym=` parameter.
-2. **Build the SaaS Subdomain Middleware (`middleware.ts`)**: Implement Hostname resolution routing. Instead of relying purely on `.get("gym")`, the system should intercept requests natively like `gym1.localhost:3000` or `gym1.bodyline.in` and inject the context seamlessly.
+2. **Build the SaaS Subdomain Middleware (`proxy.ts`)**: Implement Hostname resolution routing. Instead of relying purely on `.get("gym")`, the system should intercept requests natively like `gym1.localhost:3000` or `gym1.bodyline.in` and inject the context seamlessly.
 3. **Conduct Final QA Audit Pass**: Perform a codebase-wide check searching for the string "Bodyline" (ignoring seed files) to ensure zero hardcoded traces remain.

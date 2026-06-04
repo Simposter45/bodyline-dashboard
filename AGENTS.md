@@ -9,7 +9,8 @@ Before writing any code or modifying files, you MUST adhere to the following wor
 1.  **Develop a Plan First**: Always develop a plan before creating a feature or a refactor, define exactly what is to be done.
 2.  **Ask Permission**: Always ask for permission from the USER to start writing the code. Do not write a single line of code until approved.
 3.  **Atomic/Incremental Steps**: Break down complex developments into the smallest possible logical steps. Execute only **one step at a time**, verify it, and then proceed to the next.
-4.  **No Over-Scope**: Only perform the exact task currently being addressed. Avoid "fixing" or "improving" unrelated code unless specified in the approved plan.
+4.  **Wait for Confirmation**: Do not proceed with the next step of a session until the previous step is well tested and confirmed to move from the user. Doing multiple complex steps at a time creates bugs. Wait for explicit signal before moving to the next step.
+5.  **No Over-Scope**: Only perform the exact task currently being addressed. Avoid "fixing" or "improving" unrelated code unless specified in the approved plan.
 
 ---
 
@@ -110,7 +111,7 @@ The auth system is **complete and working**. The 3-client pattern is intentional
 lib/supabase/
   client.ts     → Browser client (createBrowserClient from @supabase/ssr)
   server.ts     → Server client (createServerClient, reads cookies)
-  middleware.ts → Root middleware, role-based route protection
+  proxy.ts      → Root proxy, role-based route protection
 ```
 
 **Role Storage:** `user_metadata.role` in Supabase Auth.
@@ -135,7 +136,7 @@ Every decision must align with this target architecture:
 ┌─────────────────────────────────────────────────────┐
 │  subdomain routing: [gym_slug].bodyline.in          │
 │                                                     │
-│  middleware.ts                                      │
+│  proxy.ts                                           │
 │    → reads hostname                                 │
 │    → resolves gym_id from gyms table               │
 │    → injects gym_id into request headers           │
@@ -208,7 +209,7 @@ The agent must **never** do any of the following:
 2. ❌ Hard-code gym-specific data (names, phone numbers, UPI IDs) outside the `gym_settings` table
 3. ❌ Import from `@supabase/auth-helpers-nextjs`
 4. ❌ Use `any` TypeScript type — including `catch (error: any)`. Use `unknown` and narrow it.
-5. ❌ Drop or alter the `middleware.ts` logic without a structural review comment
+5. ❌ Drop or alter the `proxy.ts` logic without a structural review comment
 6. ❌ Remove `"use client"` from page files
 7. ❌ Change color hex values
 8. ❌ Use `<style jsx>` — styled-jsx is not installed. Use plain `<style>` tags or co-located `.css` files.
@@ -287,3 +288,69 @@ const { data } = await supabase.from("table").select("*");
 ### Icons
 - Use `lucide-react` for all icons. Never write custom inline SVG unless the icon genuinely does not exist in lucide.
 - Import only what you use: `import { Search, X } from "lucide-react"`.
+
+---
+
+## 10. DEPLOYMENT & ENVIRONMENT RULES (DEV → UAT → PROD)
+
+The SaaS platform operates on a strict 3-tier pipeline. **Never** test directly on Production or mix environment configurations.
+
+### The 3 Environments
+1. **Local Dev (`feat/*` branches)**: Uses the **Dev Supabase Database** (`qkgxvbvecjgzykvyzrek`). Running `npm run dev` connects to this database via `.env.local`.
+2. **UAT (`develop` branch)**: Auto-deployed to Vercel at `bodyline-uat.vercel.app`. Uses the **Dev Supabase Database**. This is the staging ground for QA before production.
+3. **Production (`main` branch)**: Auto-deployed to Vercel at `bodyline-dashboard.vercel.app`. Uses the **Prod Supabase Database**. Used for live client demos.
+
+### Schema & Data Management Rules
+- **Schema Updates**: Any new tables, columns, or RLS policies MUST be written into `scripts/00_fresh_schema.sql` so that new Dev environments can be spun up from scratch.
+- **Data Seeding**: Do not use the production database for dummy testing. The Dev database is populated via `npx tsx scripts/seed-dev.ts` with distinct multi-tenant test data (FitPeak & Iron Temple).
+- **Environment Variables**:
+  - `.env.local` contains Dev keys (for local development).
+  - Vercel `develop` branch is configured with Dev keys.
+  - Vercel `main` branch is configured with Prod keys.
+
+### Branching & Merge Strategy (GitFlow-Lite)
+
+#### Day-to-Day Development
+1. **Always branch from `develop`** — never from `main`.
+   ```
+   git checkout develop
+   git pull origin develop
+   git checkout -b feat/FEAT-XXX-short-description
+   ```
+2. Make your changes and test locally against the **Dev database** (`localhost:3000`).
+3. Commit using the standard convention and push:
+   ```
+   git push origin feat/FEAT-XXX-short-description
+   ```
+4. **Merge into `develop`** (directly or via PR). This auto-triggers a UAT deployment to `bodyline-uat.vercel.app`.
+5. **Verify on UAT.** The feature is now in the release queue — it does NOT go to Production yet.
+
+#### Production Release (2× per week, batch release)
+On a scheduled release date, one or more features that have been verified on UAT are promoted together:
+
+1. **Create a `prod-deploy` branch from `develop`** — this is the release snapshot:
+   ```
+   git checkout develop
+   git pull origin develop
+   git checkout -b prod-deploy/YYYY-MM-DD
+   ```
+2. **Merge `prod-deploy/YYYY-MM-DD` into `main`**:
+   ```
+   git checkout main
+   git merge prod-deploy/YYYY-MM-DD --no-ff -m "release: YYYY-MM-DD — [list features e.g. FEAT-013, CHORE-002b]"
+   git push origin main
+   ```
+3. **Tag the release** for rollback traceability:
+   ```
+   git tag release/YYYY-MM-DD
+   git push origin release/YYYY-MM-DD
+   ```
+4. Delete the `prod-deploy` branch after merging.
+
+#### Rules
+- ❌ Never push directly to `main`.
+- ❌ Never branch your feature work from `main`.
+- ❌ Never merge a feature that has not been verified on `bodyline-uat.vercel.app` first.
+- ❌ **Never directly merge any branch into `develop` or `main`.** Always push the feature branch and let the USER raise the PR and perform the merge.
+- ✅ `develop` is always UAT-ready and deployable.
+- ✅ `main` only receives code via `prod-deploy/*` release branches on scheduled release dates.

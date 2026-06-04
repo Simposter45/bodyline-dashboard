@@ -101,6 +101,7 @@ export default function DashboardPage() {
             />
           </div>
 
+
           {/* Today panels */}
           <p className="section-label">Today</p>
           <div className="bottom-grid">

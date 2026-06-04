@@ -199,3 +199,17 @@ export function formatDateIST(isoStr: string): string {
   });
 }
 
+/**
+ * Formats an arbitrary ISO timestamp into a human-readable time string in IST.
+ * e.g. "07:30 AM"
+ */
+export function formatTimeIST(isoStr: string): string {
+  if (!isoStr) return "";
+  return new Date(isoStr).toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Kolkata",
+  });
+}
+

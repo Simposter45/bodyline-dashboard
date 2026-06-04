@@ -388,6 +388,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
   }
 
   /* Shared base for primary + ghost buttons */
@@ -412,6 +413,9 @@
     background: var(--accent-green);
     border: 1px solid var(--accent-green);
     color: #0d0d0f;
+    flex: 1;
+    justify-content: center;
+    min-width: 45%;
   }
   .card-action-bar-btn-primary:hover { opacity: 0.88; }
 
@@ -422,6 +426,7 @@
     color: var(--text-secondary);
     flex: 1; /* fills remaining space */
     justify-content: center;
+    min-width: 45%;
   }
   .card-action-bar-btn-ghost:hover {
     background: var(--bg3);

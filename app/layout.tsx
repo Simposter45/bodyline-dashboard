@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Syne, DM_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
@@ -17,6 +17,16 @@ const dmSans = DM_Sans({
 });
 
 
+
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   title: "The Gym",
@@ -38,6 +48,8 @@ export default function RootLayout({
           html { height: 100%; -webkit-font-smoothing: antialiased; }
           body { margin: 0; padding: 0; }
         `}} />
+        <ServiceWorkerRegister />
+        <PWAInstallPrompt />
         <QueryProvider>
           {children}
           <Toaster 

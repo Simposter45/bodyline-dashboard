@@ -32,6 +32,9 @@ export interface DashboardStats {
     totalPending: number;
     totalOverdue: number;  // Monetary amount owed across all overdue memberships
     overdueCount: number;  // Number of overdue membership records (for sub-label)
+    collectionRate: number;
+    cashCount: number;
+    upiCount: number;
   };
   today: {
     todayCheckins: number;
@@ -65,7 +68,7 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
       //    We select member_id and created_at to group by latest membership
       supabase
         .from("member_memberships")
-        .select("member_id, payment_status, amount_paid, created_at, plan:membership_plans(price)")
+        .select("member_id, payment_status, payment_method, amount_paid, created_at, plan:membership_plans(price)")
         .order("created_at", { ascending: false }),
 
       // 4. Today's check-ins with member name/photo for the panel list
@@ -105,6 +108,7 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
   type MembershipRow = {
     member_id: string;
     payment_status: string;
+    payment_method: string | null;
     amount_paid: number | null;
     plan: { price: number } | null;
   };
@@ -130,6 +134,7 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
   // totalCollected: cumulative money received across ALL membership rows.
   // MUST use allMMPayloads (not deduplicated) — a renewed member has
   // multiple paid rows and each represents real money collected.
+  // Uses payment_status === "paid" — the original correct semantics.
   const totalCollected = allMMPayloads
     .filter((m) => m.payment_status === "paid")
     .reduce((sum, m) => sum + (m.amount_paid ?? 0), 0);
@@ -145,6 +150,12 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
     0,
   );
 
+  const totalBilled = totalCollected + totalPending + totalOverdue;
+  const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
+
+  const cashCount = allMMPayloads.filter((m) => m.payment_method === "cash").length;
+  const upiCount = allMMPayloads.filter((m) => m.payment_method === "upi").length;
+
   // ── Attendance ───────────────────────────────────────────────────
   const attendance = (attRes.data ?? []) as AttendanceWithMember[];
 
@@ -159,6 +170,9 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
       totalPending,
       totalOverdue,
       overdueCount: overdueRows.length,
+      collectionRate,
+      cashCount,
+      upiCount,
     },
     today: {
       todayCheckins:  attendance.length,
@@ -179,7 +193,10 @@ export function useDashboardStats() {
   return useQuery<DashboardStats, Error>({
     queryKey: ["dashboard-stats"],
     queryFn: fetchDashboardStats,
-    staleTime: 60 * 1000,     // Refetch in background after 1 minute
+    // staleTime: 0 — always refetch on mount so navigating back to the
+    // dashboard after recording a payment always shows up-to-date numbers.
+    // gcTime keeps the last result in memory to avoid a blank flash.
+    staleTime: 0,
     gcTime:    5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 }

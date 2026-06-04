@@ -9,9 +9,9 @@ const PROTECTED: Record<string, string[]> = {
 };
 
 // Public routes — never redirect
-const PUBLIC = ["/", "/login", "/onboarding", "/checkin"];
+const PUBLIC = ["/", "/login", "/onboarding", "/checkin", "/api/cron"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
 
   let supabaseResponse = NextResponse.next({
@@ -49,14 +49,14 @@ export async function middleware(request: NextRequest) {
   const host = request.headers.get("host") || "";
   let slug: string | undefined = undefined;
 
-  if (host.includes("localhost") || host.includes("127.0.0.1")) {
+  if (host.includes("localhost") || host.includes("127.0.0.1") || host.includes("vercel.app")) {
     const parts = host.split(".");
-    if (parts.length > 1 && parts[0] !== "www") {
+    // Only extract subdomain if it's explicitly a local sub (e.g. bodyline.localhost)
+    if (host.includes("localhost") && parts.length > 1 && parts[0] !== "www" && parts[0] !== "localhost") {
       slug = parts[0];
     }
-    // Local dev fallback: ?gym=slug when no subdomain is present.
-    // Allows testing irontemple.localhost:3000 OR localhost:3000?gym=irontemple.
-    // Only active for localhost — never reached in production.
+    // Fallback: ?gym=slug when no valid subdomain is present.
+    // Active for localhost and Vercel UAT domains.
     if (!slug) {
       const paramSlug = request.nextUrl.searchParams.get("gym");
       if (paramSlug) slug = paramSlug;
@@ -150,6 +150,6 @@ export const config = {
      * - favicon.ico
      * - public files with extensions
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|js|webmanifest)$).*)",
   ],
 };

@@ -19,9 +19,11 @@ import type { PaymentStatus } from "@/types";
 interface PaymentDrawerProps {
   record: PaymentRecord;
   onClose: () => void;
+  onRecordPayment?: () => void;
+  onRenew?: () => void;
 }
 
-export function PaymentDrawer({ record, onClose }: PaymentDrawerProps) {
+export function PaymentDrawer({ record, onClose, onRecordPayment, onRenew }: PaymentDrawerProps) {
   const { data: gymSettings } = useGymSettings();
   const { mutate: sendReminder, isPending: isSending } = useSendReminder();
 
@@ -144,6 +146,23 @@ export function PaymentDrawer({ record, onClose }: PaymentDrawerProps) {
 
         {/* Actions */}
         <div className="payment-drawer-actions">
+          {due > 0 && onRecordPayment && (
+            <button
+              className="payment-drawer-btn payment-drawer-btn-primary"
+              onClick={onRecordPayment}
+            >
+              &#8377; Record Payment
+            </button>
+          )}
+          {statusKey === "overdue" && onRenew && (
+            <button
+              className="payment-drawer-btn payment-drawer-btn-ghost"
+              onClick={onRenew}
+              style={{ color: "var(--accent-blue)" }}
+            >
+              &#x21BA; Renew
+            </button>
+          )}
           <button 
             className="payment-drawer-btn payment-drawer-btn-secondary"
             disabled={!record.member.phone || due === 0 || isSending}

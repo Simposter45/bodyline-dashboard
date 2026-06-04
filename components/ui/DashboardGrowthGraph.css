@@ -1,0 +1,286 @@
+/* ============================================================
+   components/ui/DashboardGrowthGraph.css — FEAT-015
+   Styles for the Dashboard Growth Graph.
+   Shared tokens come from globals.css — not redefined here.
+   ============================================================ */
+
+/* ── Panel ── */
+.dg-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 24px 20px;
+  margin-bottom: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle gradient shimmer in the background */
+.dg-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 80% 0%,
+    rgba(74, 222, 128, 0.04) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+/* ── Header ── */
+.dg-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.dg-header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.dg-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dg-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.dg-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.dg-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── KPI chips in header ── */
+.dg-kpi-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.dg-kpi-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  min-width: 100px;
+}
+
+.dg-kpi-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dg-kpi-value {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.dg-kpi-delta {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dg-kpi-delta.up   { color: var(--accent-green); }
+.dg-kpi-delta.down { color: var(--accent-red);   }
+.dg-kpi-delta.flat { color: var(--text-muted);   }
+
+/* ── Scale toggles ── */
+.dg-scales {
+  display: flex;
+  gap: 4px;
+}
+
+.dg-scale-btn {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 30px;
+  white-space: nowrap;
+}
+.dg-scale-btn:hover {
+  background: var(--bg3);
+  color: var(--text-secondary);
+  border-color: var(--border-hi);
+}
+.dg-scale-btn.active {
+  background: var(--accent-green-dim);
+  color: var(--accent-green);
+  border-color: rgba(74, 222, 128, 0.3);
+}
+
+/* ── Legend ── */
+.dg-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.dg-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.dg-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.dg-swatch.line {
+  height: 3px;
+  border-radius: 99px;
+  margin-bottom: 1px;
+}
+
+.dg-swatch.green { background: var(--accent-green); opacity: 0.85; }
+.dg-swatch.blue  { background: var(--accent-blue); }
+
+/* ── Chart container ── */
+.dg-chart-wrap {
+  width: 100%;
+  height: 260px;
+  position: relative;
+}
+
+.dg-chart-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Empty state ── */
+.dg-empty {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ── Custom tooltip ── */
+.dg-tooltip {
+  background: var(--bg3);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.dg-tooltip-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.dg-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.dg-tooltip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dg-tooltip-dot.green { background: var(--accent-green); }
+.dg-tooltip-dot.blue  { background: var(--accent-blue);  }
+
+.dg-tooltip-key {
+  color: var(--text-secondary);
+  flex: 1;
+  font-size: 12px;
+}
+
+.dg-tooltip-val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.dg-tooltip-val.green { color: var(--accent-green); }
+.dg-tooltip-val.blue  { color: var(--accent-blue);  }
+
+.dg-tooltip-delta {
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.dg-tooltip-delta.up   { color: var(--accent-green); }
+.dg-tooltip-delta.down { color: var(--accent-red); }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .dg-panel { padding: 16px 14px 16px; }
+  .dg-chart-wrap { height: 200px; }
+  .dg-title { font-size: 1.15rem; }
+  .dg-header { gap: 10px; }
+  .dg-kpi-chip { min-width: 0; flex: 1; padding: 7px 10px; }
+  .dg-kpi-value { font-size: 0.95rem; }
+  .dg-scales { gap: 3px; }
+  .dg-scale-btn { font-size: 11px; padding: 4px 10px; min-height: 28px; }
+}

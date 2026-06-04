@@ -1,0 +1,152 @@
+/* ============================================================
+   app/member/components/MemberNav.css
+   Compact top navigation for the Member Portal.
+   Mirrors TrainerNav.css structure but uses --accent-amber
+   as the member identity color, per AGENTS.md convention.
+   ============================================================ */
+
+/* ── Nav bar ────────────────────────────────────────────────── */
+.member-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  gap: 12px;
+}
+
+/* ── Left: gym logo + name ──────────────────────────────────── */
+.member-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.member-nav-logo-img {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.member-nav-logo-fallback {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-amber-dim);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent-amber);
+  flex-shrink: 0;
+}
+
+.member-nav-gym-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+/* ── Center: role pill ──────────────────────────────────────── */
+.member-nav-role-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 99px;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  background: var(--accent-amber-dim);
+  color: var(--accent-amber);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Right: member identity + sign-out ─────────────────────── */
+.member-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.member-nav-name {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.member-nav-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-amber-dim);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent-amber);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.member-nav-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.member-nav-signout {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+  min-height: 30px;
+}
+
+.member-nav-signout:hover {
+  border-color: var(--border-hi);
+  color: var(--text-secondary);
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .member-nav {
+    padding: 12px 16px;
+  }
+  .member-nav-name {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Mobile: brand (left) + avatar (right only), role pill + sign-out hidden */
+  .member-nav-role-pill {
+    display: none;
+  }
+  .member-nav-signout {
+    display: none;
+  }
+  /* Avatar stays visible for identity */
+}
