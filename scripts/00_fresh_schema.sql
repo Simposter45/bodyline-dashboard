@@ -805,3 +805,14 @@ SELECT id, name, slug FROM gyms;
 -- Check the cron job is registered
 SELECT jobid, jobname, schedule, active FROM cron.job
 WHERE  jobname = 'expire-overdue-memberships';
+
+-- ==============================================================================
+-- SECTION 15: Realtime Configuration
+-- ==============================================================================
+
+-- Ensure supabase_realtime publication exists (created by default in Supabase)
+-- and add member_memberships so the owner dashboard and member portals can update instantly
+BEGIN;
+  -- If table is already added, this will just warn and continue
+  ALTER PUBLICATION supabase_realtime ADD TABLE member_memberships;
+COMMIT;
